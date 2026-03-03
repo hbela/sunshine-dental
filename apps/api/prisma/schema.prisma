@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Required by better-auth — do not rename
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Custom fields
+  role          Role      @default(ASSISTANT)
+
+  // Relations
+  sessions            Session[]
+  accounts            Account[]
+  providerProfile     Provider?
+  delegateAssignments CalendarDelegation[] @relation("DelegateAssignments")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+}
+
+enum Role {
+  PROVIDER
+  ASSISTANT
+  ADMIN
+}
+
+// Provider profile — one-to-one with User (role = PROVIDER)
+model Provider {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty    String?
+  phone        String?
+  bio          String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  appointments     Appointment[]
+  calendarEvents   CalendarEvent[]
+  delegationsOwned CalendarDelegation[] @relation("DelegationOwner")
+}
+
+// Patient registry (populated by voice agent capture_patient_info)
+model Patient {
+  id                String    @id @default(cuid())
+  name              String
+  phone             String?
+  email             String?
+  reason            String?
+  isNewPatient      Boolean   @default(true)
+  callbackRequested Boolean   @default(false)
+  preferredTime     String?   // 'morning' | 'afternoon' | 'evening'
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  appointments Appointment[]
+  callLogs     CallLog[]
+}
+
+// Appointments
+model Appointment {
+  id              String            @id @default(cuid())
+  patientId       String?
+  patient         Patient?          @relation(fields: [patientId], references: [id])
+  patientName     String            // Denormalized for display
+  patientPhone    String?
+  patientEmail    String?
+  providerId      String
+  provider        Provider          @relation(fields: [providerId], references: [id])
+  providerName    String            // Denormalized for display
+  appointmentType AppointmentType
+  date            DateTime          @db.Date
+  startTime       DateTime          @db.Time
+  endTime         DateTime          @db.Time
+  durationMinutes Int
+  status          AppointmentStatus @default(CONFIRMED)
+  isNewPatient    Boolean           @default(false)
+  notes           String?
+  callId          String?           // Retell call_id that triggered booking
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+enum AppointmentType {
+  CLEANING
+  NEW_PATIENT_EXAM
+  DEEP_CLEANING
+  FILLING
+  CROWN_PREP
+  CONSULTATION
+  EMERGENCY
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+// Call logs (populated by post-call webhook)
+model CallLog {
+  id                  String   @id @default(cuid())
+  callId              String   @unique  // Retell call_id
+  agentId             String?
+  patientId           String?
+  patient             Patient? @relation(fields: [patientId], references: [id])
+  fromNumber          String?
+  toNumber            String?
+  direction           String   @default("inbound")
+  durationSeconds     Int      @default(0)
+  status              String?
+  disconnectionReason String?
+  transcript          String?  @db.Text
+  summary             String?  @db.Text
+  sentiment           String?  // 'Positive' | 'Neutral' | 'Negative'
+  successful          Boolean?
+  startTime           DateTime?
+  endTime             DateTime?
+  createdAt           DateTime @default(now())
+}
+
+// Explicit calendar events — created/managed by Provider or delegated Assistant
+model CalendarEvent {
+  id         String            @id @default(cuid())
+  providerId String
+  provider   Provider          @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  title      String            // "Morning Shift", "Break", "Vacation"
+  start      DateTime          // Full datetime (date + time)
+  end        DateTime          // Full datetime (date + time)
+  allDay     Boolean           @default(false)
+  type       CalendarEventType @default(AVAILABLE)
+  recurrence String?           // RRULE string for recurring events (future use)
+  notes      String?
+  createdBy  String?           // userId of who created this (provider or assistant)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+}
+
+enum CalendarEventType {
+  AVAILABLE   // Provider is available for bookings
+  BLOCKED     // Provider is unavailable (break, admin, etc.)
+  VACATION    // Provider is on vacation
+}
+
+// Calendar delegation — provider delegates calendar management to an assistant (User)
+model CalendarDelegation {
+  id         String    @id @default(cuid())
+  ownerId    String
+  owner      Provider  @relation("DelegationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  delegateId String
+  delegate   User      @relation("DelegateAssignments", fields: [delegateId], references: [id], onDelete: Cascade)
+  canView    Boolean   @default(true)
+  canEdit    Boolean   @default(false)
+  canBook    Boolean   @default(false)
+  validFrom  DateTime? @db.Date
+  validUntil DateTime? @db.Date
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}

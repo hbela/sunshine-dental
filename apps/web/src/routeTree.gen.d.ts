@@ -1,0 +1,2 @@
+export declare const routeTree: import("@tanstack/react-router").RootRoute<import("@tanstack/react-router").Register, undefined, {}, import("@tanstack/router-core").AnyContext, import("@tanstack/router-core").AnyContext, {}, undefined, unknown, unknown, unknown, unknown, undefined>;
+//# sourceMappingURL=routeTree.gen.d.ts.map
