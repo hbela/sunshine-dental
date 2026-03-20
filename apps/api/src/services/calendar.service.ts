@@ -130,6 +130,40 @@ export class CalendarService {
   }
 
   /**
+   * Get all active providers that have at least one bookable slot on a given date.
+   * Used by the Retell list_available_providers function.
+   */
+  static async getAvailableProviders(dateString: string, type?: string) {
+    const dayStart = new Date(`${dateString}T00:00:00.000Z`);
+    const dayEnd = new Date(`${dateString}T23:59:59.999Z`);
+
+    // Find active providers with at least one AVAILABLE event on this date
+    const providers = await prisma.provider.findMany({
+      where: {
+        isActive: true,
+        calendarEvents: {
+          some: {
+            type: 'AVAILABLE',
+            start: { lte: dayEnd },
+            end: { gte: dayStart },
+          },
+        },
+      },
+      include: { user: true },
+    });
+
+    // For each provider count actual bookable slots (respects blocks + appointments)
+    const results = await Promise.all(
+      providers.map(async (p) => {
+        const { slots } = await CalendarService.getAvailableSlots(dateString, type ?? 'CONSULTATION', p.id);
+        return { provider_id: p.id, provider_name: p.user.name, available_slots: slots.length };
+      })
+    );
+
+    return results.filter(r => r.available_slots > 0);
+  }
+
+  /**
    * Get calendar events for a provider within a date range (for react-big-calendar).
    */
   static async getEvents(providerId: string, from: string, to: string) {

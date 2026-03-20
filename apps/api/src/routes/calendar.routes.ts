@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { requireAuthOrApiKey, requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { CalendarService } from '../services/calendar.service.js';
-import { CalendarEventSchema, CalendarEventTypeSchema } from '@repo/shared';
 
 export async function calendarRoutes(fastify: FastifyInstance) {
   // GET /api/calendar/slots — get available appointment slots (used by n8n/Retell)
@@ -12,25 +11,14 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Calendar'],
       summary: 'Get available appointment slots',
-      querystring: z.object({
-        provider_id: z.string().optional(),
-        provider_name: z.string().optional(),
-        date: z.string(), // YYYY-MM-DD
-        appointment_type: z.string(),
-      }),
-      response: {
-        200: z.object({
-          slots: z.array(z.string()),
-          duration: z.number(),
-          provider_name: z.string().optional(),
-        }),
-        404: z.object({ error: z.string() }),
-        500: z.object({ error: z.string() }),
-      },
     },
     preHandler: [requireAuthOrApiKey],
     handler: async (request, reply) => {
       const { provider_id, provider_name, date, appointment_type } = request.query as any;
+
+      if (!date || !appointment_type) {
+        return reply.status(400).send({ error: 'date and appointment_type are required' });
+      }
       
       try {
         const result = await CalendarService.getAvailableSlots(date, appointment_type, provider_id, provider_name);
@@ -44,6 +32,25 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     },
   });
 
+  // GET /api/calendar/available-providers — list providers with slots on a given date (used by n8n/Retell)
+  fastify.route({
+    method: 'GET',
+    url: '/available-providers',
+    schema: {
+      tags: ['Calendar'],
+      summary: 'List providers that have available slots on a given date',
+    },
+    preHandler: [requireAuthOrApiKey],
+    handler: async (request, reply) => {
+      const { date, appointment_type } = request.query as any;
+      if (!date) {
+        return reply.status(400).send({ error: 'date is required' });
+      }
+      const result = await CalendarService.getAvailableProviders(date, appointment_type);
+      return result;
+    },
+  });
+
   // GET /api/calendar/:provider_id/events — get events for a date range (for react-big-calendar)
   fastify.route({
     method: 'GET',
@@ -51,11 +58,6 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Calendar'],
       summary: 'Get aggregated events for a date range (for react-big-calendar)',
-      params: z.object({ provider_id: z.string() }),
-      querystring: z.object({ from: z.string(), to: z.string() }),
-      response: {
-        200: z.array(CalendarEventSchema),
-      },
     },
     preHandler: [requireAuth, requireRole(['PROVIDER', 'ASSISTANT', 'ADMIN'])],
     handler: async (request, reply) => {
@@ -74,20 +76,6 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Calendar'],
       summary: 'Create a calendar event (provider or delegated assistant)',
-      body: z.object({
-        providerId: z.string(),
-        title: z.string(),
-        start: z.string(), // ISO datetime
-        end: z.string(),   // ISO datetime
-        allDay: z.boolean().default(false),
-        type: CalendarEventTypeSchema.default('AVAILABLE'),
-        recurrence: z.string().optional(),
-        notes: z.string().optional(),
-      }),
-      response: {
-        201: CalendarEventSchema,
-        403: z.object({ error: z.string() }),
-      },
     },
     preHandler: [requireAuth, requireRole(['PROVIDER', 'ASSISTANT', 'ADMIN'])],
     handler: async (request, reply) => {
@@ -110,20 +98,6 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Calendar'],
       summary: 'Update a calendar event',
-      params: z.object({ id: z.string() }),
-      body: z.object({
-        title: z.string().optional(),
-        start: z.string().optional(),
-        end: z.string().optional(),
-        allDay: z.boolean().optional(),
-        type: CalendarEventTypeSchema.optional(),
-        recurrence: z.string().nullable().optional(),
-        notes: z.string().nullable().optional(),
-      }),
-      response: {
-        200: CalendarEventSchema,
-        404: z.object({ error: z.string() }),
-      },
     },
     preHandler: [requireAuth, requireRole(['PROVIDER', 'ASSISTANT', 'ADMIN'])],
     handler: async (request, reply) => {
@@ -146,11 +120,6 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Calendar'],
       summary: 'Delete a calendar event',
-      params: z.object({ id: z.string() }),
-      response: {
-        200: z.object({ success: z.boolean() }),
-        404: z.object({ error: z.string() }),
-      },
     },
     preHandler: [requireAuth, requireRole(['PROVIDER', 'ASSISTANT', 'ADMIN'])],
     handler: async (request, reply) => {

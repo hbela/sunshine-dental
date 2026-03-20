@@ -8,7 +8,11 @@
         "start": "node dist/server.js",
         "db:generate": "prisma generate",
         "db:push": "prisma db push",
+        "db:seed": "tsx prisma/seed.ts",
         "db:studio": "prisma studio"
+    },
+    "prisma": {
+        "seed": "tsx prisma/seed.ts"
     },
     "dependencies": {
         "@better-auth/prisma-adapter": "latest",
@@ -19,15 +23,17 @@
         "@fastify/swagger-ui": "latest",
         "@prisma/client": "^6.0.0",
         "@repo/shared": "workspace:*",
+        "bcryptjs": "^3.0.3",
         "better-auth": "latest",
         "date-fns": "^4.1.0",
         "fastify": "^5.0.0",
-        "fastify-type-provider-zod": "^6.1.0",
+        "fastify-type-provider-zod": "^4.0.2",
         "nodemailer": "latest",
         "zod": "^3.23.0"
     },
     "devDependencies": {
         "@repo/typescript-config": "workspace:*",
+        "@types/bcryptjs": "^3.0.0",
         "@types/node": "^22.0.0",
         "@types/nodemailer": "latest",
         "prisma": "^6.0.0",

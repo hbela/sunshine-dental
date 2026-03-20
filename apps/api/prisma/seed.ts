@@ -1,0 +1,285 @@
+import { PrismaClient } from '@prisma/client';
+import { createHash, randomBytes } from 'crypto';
+import * as bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Hash a password using bcrypt (compatible with better-auth) */
+async function hashPassword(plain: string): Promise<string> {
+  return bcrypt.hash(plain, 10);
+}
+
+/** Generate a CUID-like ID */
+function cuid() {
+  return 'c' + randomBytes(11).toString('hex');
+}
+
+function daysFromNow(days: number, hour = 0, minute = 0) {
+  const d = new Date();
+  d.setUTCHours(hour, minute, 0, 0);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d;
+}
+
+// ---------------------------------------------------------------------------
+// Seed
+// ---------------------------------------------------------------------------
+
+async function main() {
+  console.log('🌱 Seeding database...');
+
+  // ── 1. Wipe existing data ─────────────────────────────────────────────────
+  await prisma.calendarDelegation.deleteMany();
+  await prisma.calendarEvent.deleteMany();
+  await prisma.appointment.deleteMany();
+  await prisma.callLog.deleteMany();
+  await prisma.provider.deleteMany();
+  await prisma.patient.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.verification.deleteMany();
+  await prisma.user.deleteMany();
+  console.log('  ✓ Cleared existing data');
+
+  // ── 2. Users & hashed passwords ───────────────────────────────────────────
+  type SeedRole = 'ADMIN' | 'PROVIDER' | 'ASSISTANT';
+
+  const usersData: Array<{ name: string; email: string; password: string; role: SeedRole }> = [
+    { name: 'Dr. Admin',        email: 'admin@sunshine.dental', password: 'Admin1234!',     role: 'ADMIN'     },
+    { name: 'Dr. Alice Nguyen', email: 'alice@sunshine.dental', password: 'Provider1234!',  role: 'PROVIDER'  },
+    { name: 'Dr. Bob Martinez', email: 'bob@sunshine.dental',   password: 'Provider1234!',  role: 'PROVIDER'  },
+    { name: 'Sara Johnson',     email: 'sara@sunshine.dental',  password: 'Assistant1234!', role: 'ASSISTANT' },
+  ];
+
+  const createdUsers: Record<string, any> = {};
+
+  for (const u of usersData) {
+    const hashedPw = await hashPassword(u.password);
+    const userId = cuid();
+    const accountId = cuid();
+
+    const user = await prisma.user.create({
+      data: {
+        id: userId,
+        name: u.name,
+        email: u.email,
+        emailVerified: true,
+        role: u.role as any,
+      },
+    });
+
+    // Create the account record that better-auth uses for email/password auth
+    await prisma.account.create({
+      data: {
+        id: accountId,
+        accountId: userId,
+        providerId: 'credential',     // better-auth uses 'credential' for email+pw
+        userId: userId,
+        password: hashedPw,
+      },
+    });
+
+    createdUsers[u.email] = user;
+  }
+
+  console.log('  ✓ Created 4 users (admin, 2 providers, 1 assistant)');
+
+  const adminUser  = createdUsers['admin@sunshine.dental'];
+  const aliceUser  = createdUsers['alice@sunshine.dental'];
+  const bobUser    = createdUsers['bob@sunshine.dental'];
+  const saraUser   = createdUsers['sara@sunshine.dental'];
+
+  // ── 3. Provider profiles ──────────────────────────────────────────────────
+  const aliceProvider = await prisma.provider.create({
+    data: {
+      userId: aliceUser.id,
+      specialty: 'General Dentistry',
+      phone: '+1-555-0101',
+      bio: 'Experienced general dentist with 10+ years in family dental care.',
+      isActive: true,
+    },
+  });
+
+  const bobProvider = await prisma.provider.create({
+    data: {
+      userId: bobUser.id,
+      specialty: 'Orthodontics',
+      phone: '+1-555-0102',
+      bio: 'Specialist in orthodontics and cosmetic dentistry.',
+      isActive: true,
+    },
+  });
+
+  console.log('  ✓ Created provider profiles');
+
+  // ── 4. Patients ───────────────────────────────────────────────────────────
+  const patients = await Promise.all([
+    prisma.patient.create({
+      data: {
+        name: 'John Smith',
+        phone: '+1-555-1001',
+        email: 'john.smith@email.com',
+        reason: 'Routine cleaning',
+        isNewPatient: false,
+        callbackRequested: false,
+        preferredTime: 'morning',
+      },
+    }),
+    prisma.patient.create({
+      data: {
+        name: 'Emily Chen',
+        phone: '+1-555-1002',
+        email: 'emily.chen@email.com',
+        reason: 'Tooth pain — lower right molar',
+        isNewPatient: true,
+        callbackRequested: true,
+        preferredTime: 'afternoon',
+        notes: 'Has dental anxiety, prefers slow approach',
+      },
+    }),
+    prisma.patient.create({
+      data: {
+        name: 'Marcus Williams',
+        phone: '+1-555-1003',
+        email: 'marcus.w@email.com',
+        reason: 'Filling replacement',
+        isNewPatient: false,
+        callbackRequested: false,
+        preferredTime: 'evening',
+      },
+    }),
+  ]);
+
+  console.log('  ✓ Created 3 patients');
+
+  // ── 5. Calendar Delegation ────────────────────────────────────────────────
+  await prisma.calendarDelegation.create({
+    data: {
+      ownerId: aliceProvider.id,
+      delegateId: saraUser.id,
+      canView: true,
+      canEdit: true,
+      canBook: true,
+    },
+  });
+
+  console.log("  ✓ Sara delegated to manage Alice's calendar");
+
+  // ── 6. Calendar Events ────────────────────────────────────────────────────
+  // Alice: Mon–Fri 09-13 (AVAILABLE), 13-14 (BLOCKED/lunch), 14-17 (AVAILABLE) for 10 weekdays
+  const aliceEvents: any[] = [];
+  let dayOffset = 1;
+  let weekdaysAdded = 0;
+
+  while (weekdaysAdded < 10) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + dayOffset);
+    const dow = d.getUTCDay(); // 0=Sun 6=Sat
+    if (dow !== 0 && dow !== 6) {
+      const ds = d.toISOString().split('T')[0];
+      aliceEvents.push(
+        { providerId: aliceProvider.id, title: 'Morning Availability', start: new Date(`${ds}T09:00:00.000Z`), end: new Date(`${ds}T13:00:00.000Z`), allDay: false, type: 'AVAILABLE', createdBy: aliceUser.id },
+        { providerId: aliceProvider.id, title: 'Lunch Break',          start: new Date(`${ds}T13:00:00.000Z`), end: new Date(`${ds}T14:00:00.000Z`), allDay: false, type: 'BLOCKED',   notes: 'Lunch', createdBy: aliceUser.id },
+        { providerId: aliceProvider.id, title: 'Afternoon Availability', start: new Date(`${ds}T14:00:00.000Z`), end: new Date(`${ds}T17:00:00.000Z`), allDay: false, type: 'AVAILABLE', createdBy: aliceUser.id },
+      );
+      weekdaysAdded++;
+    }
+    dayOffset++;
+  }
+
+  await prisma.calendarEvent.createMany({ data: aliceEvents });
+
+  // Bob: Tue + Thu only, 08-12 and 13-16, plus vacation next Friday
+  const bobEvents: any[] = [];
+  dayOffset = 1;
+  weekdaysAdded = 0;
+
+  while (weekdaysAdded < 6) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + dayOffset);
+    const dow = d.getUTCDay();
+    if (dow === 2 || dow === 4) { // Tue or Thu
+      const ds = d.toISOString().split('T')[0];
+      bobEvents.push(
+        { providerId: bobProvider.id, title: 'Morning Availability',   start: new Date(`${ds}T08:00:00.000Z`), end: new Date(`${ds}T12:00:00.000Z`), allDay: false, type: 'AVAILABLE', createdBy: bobUser.id },
+        { providerId: bobProvider.id, title: 'Afternoon Availability', start: new Date(`${ds}T13:00:00.000Z`), end: new Date(`${ds}T16:00:00.000Z`), allDay: false, type: 'AVAILABLE', createdBy: bobUser.id },
+      );
+      weekdaysAdded++;
+    }
+    dayOffset++;
+  }
+
+  // Bob vacation — next Friday
+  let fridayOffset = 1;
+  while (true) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + fridayOffset);
+    if (d.getUTCDay() === 5) break;
+    fridayOffset++;
+  }
+  const vacDate = new Date();
+  vacDate.setUTCDate(vacDate.getUTCDate() + fridayOffset);
+  const vacDs = vacDate.toISOString().split('T')[0];
+  bobEvents.push({ providerId: bobProvider.id, title: 'Vacation Day', start: new Date(`${vacDs}T00:00:00.000Z`), end: new Date(`${vacDs}T23:59:59.000Z`), allDay: true, type: 'VACATION', notes: 'Personal day off', createdBy: bobUser.id });
+
+  await prisma.calendarEvent.createMany({ data: bobEvents });
+  console.log('  ✓ Created calendar events (Alice: Mon–Fri × 10 days | Bob: Tue/Thu × 3 weeks + vacation)');
+
+  // ── 7. Appointments ───────────────────────────────────────────────────────
+  // Find the next N weekdays from today
+  function nextWeekday(n: number) {
+    const d = new Date();
+    let added = 0;
+    while (added < n) {
+      d.setUTCDate(d.getUTCDate() + 1);
+      if (d.getUTCDay() !== 0 && d.getUTCDay() !== 6) added++;
+    }
+    return new Date(d);
+  }
+
+  function t(base: Date, h: number, m: number) {
+    const d = new Date(base);
+    d.setUTCHours(h, m, 0, 0);
+    return d;
+  }
+
+  const d1 = nextWeekday(1);
+  const d2 = nextWeekday(2);
+  const d3 = nextWeekday(3);
+
+  await prisma.appointment.create({ data: { patientId: patients[0]!.id, patientName: patients[0]!.name, patientPhone: patients[0]!.phone, patientEmail: patients[0]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'CLEANING',         date: d1, startTime: t(d1, 9,  0), endTime: t(d1, 9,  30), durationMinutes: 30, status: 'CONFIRMED', isNewPatient: false, notes: 'Regular biannual cleaning',                      callId: 'call_seed_001' } });
+  await prisma.appointment.create({ data: { patientId: patients[1]!.id, patientName: patients[1]!.name, patientPhone: patients[1]!.phone, patientEmail: patients[1]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'NEW_PATIENT_EXAM', date: d1, startTime: t(d1, 10, 0), endTime: t(d1, 11,  0), durationMinutes: 60, status: 'CONFIRMED', isNewPatient: true,  notes: 'Tooth pain — lower right molar. Handle with care.', callId: 'call_seed_002' } });
+  await prisma.appointment.create({ data: { patientId: patients[2]!.id, patientName: patients[2]!.name, patientPhone: patients[2]!.phone, patientEmail: patients[2]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'FILLING',          date: d2, startTime: t(d2, 9,  30), endTime: t(d2, 10, 15), durationMinutes: 45, status: 'CONFIRMED', isNewPatient: false, notes: 'Old filling — upper left second premolar.' } });
+  await prisma.appointment.create({ data: { patientId: patients[0]!.id, patientName: patients[0]!.name, patientPhone: patients[0]!.phone, patientEmail: patients[0]!.email, providerId: bobProvider.id,   providerName: bobUser.name,   appointmentType: 'CONSULTATION',    date: d3, startTime: t(d3, 8,   0), endTime: t(d3, 8,  30), durationMinutes: 30, status: 'CONFIRMED', isNewPatient: false, notes: 'Alignment consultation.' } });
+  console.log('  ✓ Created 4 appointments');
+
+  // ── 8. Call Logs ──────────────────────────────────────────────────────────
+  await prisma.callLog.createMany({
+    data: [
+      { callId: 'call_seed_001', agentId: 'agent_sunshine_01', patientId: patients[0]!.id, fromNumber: '+15551001', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 187, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'Agent: Hello, Sunshine Dental. How can I help?\nUser: Hi, I\'d like to book a cleaning.', summary: 'Patient John Smith booked a routine cleaning with Dr. Alice Nguyen.', sentiment: 'Positive', successful: true, startTime: daysFromNow(-1, 10, 15), endTime: daysFromNow(-1, 10, 18) },
+      { callId: 'call_seed_002', agentId: 'agent_sunshine_01', patientId: patients[1]!.id, fromNumber: '+15551002', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 243, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'Agent: Hello, Sunshine Dental.\nUser: I have a terrible toothache.', summary: 'New patient Emily Chen reporting tooth pain. Booked new patient exam.', sentiment: 'Neutral', successful: true, startTime: daysFromNow(-1, 14, 30), endTime: daysFromNow(-1, 14, 34) },
+      { callId: 'call_seed_003', agentId: 'agent_sunshine_01', patientId: null, fromNumber: '+15559999', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 42, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'User: Actually I\'ll call back, sorry.', summary: 'Caller hung up before completing booking.', sentiment: 'Neutral', successful: false, startTime: daysFromNow(-2, 9, 5), endTime: daysFromNow(-2, 9, 6) },
+    ],
+  });
+  console.log('  ✓ Created 3 call logs');
+
+  // ── Done ──────────────────────────────────────────────────────────────────
+  console.log('\n✅ Seed complete!\n');
+  console.log('  Credentials:');
+  console.log('  ┌────────────────────────────────┬───────────────────┬───────────┐');
+  console.log('  │ Email                          │ Password          │ Role      │');
+  console.log('  ├────────────────────────────────┼───────────────────┼───────────┤');
+  console.log('  │ admin@sunshine.dental          │ Admin1234!        │ ADMIN     │');
+  console.log('  │ alice@sunshine.dental          │ Provider1234!     │ PROVIDER  │');
+  console.log('  │ bob@sunshine.dental            │ Provider1234!     │ PROVIDER  │');
+  console.log('  │ sara@sunshine.dental           │ Assistant1234!    │ ASSISTANT │');
+  console.log('  └────────────────────────────────┴───────────────────┴───────────┘');
+}
+
+main()
+  .catch(e => { console.error(e); process.exit(1); })
+  .finally(async () => { await prisma.$disconnect(); });

@@ -1,0 +1,24 @@
+{
+    "mcpServers": {
+        "n8n-mcp": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "n8n-mcp"
+            ],
+            "env": {
+                "N8N_API_URL": "https://n8ndev.appointer.hu",
+                "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNWE3YWUzOS03Mjg4LTRjMzYtOWVmOS0wMTc1YWMyZDcwNDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiNTAwMjdlZDgtODJlNy00ZTc1LWJlYTktODcyZjY2MmNiMWExIiwiaWF0IjoxNzcxNTk4OTk4fQ.METlt1ACHid9G-YazFEkd1UbWQqMJx0YLB-88_2E4cw"
+            }
+        },
+        "retell-ai": {
+            "command": "node",
+            "args": [
+                "C:/Users/Dell/devs/retellsimp/dist/index.js"
+            ],
+            "env": {
+                "RETELL_API_KEY": "key_947d4be46814b253aaede7035064"
+            }
+        }
+    }
+}

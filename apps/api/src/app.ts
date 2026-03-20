@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { authRoutes } from './routes/auth.routes.js'
-import { openapiPlugin } from './plugins/openapi.plugin.js'
+import openapiPlugin from './plugins/openapi.plugin.js'
 import { calendarRoutes } from './routes/calendar.routes.js'
 import { providersRoutes } from './routes/providers.routes.js'
 import { appointmentsRoutes } from './routes/appointments.routes.js'

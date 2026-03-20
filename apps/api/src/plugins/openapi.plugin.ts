@@ -1,9 +1,10 @@
 import { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import { jsonSchemaTransform, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 
-export async function openapiPlugin(fastify: FastifyInstance) {
+async function openapiPlugin(fastify: FastifyInstance) {
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
 
@@ -20,7 +21,9 @@ export async function openapiPlugin(fastify: FastifyInstance) {
     transform: jsonSchemaTransform,
   });
 
-  await fastify.register(fastifySwaggerUi, { 
-    routePrefix: '/documentation' 
+  await fastify.register(fastifySwaggerUi, {
+    routePrefix: '/documentation'
   });
 }
+
+export default fp(openapiPlugin);

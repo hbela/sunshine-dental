@@ -1,0 +1,202 @@
+{
+  "name": "Retell Post-Call Processing (v2 - PostgreSQL)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚙️ Configuration Required\n\nSet these **n8n environment variables** before activating:\n\n| Variable | Description | Example |\n|---|---|---|\n| `FASTIFY_API_BASE_URL` | Fastify API base URL | `http://localhost:3000` |\n| `FASTIFY_API_KEY` | API authentication key | `your-secret-key` |\n\n**Set via:** n8n → Settings → Environment Variables\n\n---\n\n### What changed from v1:\n- ❌ Google Sheets (Call Log) removed → ✅ `POST /api/call-logs`\n- ✅ `agent_id` now extracted and stored\n- ✅ `duration` stored as integer seconds (not string)\n- ✅ `successful` stored as boolean (not Yes/No string)\n- ✅ `end_time` now captured separately",
+        "height": 320,
+        "width": 500,
+        "color": 7
+      },
+      "id": "sticky-note-config",
+      "name": "Configuration Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-160, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "retell-post-call",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "post-call-webhook",
+      "name": "Post-Call Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 304],
+      "webhookId": "retell-post-call"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-ack",
+      "name": "Acknowledge Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [480, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Post-Call Webhook').first().json.body;\nconst call = body.call || body;\n\n// Core identifiers\nconst callId = call.call_id || '';\nconst agentId = call.agent_id || '';\n\n// Caller info\nconst fromNumber = call.from_number || '';\nconst toNumber = call.to_number || '';\nconst direction = call.direction || 'inbound';\n\n// Timing\nconst startTime = call.start_timestamp ? new Date(call.start_timestamp).toISOString() : new Date().toISOString();\nconst endTime = call.end_timestamp ? new Date(call.end_timestamp).toISOString() : new Date().toISOString();\nconst durationSeconds = call.duration_ms ? Math.round(call.duration_ms / 1000) : 0;\n\n// Status\nconst status = call.call_status || call.status || '';\nconst disconnectionReason = call.disconnection_reason || '';\n\n// Transcript — join array or use raw string\nlet transcript = '';\nif (call.transcript) {\n  if (typeof call.transcript === 'string') {\n    transcript = call.transcript;\n  } else if (Array.isArray(call.transcript)) {\n    transcript = call.transcript.map(t => `${t.role}: ${t.content}`).join('\\n');\n  }\n}\n\n// Call analysis (populated on call_analyzed event)\nconst analysis = call.call_analysis || {};\nconst summary = analysis.call_summary || analysis.summary || '';\nconst sentiment = analysis.user_sentiment || analysis.sentiment || '';\nconst successful = analysis.call_successful !== undefined ? analysis.call_successful : null;\n\nreturn [{\n  json: {\n    callId,\n    agentId,\n    startTime,\n    endTime,\n    fromNumber,\n    toNumber,\n    direction,\n    durationSeconds,\n    status,\n    disconnectionReason,\n    transcript: transcript.substring(0, 50000),\n    summary,\n    sentiment,\n    successful\n  }\n}];"
+      },
+      "id": "extract-call-data",
+      "name": "Extract Call Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 304]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/call-logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $env.FASTIFY_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "call_id",
+              "value": "={{ $json.callId }}"
+            },
+            {
+              "name": "agent_id",
+              "value": "={{ $json.agentId }}"
+            },
+            {
+              "name": "start_time",
+              "value": "={{ $json.startTime }}"
+            },
+            {
+              "name": "end_time",
+              "value": "={{ $json.endTime }}"
+            },
+            {
+              "name": "from_number",
+              "value": "={{ $json.fromNumber }}"
+            },
+            {
+              "name": "to_number",
+              "value": "={{ $json.toNumber }}"
+            },
+            {
+              "name": "direction",
+              "value": "={{ $json.direction }}"
+            },
+            {
+              "name": "duration_seconds",
+              "value": "={{ $json.durationSeconds }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            },
+            {
+              "name": "disconnection_reason",
+              "value": "={{ $json.disconnectionReason }}"
+            },
+            {
+              "name": "transcript",
+              "value": "={{ $json.transcript }}"
+            },
+            {
+              "name": "summary",
+              "value": "={{ $json.summary }}"
+            },
+            {
+              "name": "sentiment",
+              "value": "={{ $json.sentiment }}"
+            },
+            {
+              "name": "successful",
+              "value": "={{ $json.successful }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-call-api",
+      "name": "Log Call to API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 304]
+    },
+    {
+      "parameters": {
+        "sendTo": "hajzerbela@gmail.com",
+        "subject": "=Call Summary - {{ $('Extract Call Data').first().json.fromNumber || 'Unknown Caller' }} ({{ $('Extract Call Data').first().json.startTime.split('T')[0] || 'today' }})",
+        "message": "<h2>Dental Voice Agent - Call Summary</h2><table style=\"border-collapse: collapse; width: 100%;\" border=\"1\" cellpadding=\"8\"><tr><td><strong>Call ID</strong></td><td>{{ $('Extract Call Data').first().json.callId }}</td></tr><tr><td><strong>Agent ID</strong></td><td>{{ $('Extract Call Data').first().json.agentId }}</td></tr><tr><td><strong>Start Time</strong></td><td>{{ $('Extract Call Data').first().json.startTime }}</td></tr><tr><td><strong>End Time</strong></td><td>{{ $('Extract Call Data').first().json.endTime }}</td></tr><tr><td><strong>From</strong></td><td>{{ $('Extract Call Data').first().json.fromNumber }}</td></tr><tr><td><strong>Duration</strong></td><td>{{ $('Extract Call Data').first().json.durationSeconds }}s</td></tr><tr><td><strong>Status</strong></td><td>{{ $('Extract Call Data').first().json.status }}</td></tr><tr><td><strong>Sentiment</strong></td><td>{{ $('Extract Call Data').first().json.sentiment || 'N/A' }}</td></tr><tr><td><strong>Successful</strong></td><td>{{ $('Extract Call Data').first().json.successful !== null ? ($('Extract Call Data').first().json.successful ? 'Yes' : 'No') : 'N/A' }}</td></tr></table><h3>Summary</h3><p>{{ $('Extract Call Data').first().json.summary || 'No summary available' }}</p><h3>Full Transcript</h3><pre style=\"background: #f5f5f5; padding: 12px; border-radius: 4px; white-space: pre-wrap;\">{{ $('Extract Call Data').first().json.transcript || 'No transcript available' }}</pre><p style=\"color: #888; font-size: 12px;\">This is an automated notification from the Dental Voice Agent system.</p>",
+        "emailType": "html",
+        "options": {}
+      },
+      "id": "send-manager-email",
+      "name": "Email Manager Summary",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1200, 304],
+      "webhookId": "e11264fb-e850-4381-a095-d29f9dc2119c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "aWAJj5cZJRVKPWzK",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Post-Call Webhook": {
+      "main": [
+        [
+          {
+            "node": "Acknowledge Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Call Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Call Data": {
+      "main": [
+        [
+          {
+            "node": "Log Call to API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Call to API": {
+      "main": [
+        [
+          {
+            "node": "Email Manager Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

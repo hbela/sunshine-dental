@@ -1,0 +1,907 @@
+{
+  "name": "Retell Custom Function Router (v2 - PostgreSQL)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚙️ Configuration Required\n\nSet these **n8n environment variables** before activating:\n\n| Variable | Description | Example |\n|---|---|---|\n| `FASTIFY_API_BASE_URL` | Fastify API base URL | `http://localhost:3000` |\n| `FASTIFY_API_KEY` | API authentication key | `your-secret-key` |\n\n**Set via:** n8n → Settings → Environment Variables\n\n---\n\n### What changed from v1:\n- ❌ Google Calendar removed → ✅ `GET /api/calendar/slots`\n- ❌ Google Sheets (Appointments) removed → ✅ `POST /api/appointments`\n- ❌ Google Sheets (Patient Info) removed → ✅ `POST /api/patients`\n- ❌ Calculate Available Slots Code node removed → ✅ Handled server-side in Fastify\n- ✅ New `doctor_name` parameter supported in check_availability & book_appointment",
+        "height": 340,
+        "width": 520,
+        "color": 7
+      },
+      "id": "c085b998-c49a-420c-a5c9-269e47ea6910",
+      "name": "Configuration Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "retell-custom-functions",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "356ae0f9-1849-452a-8ff5-91102b7590db",
+      "name": "Retell Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        400,
+        400
+      ],
+      "webhookId": "retell-custom-functions"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.name }}",
+                    "rightValue": "check_availability",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.name }}",
+                    "rightValue": "book_appointment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.name }}",
+                    "rightValue": "cancel_appointment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.name }}",
+                    "rightValue": "get_faq_answer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.name }}",
+                    "rightValue": "capture_patient_info",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.name }}",
+                    "rightValue": "list_available_providers",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "0acfc658-f7c9-4a2f-a3bf-ca7f7df3c2a6",
+      "name": "Route by Function",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://7782-2001-4c4e-1d16-d800-ec6d-d545-aca1-e371.ngrok-free.app/api/calendar/slots",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "date",
+              "value": "={{ $json.body.args.date }}"
+            },
+            {
+              "name": "appointment_type",
+              "value": "={{ $json.body.args.appointment_type.toUpperCase() }}"
+            },
+            {
+              "name": "provider_name",
+              "value": "={{ $json.body.args.provider_name || '' }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": " Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1d4ac643-41d0-4770-ad6f-50917f9ae247",
+      "name": "Get Available Slots",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format available slots response for Retell\n// Expected API response: { slots: [\"09:00\", \"09:30\"], duration: 30, provider_name: \"Dr. Smith\" }\nconst webhookData = $('Retell Webhook').first().json;\nconst date = webhookData.body.args.date;\nconst appointmentType = webhookData.body.args.appointment_type;\nconst providerName = webhookData.body.args.provider_name || null;\n\nconst apiResponse = $input.first().json;\nconst slots = apiResponse.slots || [];\nconst duration = apiResponse.duration || 30;\nconst provider = apiResponse.provider_name || providerName;\n\nconst typeDisplay = appointmentType.replace(/_/g, ' ');\nconst providerDisplay = provider ? ` with ${provider}` : '';\n\nif (slots.length === 0) {\n  return [{ json: { result: `I'm sorry, there are no available ${typeDisplay} slots on ${date}${providerDisplay}. Would you like to try a different date?` } }];\n}\n\nreturn [{ json: { result: `Available ${typeDisplay} slots on ${date}${providerDisplay}: ${slots.join(', ')}. Each appointment is ${duration} minutes. Which time would you prefer?` } }];"
+      },
+      "id": "5d5f7450-ee6f-4789-9f93-e86404ea5c59",
+      "name": "Format Availability Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/appointments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "patient_name",
+              "value": "={{ $json.body.args.patient_name }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $json.body.args.phone }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $json.body.args.email || '' }}"
+            },
+            {
+              "name": "appointment_type",
+              "value": "={{ $json.body.args.appointment_type.toUpperCase() }}"
+            },
+            {
+              "name": "date",
+              "value": "={{ $json.body.args.date }}"
+            },
+            {
+              "name": "time",
+              "value": "={{ $json.body.args.time }}"
+            },
+            {
+              "name": "provider_name",
+              "value": "={{ $json.body.args.provider_name || '' }}"
+            },
+            {
+              "name": "is_new_patient",
+              "value": "={{ $json.body.args.is_new_patient || false }}"
+            },
+            {
+              "name": "notes",
+              "value": "={{ $json.body.args.notes || '' }}"
+            },
+            {
+              "name": "call_id",
+              "value": "={{ $json.body.call.call_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "19d294d3-f0c8-4836-9219-b2557f6a8f61",
+      "name": "Book Appointment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Retell Webhook').first().json.body.args.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "018f01a0-0d7c-448d-b447-1921b42c8923",
+      "name": "Has Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Retell Webhook').first().json.body.args.email }}",
+        "subject": "Appointment Confirmation - Sunshine Dental Clinic",
+        "message": "<h2>Appointment Confirmed!</h2><p>Dear {{ $('Retell Webhook').first().json.body.args.patient_name }},</p><p>Your appointment has been confirmed with the following details:</p><ul><li><strong>Date:</strong> {{ $('Retell Webhook').first().json.body.args.date }}</li><li><strong>Time:</strong> {{ $('Retell Webhook').first().json.body.args.time }}</li><li><strong>Type:</strong> {{ $('Retell Webhook').first().json.body.args.appointment_type.replace(/_/g, ' ') }}</li><li><strong>Doctor:</strong> {{ $('Retell Webhook').first().json.body.args.doctor_name || 'Will be confirmed' }}</li></ul>{{ $('Retell Webhook').first().json.body.args.is_new_patient ? '<p><strong>New Patient Reminder:</strong> Please arrive 15 minutes early and bring your photo ID, insurance card, and a list of current medications.</p>' : '' }}<p>If you need to cancel or reschedule, please call us at least 24 hours in advance at (555) 123-4567.</p><p>We look forward to seeing you!</p><p>Best regards,<br>Sunshine Dental Clinic</p>",
+        "options": {}
+      },
+      "id": "480aeaba-ddb9-4d23-845b-a357769a3a5b",
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1392,
+        160
+      ],
+      "webhookId": "f345189b-b907-4b3b-bac5-92c73532c1f5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "aWAJj5cZJRVKPWzK",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format booking confirmation response for Retell\nconst args = $('Retell Webhook').first().json.body.args;\nconst typeNames = {\n  new_patient_exam: 'New Patient Exam',\n  cleaning: 'Regular Cleaning',\n  deep_cleaning: 'Deep Cleaning',\n  filling: 'Filling',\n  crown_prep: 'Crown Prep',\n  consultation: 'Consultation',\n  emergency: 'Emergency Visit'\n};\nconst typeName = typeNames[args.appointment_type] || args.appointment_type;\n\n// Format time to 12-hour\nconst [h, m] = args.time.split(':').map(Number);\nconst ampm = h >= 12 ? 'PM' : 'AM';\nconst h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);\nconst timeFormatted = `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;\n\nlet result = `Your appointment has been booked! Here are the details: ${typeName} on ${args.date} at ${timeFormatted} for ${args.patient_name}`;\nif (args.provider_name) result += ` with ${args.provider_name}`;\nresult += '.';\n\nif (args.email) {\n  result += ` A confirmation email has been sent to ${args.email}.`;\n}\n\nif (args.is_new_patient) {\n  result += ` Since you're a new patient, please arrive 15 minutes early and bring your photo ID, insurance card, and a list of current medications.`;\n}\n\nresult += ` Is there anything else I can help you with?`;\n\nreturn [{ json: { result } }];"
+      },
+      "id": "6623bad6-d21a-475a-8e9c-56cb995f5e66",
+      "name": "Format Booking Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1632,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/appointments/cancel",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "patient_name",
+              "value": "={{ $json.body.args.patient_name }}"
+            },
+            {
+              "name": "date",
+              "value": "={{ $json.body.args.date }}"
+            },
+            {
+              "name": "time",
+              "value": "={{ $json.body.args.time || '' }}"
+            },
+            {
+              "name": "reason",
+              "value": "={{ $json.body.args.reason || '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c89327b3-e472-4b25-a3c3-ba9ec27679b3",
+      "name": "Cancel Appointment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.found }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "090303c5-810f-41b6-92c8-88fbf0352555",
+      "name": "Appointment Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const args = $('Retell Webhook').first().json.body.args;\nlet result = `The appointment for ${args.patient_name} on ${args.date} has been cancelled.`;\nif (args.reason) {\n  result += ` Reason: ${args.reason}.`;\n}\nresult += ' Would you like to reschedule or is there anything else I can help with?';\nreturn [{ json: { result } }];"
+      },
+      "id": "9a9dac99-9ee1-411e-85fc-e4627d29f8be",
+      "name": "Format Cancel Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const args = $('Retell Webhook').first().json.body.args;\nreturn [{ json: { result: `I couldn't find an appointment for ${args.patient_name} on ${args.date}. Could you double-check the name and date?` } }];"
+      },
+      "id": "6033062a-c72a-436a-8a02-866bfe7b3678",
+      "name": "Format Cancel Not Found",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const args = $json.body.args;\nconst topic = args.topic;\n\nconst faqData = {\n  office_hours: 'Our office hours are: Monday through Friday 8:00 AM to 5:00 PM, Saturday 9:00 AM to 1:00 PM. We are closed on Sundays. Please note we have a lunch break from 12:00 PM to 1:00 PM on weekdays.',\n  services: 'We offer: General Dentistry (cleanings, exams, fillings, crowns), Cosmetic Dentistry (teeth whitening, veneers, bonding), Orthodontics (braces, Invisalign), Oral Surgery (extractions, wisdom teeth removal), Pediatric Dentistry (children\\'s cleanings and sealants), and Emergency Dental Care (same-day appointments).',\n  insurance: 'We accept the following insurance providers: Delta Dental, Cigna, Aetna, MetLife, Guardian, and United Healthcare Dental. We also accept patients without insurance. Payment plans are available for procedures over $500. We accept cash, credit/debit cards, and CareCredit.',\n  emergency: 'For dental emergencies during office hours, call (555) 123-4567 and select option 2. For after-hours emergencies, call our emergency line at (555) 123-4568. For severe bleeding or jaw trauma, please go to the nearest emergency room immediately. If you have a knocked-out tooth, keep it moist in milk or saliva and come in right away.',\n  cancellation_policy: 'Please cancel or reschedule at least 24 hours in advance. Late cancellations may incur a $50 fee. No-shows may incur a $75 fee.',\n  new_patient_info: 'New patients should arrive 15 minutes early to fill out paperwork. Please bring your photo ID, insurance card, and a list of current medications. New patient forms are also available on our website at www.sunshinedentalclinic.com.',\n  location: 'We are located at 123 Main Street, Suite 100, Anytown, ST 12345. You can reach us by phone at (555) 123-4567 or by email at info@sunshinedentalclinic.com.',\n  payment_options: 'We accept cash, credit and debit cards, and CareCredit. Payment plans are available for procedures over $500. We also accept most major dental insurance plans.'\n};\n\nconst answer = faqData[topic] || 'I\\'m sorry, I don\\'t have information on that topic. Would you like me to have someone from the office call you back?';\n\nreturn [{ json: { result: answer } }];"
+      },
+      "id": "c6b2553a-70d4-4bc0-9d42-aa28489fa352",
+      "name": "FAQ Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/patients",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $json.body.args.patient_name }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $json.body.args.phone }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $json.body.args.email || '' }}"
+            },
+            {
+              "name": "reason",
+              "value": "={{ $json.body.args.reason || '' }}"
+            },
+            {
+              "name": "is_new_patient",
+              "value": "={{ $json.body.args.is_new_patient || false }}"
+            },
+            {
+              "name": "callback_requested",
+              "value": "={{ $json.body.args.callback_requested || false }}"
+            },
+            {
+              "name": "preferred_time",
+              "value": "={{ $json.body.args.preferred_time || '' }}"
+            },
+            {
+              "name": "call_id",
+              "value": "={{ $json.body.call.call_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "447e9b6f-fcf7-43de-aa81-500205b1d561",
+      "name": "Create Patient",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const args = $('Retell Webhook').first().json.body.args;\nif (args.callback_requested) {\n  return [{ json: { result: \"I've saved your information and requested a callback from our office staff. Someone will call you back as soon as possible. Is there anything else I can help with?\" } }];\n} else {\n  return [{ json: { result: \"I've saved your information in our records. Is there anything else I can help with?\" } }];\n}"
+      },
+      "id": "dc7cd2fc-5337-4afc-9830-f4f6a219df1c",
+      "name": "Format Patient Capture Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/calendar/available-providers",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "date",
+              "value": "={{ $json.body.args.date }}"
+            },
+            {
+              "name": "appointment_type",
+              "value": "={{ $json.body.args.appointment_type ? $json.body.args.appointment_type.toUpperCase() : '' }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Get Available Providers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const args = $('Retell Webhook').first().json.body.args;\nconst date = args.date;\nconst providers = $input.all().map(item => item.json);\n\nif (!providers || providers.length === 0) {\n  return [{ json: { result: `I'm sorry, there are no doctors available on ${date}. Would you like to try a different date?` } }];\n}\n\nconst list = providers.map(p => `${p.provider_name} (${p.available_slots} slot${p.available_slots !== 1 ? 's' : ''})`).join(', ');\nconst firstDoctor = providers[0].provider_name;\n\nreturn [{ json: { result: `On ${date}, the following doctors are available: ${list}. Do you have a preference, or shall I book you with ${firstDoctor}?` } }];"
+      },
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Format Providers Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { result: 'Sorry, I encountered an error processing your request. Let me transfer you to our office staff.' } }];"
+      },
+      "id": "d31aa013-c72f-43b8-87a9-02fb1e27ec8c",
+      "name": "Format Unknown Function Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "f1de077b-a3c2-4b46-9ace-d7fb588c666b",
+      "name": "Respond to Retell",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1904,
+        560
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Retell Webhook": {
+      "main": [
+        [
+          {
+            "node": "Route by Function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Function": {
+      "main": [
+        [
+          {
+            "node": "Get Available Slots",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Book Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancel Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FAQ Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Patient",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Available Providers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Unknown Function Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Available Slots": {
+      "main": [
+        [
+          {
+            "node": "Format Availability Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Availability Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Appointment": {
+      "main": [
+        [
+          {
+            "node": "Has Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Email?": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Booking Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Confirmation Email": {
+      "main": [
+        [
+          {
+            "node": "Format Booking Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Booking Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancel Appointment": {
+      "main": [
+        [
+          {
+            "node": "Appointment Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appointment Found?": {
+      "main": [
+        [
+          {
+            "node": "Format Cancel Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Cancel Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Cancel Success": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Cancel Not Found": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ Handler": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Patient": {
+      "main": [
+        [
+          {
+            "node": "Format Patient Capture Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Patient Capture Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Unknown Function Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Available Providers": {
+      "main": [
+        [
+          {
+            "node": "Format Providers Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Providers Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "28c1d954-8acc-49da-8174-1533b08b64a0",
+  "meta": {
+    "instanceId": "b43b280c1d0a68bb1ecde1a4f7b77b24b9d8f32e59d928ab34920481fb151a55"
+  },
+  "id": "rQ7I7vX2oAYnNIbR",
+  "tags": []
+}
