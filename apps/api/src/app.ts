@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import cors from '@fastify/cors'
 import { authRoutes } from './routes/auth.routes.js'
 import openapiPlugin from './plugins/openapi.plugin.js'
 import { calendarRoutes } from './routes/calendar.routes.js'
@@ -20,6 +21,12 @@ export async function app(fastify: FastifyInstance) {
       })
     }
     reply.send(error)
+  })
+
+  // CORS — allow the web app origin(s) to send the session cookie.
+  await fastify.register(cors, {
+    origin: process.env.WEB_ORIGIN?.split(',') ?? ['http://localhost:5173'],
+    credentials: true,
   })
 
   fastify.get('/ping', async (request, reply) => {

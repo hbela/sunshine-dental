@@ -10,7 +10,9 @@ export const auth = betterAuth({
     requireEmailVerification: false,
   },
   plugins: [
-    admin(),
+    // defaultRole must be a valid value of our Prisma `Role` enum (not the
+    // plugin's built-in "user"); ADMIN is recognised as the privileged role.
+    admin({ defaultRole: 'ASSISTANT', adminRoles: ['ADMIN'] }),
     openAPI()
   ],
   trustedOrigins: ['http://localhost:5173'],

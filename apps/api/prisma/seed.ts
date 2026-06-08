@@ -1,22 +1,11 @@
-import { PrismaClient } from '@prisma/client';
-import { createHash, randomBytes } from 'crypto';
-import * as bcrypt from 'bcryptjs';
+import { PrismaClient } from '../src/generated/prisma-client/index.js';
+import { auth } from '../src/lib/auth.js';
 
 const prisma = new PrismaClient();
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Hash a password using bcrypt (compatible with better-auth) */
-async function hashPassword(plain: string): Promise<string> {
-  return bcrypt.hash(plain, 10);
-}
-
-/** Generate a CUID-like ID */
-function cuid() {
-  return 'c' + randomBytes(11).toString('hex');
-}
 
 function daysFromNow(days: number, hour = 0, minute = 0) {
   const d = new Date();
@@ -58,29 +47,15 @@ async function main() {
   const createdUsers: Record<string, any> = {};
 
   for (const u of usersData) {
-    const hashedPw = await hashPassword(u.password);
-    const userId = cuid();
-    const accountId = cuid();
-
-    const user = await prisma.user.create({
-      data: {
-        id: userId,
-        name: u.name,
-        email: u.email,
-        emailVerified: true,
-        role: u.role as any,
-      },
+    // Create the user + credential account through better-auth so the password
+    // is hashed with better-auth's own algorithm (manual bcrypt is incompatible).
+    const signUp = await auth.api.signUpEmail({
+      body: { name: u.name, email: u.email, password: u.password },
     });
 
-    // Create the account record that better-auth uses for email/password auth
-    await prisma.account.create({
-      data: {
-        id: accountId,
-        accountId: userId,
-        providerId: 'credential',     // better-auth uses 'credential' for email+pw
-        userId: userId,
-        password: hashedPw,
-      },
+    const user = await prisma.user.update({
+      where: { id: signUp.user.id },
+      data: { role: u.role as any, emailVerified: true },
     });
 
     createdUsers[u.email] = user;

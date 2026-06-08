@@ -21,6 +21,11 @@ model User {
   // Custom fields
   role          Role      @default(ASSISTANT)
 
+  // better-auth admin plugin fields
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+
   // Relations
   sessions            Session[]
   accounts            Account[]
@@ -38,6 +43,9 @@ model Session {
   userAgent String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // better-auth admin plugin (impersonation)
+  impersonatedBy String?
 }
 
 model Account {
