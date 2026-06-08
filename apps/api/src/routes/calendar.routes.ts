@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { requireAuthOrApiKey, requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { CalendarService } from '../services/calendar.service.js';
+import { DelegationService } from '../services/delegation.service.js';
+import { prisma } from '../lib/prisma.js';
 
 export async function calendarRoutes(fastify: FastifyInstance) {
   // GET /api/calendar/slots — get available appointment slots (used by n8n/Retell)
@@ -80,12 +82,17 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     preHandler: [requireAuth, requireRole(['PROVIDER', 'ASSISTANT', 'ADMIN'])],
     handler: async (request, reply) => {
       const body = request.body as any;
-      // @ts-ignore
-      const userId = request.user?.id;
+      // @ts-ignore — set by requireAuth
+      const user = request.user as { id: string; role: string } | undefined;
+
+      const allowed = await DelegationService.canManageProviderCalendar(user, body.providerId);
+      if (!allowed) {
+        return reply.status(403).send({ error: 'Not authorized to manage this provider calendar' });
+      }
 
       const event = await CalendarService.createEvent({
         ...body,
-        createdBy: userId,
+        createdBy: user?.id,
       });
       return reply.status(201).send(event);
     },
@@ -103,13 +110,21 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { id } = request.params as { id: string };
       const body = request.body as any;
+      // @ts-ignore — set by requireAuth
+      const user = request.user as { id: string; role: string } | undefined;
 
-      try {
-        const event = await CalendarService.updateEvent(id, body);
-        return event;
-      } catch (err: any) {
+      const existing = await prisma.calendarEvent.findUnique({ where: { id } });
+      if (!existing) {
         return reply.status(404).send({ error: 'Event not found' });
       }
+
+      const allowed = await DelegationService.canManageProviderCalendar(user, existing.providerId);
+      if (!allowed) {
+        return reply.status(403).send({ error: 'Not authorized to manage this provider calendar' });
+      }
+
+      const event = await CalendarService.updateEvent(id, body);
+      return event;
     },
   });
 
@@ -124,13 +139,21 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     preHandler: [requireAuth, requireRole(['PROVIDER', 'ASSISTANT', 'ADMIN'])],
     handler: async (request, reply) => {
       const { id } = request.params as { id: string };
+      // @ts-ignore — set by requireAuth
+      const user = request.user as { id: string; role: string } | undefined;
 
-      try {
-        await CalendarService.deleteEvent(id);
-        return { success: true };
-      } catch (err: any) {
+      const existing = await prisma.calendarEvent.findUnique({ where: { id } });
+      if (!existing) {
         return reply.status(404).send({ error: 'Event not found' });
       }
+
+      const allowed = await DelegationService.canManageProviderCalendar(user, existing.providerId);
+      if (!allowed) {
+        return reply.status(403).send({ error: 'Not authorized to manage this provider calendar' });
+      }
+
+      await CalendarService.deleteEvent(id);
+      return { success: true };
     },
   });
 }
