@@ -12,9 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AuthIndexRouteImport } from './routes/_auth/index'
+import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
 import { Route as AuthPatientsRouteImport } from './routes/_auth/patients'
+import { Route as AuthCallLogsRouteImport } from './routes/_auth/call-logs'
 import { Route as AuthCalendarRouteImport } from './routes/_auth/calendar'
 import { Route as AuthAppointmentsRouteImport } from './routes/_auth/appointments'
+import { Route as AuthAdminUsersRouteImport } from './routes/_auth/admin/users'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -30,9 +33,19 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthSettingsRoute = AuthSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthPatientsRoute = AuthPatientsRouteImport.update({
   id: '/patients',
   path: '/patients',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCallLogsRoute = AuthCallLogsRouteImport.update({
+  id: '/call-logs',
+  path: '/call-logs',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthCalendarRoute = AuthCalendarRouteImport.update({
@@ -45,20 +58,31 @@ const AuthAppointmentsRoute = AuthAppointmentsRouteImport.update({
   path: '/appointments',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthAdminUsersRoute = AuthAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
   '/login': typeof LoginRoute
   '/appointments': typeof AuthAppointmentsRoute
   '/calendar': typeof AuthCalendarRoute
+  '/call-logs': typeof AuthCallLogsRoute
   '/patients': typeof AuthPatientsRoute
+  '/settings': typeof AuthSettingsRoute
+  '/admin/users': typeof AuthAdminUsersRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/appointments': typeof AuthAppointmentsRoute
   '/calendar': typeof AuthCalendarRoute
+  '/call-logs': typeof AuthCallLogsRoute
   '/patients': typeof AuthPatientsRoute
+  '/settings': typeof AuthSettingsRoute
   '/': typeof AuthIndexRoute
+  '/admin/users': typeof AuthAdminUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +90,44 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_auth/appointments': typeof AuthAppointmentsRoute
   '/_auth/calendar': typeof AuthCalendarRoute
+  '/_auth/call-logs': typeof AuthCallLogsRoute
   '/_auth/patients': typeof AuthPatientsRoute
+  '/_auth/settings': typeof AuthSettingsRoute
   '/_auth/': typeof AuthIndexRoute
+  '/_auth/admin/users': typeof AuthAdminUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/appointments' | '/calendar' | '/patients'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/appointments'
+    | '/calendar'
+    | '/call-logs'
+    | '/patients'
+    | '/settings'
+    | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/appointments' | '/calendar' | '/patients' | '/'
+  to:
+    | '/login'
+    | '/appointments'
+    | '/calendar'
+    | '/call-logs'
+    | '/patients'
+    | '/settings'
+    | '/'
+    | '/admin/users'
   id:
     | '__root__'
     | '/_auth'
     | '/login'
     | '/_auth/appointments'
     | '/_auth/calendar'
+    | '/_auth/call-logs'
     | '/_auth/patients'
+    | '/_auth/settings'
     | '/_auth/'
+    | '/_auth/admin/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -112,11 +158,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/settings': {
+      id: '/_auth/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthSettingsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/patients': {
       id: '/_auth/patients'
       path: '/patients'
       fullPath: '/patients'
       preLoaderRoute: typeof AuthPatientsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/call-logs': {
+      id: '/_auth/call-logs'
+      path: '/call-logs'
+      fullPath: '/call-logs'
+      preLoaderRoute: typeof AuthCallLogsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/calendar': {
@@ -133,21 +193,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAppointmentsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/admin/users': {
+      id: '/_auth/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthAdminUsersRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
 interface AuthRouteChildren {
   AuthAppointmentsRoute: typeof AuthAppointmentsRoute
   AuthCalendarRoute: typeof AuthCalendarRoute
+  AuthCallLogsRoute: typeof AuthCallLogsRoute
   AuthPatientsRoute: typeof AuthPatientsRoute
+  AuthSettingsRoute: typeof AuthSettingsRoute
   AuthIndexRoute: typeof AuthIndexRoute
+  AuthAdminUsersRoute: typeof AuthAdminUsersRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAppointmentsRoute: AuthAppointmentsRoute,
   AuthCalendarRoute: AuthCalendarRoute,
+  AuthCallLogsRoute: AuthCallLogsRoute,
   AuthPatientsRoute: AuthPatientsRoute,
+  AuthSettingsRoute: AuthSettingsRoute,
   AuthIndexRoute: AuthIndexRoute,
+  AuthAdminUsersRoute: AuthAdminUsersRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
