@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { AppointmentDurations } from '@repo/shared';
+import { dateToStr, timeToStr } from '../lib/datetime.js';
 
 // Helper: convert time string "HH:MM" to minutes from midnight
 function timeToMinutes(timeStr: string) {
@@ -164,25 +165,64 @@ export class CalendarService {
   }
 
   /**
-   * Get calendar events for a provider within a date range (for react-big-calendar).
+   * Get a unified event stream for a provider within a date range
+   * (for react-big-calendar): availability/blocked/vacation CalendarEvents
+   * merged with appointments. Each item is tagged with `kind` so the client
+   * can colour it and decide click behaviour.
    */
   static async getEvents(providerId: string, from: string, to: string) {
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    // 1. CalendarEvents overlapping the range
     const events = await prisma.calendarEvent.findMany({
       where: {
         providerId,
-        start: { gte: new Date(from) },
-        end: { lte: new Date(to) },
+        start: { lte: toDate },
+        end: { gte: fromDate },
       },
       orderBy: { start: 'asc' },
     });
 
-    return events.map(e => ({
-      ...e,
+    const calendarEvents = events.map((e) => ({
+      id: e.id,
+      kind: 'availability' as const,
+      title: e.title,
       start: e.start.toISOString(),
       end: e.end.toISOString(),
-      createdAt: e.createdAt.toISOString(),
-      updatedAt: e.updatedAt.toISOString(),
+      allDay: e.allDay,
+      eventType: e.type,
+      notes: e.notes,
     }));
+
+    // 2. Appointments in the same date range (date is a @db.Date column)
+    const dayStart = new Date(`${dateToStr(fromDate)}T00:00:00.000Z`);
+    const dayEnd = new Date(`${dateToStr(toDate)}T23:59:59.999Z`);
+
+    const appointments = await prisma.appointment.findMany({
+      where: { providerId, date: { gte: dayStart, lte: dayEnd } },
+      orderBy: { date: 'asc' },
+    });
+
+    const appointmentEvents = appointments.map((a) => {
+      const ds = dateToStr(a.date);
+      return {
+        id: `appt_${a.id}`,
+        kind: 'appointment' as const,
+        appointmentId: a.id,
+        title: `${a.patientName} · ${a.appointmentType}`,
+        start: new Date(`${ds}T${timeToStr(a.startTime)}:00.000Z`).toISOString(),
+        end: new Date(`${ds}T${timeToStr(a.endTime)}:00.000Z`).toISOString(),
+        allDay: false,
+        status: a.status,
+        appointmentType: a.appointmentType,
+        patientName: a.patientName,
+        patientPhone: a.patientPhone,
+        notes: a.notes,
+      };
+    });
+
+    return [...calendarEvents, ...appointmentEvents];
   }
 
   /**
