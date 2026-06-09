@@ -27,15 +27,21 @@ function LoginPage() {
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null)
-    const { error } = await authClient.signIn.email({
-      email: values.email,
-      password: values.password,
-    })
-    if (error) {
-      setServerError(error.message ?? 'Sign in failed. Check your credentials.')
-      return
+    try {
+      const { error } = await authClient.signIn.email({
+        email: values.email,
+        password: values.password,
+      })
+      if (error) {
+        setServerError(error.message ?? 'Sign in failed. Check your credentials.')
+        return
+      }
+      await navigate({ to: '/' })
+    } catch {
+      setServerError(
+        'Could not reach the API. Make sure it is running and that the web and API use the same hostname (both localhost).',
+      )
     }
-    navigate({ to: '/' })
   }
 
   return (
