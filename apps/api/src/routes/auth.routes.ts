@@ -1,31 +1,46 @@
 import { FastifyPluginAsync } from 'fastify'
-import { toNodeHandler } from 'better-auth/node'
 import { auth } from '../lib/auth.js'
 
-const allowedOrigins = process.env.WEB_ORIGIN?.split(',') ?? ['http://localhost:5173']
-
+/**
+ * Mount better-auth via its Web-standard `auth.handler`, reconstructing a
+ * `Request` from Fastify's already-parsed body. (Using better-auth's
+ * toNodeHandler against `reply.raw` deadlocks here because Fastify has already
+ * drained the request stream when parsing the JSON body.) Responding through
+ * `reply.send` also lets @fastify/cors apply CORS headers normally.
+ */
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
-  // better-auth writes directly to reply.raw, bypassing @fastify/cors, so CORS
-  // headers must be applied to the raw response here.
-  fastify.all('/*', async (request, reply) => {
-    const origin = request.headers.origin
-    if (origin && allowedOrigins.includes(origin)) {
-      reply.raw.setHeader('Access-Control-Allow-Origin', origin)
-      reply.raw.setHeader('Access-Control-Allow-Credentials', 'true')
-      reply.raw.setHeader('Vary', 'Origin')
-    }
+  fastify.route({
+    method: ['GET', 'POST'],
+    url: '/*',
+    handler: async (request, reply) => {
+      const url = new URL(request.url, `http://${request.headers.host}`)
 
-    if (request.method === 'OPTIONS') {
-      reply.raw.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-      reply.raw.setHeader(
-        'Access-Control-Allow-Headers',
-        (request.headers['access-control-request-headers'] as string) ?? 'content-type',
-      )
-      reply.raw.statusCode = 204
-      reply.raw.end()
-      return
-    }
+      const headers = new Headers()
+      for (const [key, value] of Object.entries(request.headers)) {
+        if (!value) continue
+        if (key === 'content-length') continue // recomputed from the rebuilt body
+        headers.append(key, Array.isArray(value) ? value.join(',') : value.toString())
+      }
 
-    return toNodeHandler(auth)(request.raw, reply.raw)
+      const hasBody = request.method !== 'GET' && request.body != null
+      const req = new Request(url.toString(), {
+        method: request.method,
+        headers,
+        body: hasBody ? JSON.stringify(request.body) : undefined,
+      })
+
+      const response = await auth.handler(req)
+
+      reply.status(response.status)
+      const setCookies =
+        (response.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie?.() ?? []
+      response.headers.forEach((value, key) => {
+        if (key.toLowerCase() === 'set-cookie') return
+        reply.header(key, value)
+      })
+      if (setCookies.length) reply.header('set-cookie', setCookies)
+
+      return reply.send(response.body ? await response.text() : null)
+    },
   })
 }
