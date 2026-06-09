@@ -31,7 +31,11 @@ export function normalizeBaseUrl(raw: string): string | null {
  * - set but malformed → same-origin fallback rather than crashing.
  */
 export const API_BASE_URL = (() => {
+  // In dev always go through the Vite proxy (same-origin). This avoids CORS,
+  // keeps the session cookie first-party, and ignores any stale VITE_API_URL
+  // lingering in the shell.
+  if (import.meta.env.DEV) return ''
   const raw = ((import.meta.env.VITE_API_URL as string | undefined) ?? '').trim()
-  if (!raw) return '' // same-origin → Vite proxy
+  if (!raw) return '' // same-origin
   return normalizeBaseUrl(raw) ?? ''
 })()
