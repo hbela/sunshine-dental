@@ -90,7 +90,12 @@ function LoginPage() {
 
 export const Route = createFileRoute('/login')({
   beforeLoad: async () => {
-    const { data: session } = await authClient.getSession()
+    let session = null
+    try {
+      session = (await authClient.getSession()).data
+    } catch {
+      session = null // API unreachable → stay on login
+    }
     if (session) throw redirect({ to: '/' })
   },
   component: LoginPage,

@@ -4,7 +4,12 @@ import { AppLayout } from '@/components/layout/AppLayout'
 
 export const Route = createFileRoute('/_auth')({
   beforeLoad: async () => {
-    const { data: session } = await authClient.getSession()
+    let session = null
+    try {
+      session = (await authClient.getSession()).data
+    } catch {
+      session = null // API unreachable → treat as signed out
+    }
     if (!session) throw redirect({ to: '/login' })
   },
   component: () => (
