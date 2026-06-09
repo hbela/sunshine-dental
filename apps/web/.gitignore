@@ -25,3 +25,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Compiled vite config (source of truth is vite.config.ts)
+vite.config.js
+vite.config.d.ts
+vite.config.d.ts.map

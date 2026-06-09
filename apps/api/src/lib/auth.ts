@@ -3,6 +3,8 @@ import { prismaAdapter } from '@better-auth/prisma-adapter'
 import { admin, openAPI } from 'better-auth/plugins'
 import { prisma } from './prisma.js'
 
+const trustedOrigins = process.env.WEB_ORIGIN?.split(',') ?? ['http://localhost:5173']
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: {
@@ -15,5 +17,5 @@ export const auth = betterAuth({
     admin({ defaultRole: 'ASSISTANT', adminRoles: ['ADMIN'] }),
     openAPI()
   ],
-  trustedOrigins: ['http://localhost:5173'],
+  trustedOrigins,
 })
