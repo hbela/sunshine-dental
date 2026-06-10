@@ -31,7 +31,7 @@
 
 The **Dental Clinic Management System** is a full-stack monorepo application that serves as the data and scheduling backbone for **Sunshine Dental Clinic**. It exposes a secured REST API consumed by two clients:
 
-1. **The React calendar web app** — used by Doctors and Assistants to manage schedules, patients, and call history
+1. **The React calendar web app** — used by Providers and Assistants to manage schedules, patients, and call history
 2. **The n8n voice agent workflows** — used internally by the Retell AI phone system during and after live calls
 
 This system replaces Google Sheets, Google Calendar, and all hardcoded availability logic from the existing n8n workflows.
@@ -44,14 +44,14 @@ This system replaces Google Sheets, Google Calendar, and all hardcoded availabil
 - **Replace Google Sheets** with a proper PostgreSQL database (via Prisma)
 - **Replace Google Calendar** with a custom in-app calendar powered by `react-big-calendar`
 - **Secure all API endpoints** with `better-auth` using role-based access control
-- **Enable multi-doctor management** with per-doctor availability calendars and delegation
-- **Provide a clean admin UI** for Doctors and Assistants to manage the clinic
+- **Enable multi-provider management** with per-provider availability calendars and delegation
+- **Provide a clean admin UI** for Providers and Assistants to manage the clinic
 - **Auto-generate OpenAPI documentation** from Zod schemas, always in sync with the API
 
 ### In Scope
 - User authentication and authorization (email/password)
-- Role-based access: `DOCTOR`, `ASSISTANT`
-- Doctor profile & availability management
+- Role-based access: `PROVIDER`, `ASSISTANT`
+- Provider profile & availability management
 - Appointment booking, cancellation, and history
 - Patient registry
 - Call log viewer
@@ -123,7 +123,7 @@ This system replaces Google Sheets, Google Calendar, and all hardcoded availabil
 | Content | Description |
 |---------|-------------|
 | Zod schemas | Request/response types shared between API and web |
-| TypeScript types | Common interfaces (User, Doctor, Appointment, etc.) |
+| TypeScript types | Common interfaces (User, Provider, Appointment, etc.) |
 | Constants | Appointment types, durations, roles enum |
 
 ---
@@ -145,14 +145,14 @@ dental-clinic-monorepo/
 │   │   │   │   └── sensible.plugin.ts
 │   │   │   ├── routes/
 │   │   │   │   ├── auth.routes.ts    ← /api/auth/** (better-auth handler)
-│   │   │   │   ├── doctors.routes.ts
+│   │   │   │   ├── providers.routes.ts
 │   │   │   │   ├── calendar.routes.ts
 │   │   │   │   ├── appointments.routes.ts
 │   │   │   │   ├── patients.routes.ts
 │   │   │   │   └── call-logs.routes.ts
 │   │   │   ├── middleware/
 │   │   │   │   ├── requireAuth.ts    ← session-based auth guard
-│   │   │   │   ├── requireRole.ts    ← role-based guard (DOCTOR | ASSISTANT)
+│   │   │   │   ├── requireRole.ts    ← role-based guard (PROVIDER | ASSISTANT)
 │   │   │   │   └── requireApiKey.ts  ← API key guard for n8n routes
 │   │   │   ├── services/
 │   │   │   │   ├── calendar.service.ts   ← availability slot calculation
@@ -182,7 +182,7 @@ dental-clinic-monorepo/
 │       │   │   │   ├── index.tsx     ← / → Dashboard
 │       │   │   │   ├── calendar/
 │       │   │   │   │   ├── index.tsx       ← /calendar (availability edited inline via event modal)
-│       │   │   │   │   └── delegation.tsx  ← /calendar/delegation (DOCTOR only)
+│       │   │   │   │   └── delegation.tsx  ← /calendar/delegation (PROVIDER only)
 │       │   │   │   ├── appointments/
 │       │   │   │   │   └── index.tsx       ← /appointments
 │       │   │   │   ├── patients/
@@ -214,7 +214,7 @@ dental-clinic-monorepo/
 │       │   ├── hooks/
 │       │   │   ├── useCalendarSlots.ts
 │       │   │   ├── useAppointments.ts
-│       │   │   └── useDoctors.ts
+│       │   │   └── useProviders.ts
 │       │   ├── lib/
 │       │   │   ├── api.ts            ← Axios instance with auth headers
 │       │   │   └── utils.ts
@@ -230,12 +230,12 @@ dental-clinic-monorepo/
 │       │   ├── schemas/
 │       │   │   ├── appointment.schema.ts
 │       │   │   ├── patient.schema.ts
-│       │   │   ├── doctor.schema.ts
+│       │   │   ├── provider.schema.ts
 │       │   │   └── call-log.schema.ts
 │       │   ├── types/
 │       │   │   └── index.ts
 │       │   └── constants/
-│       │       ├── roles.ts          ← Role enum: DOCTOR, ASSISTANT
+│       │       ├── roles.ts          ← Role enum: PROVIDER, ASSISTANT
 │       │       └── appointment-types.ts
 │       └── package.json
 │
@@ -265,9 +265,9 @@ model User {
   role          Role      @default(ASSISTANT)
 
   // Relations
-  sessions      Session[]
-  accounts      Account[]
-  doctorProfile Doctor?
+  sessions        Session[]
+  accounts        Account[]
+  providerProfile Provider?
 }
 
 model Session {
@@ -309,7 +309,7 @@ model Verification {
 }
 
 enum Role {
-  DOCTOR
+  PROVIDER
   ASSISTANT
   ADMIN
 }
@@ -318,8 +318,8 @@ enum Role {
 ### 5.2 Application Models
 
 ```prisma
-// Doctor profile — one-to-one with User (role = DOCTOR)
-model Doctor {
+// Provider profile — one-to-one with User (role = PROVIDER)
+model Provider {
   id           String   @id @default(cuid())
   userId       String   @unique
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -362,9 +362,9 @@ model Appointment {
   patientName     String            // Denormalized for display
   patientPhone    String?
   patientEmail    String?
-  doctorId        String
-  doctor          Doctor            @relation(fields: [doctorId], references: [id])
-  doctorName      String            // Denormalized for display
+  providerId      String
+  provider        Provider          @relation(fields: [providerId], references: [id])
+  providerName    String            // Denormalized for display
   appointmentType AppointmentType
   date            DateTime          @db.Date
   startTime       DateTime          @db.Time
@@ -418,16 +418,14 @@ model CallLog {
 }
 
 // Calendar events — the single source of availability. Each row is one
-// block of time on a doctor's calendar: when they are AVAILABLE for
+// block of time on a provider's calendar: when they are AVAILABLE for
 // bookings, or BLOCKED / on VACATION. Bookable slots are derived from
 // these rows at query time — there are no separate weekly-pattern,
 // pattern-rule, or blocked-time tables.
-// (In the implementation this entity is `Provider` / `providerId`; the PRD
-// keeps the "Doctor" naming used elsewhere in this document.)
 model CalendarEvent {
   id         String            @id @default(cuid())
-  doctorId   String
-  doctor     Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  providerId String
+  provider   Provider          @relation(fields: [providerId], references: [id], onDelete: Cascade)
   title      String            // "Morning Shift", "Break", "Vacation"
   start      DateTime          // full datetime (date + time)
   end        DateTime          // full datetime (date + time)
@@ -435,7 +433,7 @@ model CalendarEvent {
   type       CalendarEventType @default(AVAILABLE)
   recurrence String?           // RRULE string for recurring events (future use)
   notes      String?
-  createdBy  String?           // userId of whoever created it (doctor or delegated assistant)
+  createdBy  String?           // userId of whoever created it (provider or delegated assistant)
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
 }
@@ -450,9 +448,9 @@ enum CalendarEventType {
 model CalendarDelegation {
   id         String   @id @default(cuid())
   ownerId    String
-  owner      Doctor   @relation("DelegationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner      Provider   @relation("DelegationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   delegateId String
-  delegate   Doctor   @relation("DelegationDelegate", fields: [delegateId], references: [id], onDelete: Cascade)
+  delegate   Provider   @relation("DelegationDelegate", fields: [delegateId], references: [id], onDelete: Cascade)
   canView    Boolean  @default(true)
   canEdit    Boolean  @default(false)
   canBook    Boolean  @default(false)
@@ -471,7 +469,7 @@ model CalendarDelegation {
 
 - **Provider:** Email + Password only (no OAuth in Phase 1)
 - **Session management:** better-auth handles cookie-based sessions
-- **Roles:** `DOCTOR`, `ASSISTANT`, `ADMIN`
+- **Roles:** `PROVIDER`, `ASSISTANT`, `ADMIN`
 - **User creation:** Admin creates user accounts via the API (no self-registration)
 
 ### 6.2 better-auth Configuration (`apps/api/src/lib/auth.ts`)
@@ -493,7 +491,7 @@ export const auth = betterAuth({
   plugins: [
     roles({
       roles: {
-        DOCTOR: {
+        PROVIDER: {
           permissions: [
             'calendar:own:read',
             'calendar:own:write',
@@ -542,7 +540,7 @@ The API has **two separate authentication mechanisms**:
 
 ```
 React App  →  POST /api/auth/sign-in  →  Session cookie set
-React App  →  GET  /api/doctors       →  requireAuth + requireRole(['DOCTOR','ASSISTANT'])
+React App  →  GET  /api/providers       →  requireAuth + requireRole(['PROVIDER','ASSISTANT'])
 
 n8n        →  GET  /api/calendar/slots →  requireApiKey (env: FASTIFY_API_KEY)
 n8n        →  POST /api/appointments   →  requireApiKey
@@ -554,7 +552,7 @@ n8n        →  POST /api/call-logs      →  requireApiKey
 ```
 /api/auth/**          → better-auth handler (public — sign-in, sign-out, session)
 /api/admin/**         → requireAuth + requireRole(['ADMIN'])
-/api/doctors/**       → requireAuth + requireRole(['DOCTOR','ASSISTANT'])
+/api/providers/**       → requireAuth + requireRole(['PROVIDER','ASSISTANT'])
 /api/calendar/**      → requireAuth OR requireApiKey (dual access)
 /api/appointments/**  → requireAuth OR requireApiKey (dual access)
 /api/patients/**      → requireAuth OR requireApiKey (dual access)
@@ -689,12 +687,12 @@ PUT    /api/admin/users/:id/role       → Update user role
 DELETE /api/admin/users/:id            → Deactivate user
 ```
 
-### 7.4 Doctor Routes
+### 7.4 Provider Routes
 
 ```
-GET    /api/doctors                    → List active doctors (name, specialty, id)
-GET    /api/doctors/:id                → Get doctor profile
-PUT    /api/doctors/me                 → Update own profile (DOCTOR only)
+GET    /api/providers                    → List active providers (name, specialty, id)
+GET    /api/providers/:id                → Get provider profile
+PUT    /api/providers/me                 → Update own profile (PROVIDER only)
 ```
 
 ### 7.5 Calendar Routes (Dual Access: Session OR API Key)
@@ -702,12 +700,12 @@ PUT    /api/doctors/me                 → Update own profile (DOCTOR only)
 ```
 GET    /api/calendar/slots
        ?provider_id=&provider_name=&date=&appointment_type=
-       → Bookable slots for a date, derived from the doctor's CalendarEvent rows
+       → Bookable slots for a date, derived from the provider's CalendarEvent rows
        → Response: { slots: ["09:00","09:30"], duration: 30, provider_name: "Dr. Smith" }
 
 GET    /api/calendar/available-providers
        ?date=&appointment_type=
-       → Doctors with at least one open slot on that date
+       → Providers with at least one open slot on that date
        → Response: [{ provider_id, provider_name, available_slots }]
 
 GET    /api/calendar/:provider_id/events
@@ -718,13 +716,13 @@ GET    /api/calendar/:provider_id/events
 POST   /api/calendar/events            → Create a CalendarEvent (AVAILABLE / BLOCKED / VACATION)
 PUT    /api/calendar/events/:id        → Update a CalendarEvent
 DELETE /api/calendar/events/:id        → Delete a CalendarEvent
-       (create/update/delete: owner DOCTOR or a delegated ASSISTANT)
+       (create/update/delete: owner PROVIDER or a delegated ASSISTANT)
 ```
 
 ### 7.6 Availability Management
 
 There are no separate pattern/rule routes. Availability is managed directly as
-`CalendarEvent` rows through the calendar event routes in §7.5: a doctor (or a
+`CalendarEvent` rows through the calendar event routes in §7.5: a provider (or a
 delegated assistant) adds `AVAILABLE` blocks for bookable hours and
 `BLOCKED` / `VACATION` blocks for time off. `GET /api/calendar/slots` then
 subtracts existing bookings and `BLOCKED`/`VACATION` blocks from the
@@ -743,11 +741,11 @@ DELETE /api/delegations/:id            → Revoke delegation
 ### 7.8 Appointments Routes (Dual Access)
 
 ```
-GET    /api/appointments               → List (filter: date, doctor_id, status, patient_name)
+GET    /api/appointments               → List (filter: date, provider_id, status, patient_name)
 GET    /api/appointments/:id           → Get single appointment
 POST   /api/appointments               → Book appointment (n8n or ASSISTANT)
 PUT    /api/appointments/:id/cancel    → Cancel appointment
-PUT    /api/appointments/:id/complete  → Mark as completed (DOCTOR only)
+PUT    /api/appointments/:id/complete  → Mark as completed (PROVIDER only)
 GET    /api/appointments/patient/:patient_id → Patient appointment history
 ```
 
@@ -760,7 +758,7 @@ GET    /api/appointments/patient/:patient_id → Patient appointment history
   appointment_type: AppointmentType  // required
   date:             string    // YYYY-MM-DD, required
   time:             string    // HH:MM, required
-  provider_name:    string?   // if omitted, first available doctor assigned
+  provider_name:    string?   // if omitted, first available provider assigned
   is_new_patient:   boolean
   notes:            string?
   call_id:          string?   // Retell call_id
@@ -843,10 +841,10 @@ GET    /api/call-logs/stats            → Aggregated stats (sentiment counts, c
 | `Sheet` | Delegation settings panel |
 | `Table` | Patient list, appointment list, call logs |
 | `Tabs` | Calendar views, settings sections |
-| `Select` | Appointment type, doctor selector, day picker |
+| `Select` | Appointment type, provider selector, day picker |
 | `Sidebar` | App navigation |
 | `DropdownMenu` | User menu (profile, logout) |
-| `Avatar` | Doctor avatars |
+| `Avatar` | Provider avatars |
 | `Separator` | Layout |
 | `Toast` / `Sonner` | Success/error notifications |
 | `Skeleton` | Loading states |
@@ -892,7 +890,7 @@ src/routes/
     index.tsx         → / (Dashboard)
     calendar/
       index.tsx       → /calendar (availability edited inline via event modal)
-      delegation.tsx  → /calendar/delegation (DOCTOR only — role guard in beforeLoad)
+      delegation.tsx  → /calendar/delegation (PROVIDER only — role guard in beforeLoad)
     appointments/
       index.tsx       → /appointments
     patients/
@@ -927,7 +925,7 @@ import { authClient } from '../../../auth-client'
 export const Route = createFileRoute('/_auth/calendar/delegation')({
   beforeLoad: async () => {
     const { data: session } = await authClient.getSession()
-    if (session?.user.role !== 'DOCTOR') throw redirect({ to: '/' })
+    if (session?.user.role !== 'PROVIDER') throw redirect({ to: '/' })
   },
   component: DelegationPage,
 })
@@ -939,7 +937,7 @@ export const Route = createFileRoute('/_auth/calendar/delegation')({
 /login                     → login.tsx           (public)
 /                          → _auth/index.tsx     (Dashboard)
 /calendar                  → _auth/calendar/index.tsx       (availability edited inline)
-/calendar/delegation       → _auth/calendar/delegation.tsx  (DOCTOR only)
+/calendar/delegation       → _auth/calendar/delegation.tsx  (PROVIDER only)
 /appointments              → _auth/appointments/index.tsx
 /patients                  → _auth/patients/index.tsx       (ASSISTANT, ADMIN)
 /call-logs                 → _auth/call-logs/index.tsx      (ASSISTANT, ADMIN)
@@ -982,10 +980,10 @@ The dashboard shows at-a-glance metrics using `Card` components:
 | View | Description | Available To |
 |------|-------------|-------------|
 | **Week** | Default view — appointments + availability blocks | All |
-| **Day** | Single doctor detail view | All |
+| **Day** | Single provider detail view | All |
 | **Month** | Overview, shows appointment count per day | All |
 | **Agenda** | List view of upcoming appointments | All |
-| **Multi-resource** | All doctors side-by-side (week view) | ASSISTANT, ADMIN |
+| **Multi-resource** | All providers side-by-side (week view) | ASSISTANT, ADMIN |
 
 ### 9.2 Event Types & Colors
 
@@ -1000,24 +998,24 @@ The dashboard shows at-a-glance metrics using `Card` components:
 
 ### 9.3 Interactions by Role
 
-**DOCTOR (own calendar only):**
+**PROVIDER (own calendar only):**
 - Click available slot → Book appointment (or Block time)
 - Click appointment → View details / Mark complete
 - Drag appointment → Reschedule (calls PUT /api/appointments/:id)
 - Drag to resize → Change duration
 - Click blocked slot → Remove block
 
-**ASSISTANT (all doctors + delegated):**
-- Switch doctor view via dropdown
-- Multi-resource view to see all doctors simultaneously
-- Book / cancel appointments for any doctor
+**ASSISTANT (all providers + delegated):**
+- Switch provider view via dropdown
+- Multi-resource view to see all providers simultaneously
+- Book / cancel appointments for any provider
 - Block/unblock time on delegated calendars
 
 ### 9.4 Availability Editor
 
 Availability is edited inline on `/calendar` — there is no separate pattern
 page. Selecting an empty time range (or clicking an existing CalendarEvent)
-opens the event editor modal (`EventEditorModal`), where the doctor or a
+opens the event editor modal (`EventEditorModal`), where the provider or a
 delegated assistant:
 - Sets the title and `start → end` of the block
 - Chooses the type: `AVAILABLE` (bookable), `BLOCKED` (break/admin), or `VACATION` (time off)
@@ -1044,11 +1042,11 @@ Fastify calendar.service.ts:
 
 ## 10. Role-Based Feature Matrix
 
-| Feature | DOCTOR | ASSISTANT | ADMIN |
+| Feature | PROVIDER | ASSISTANT | ADMIN |
 |---------|--------|-----------|-------|
 | Login / logout | ✅ | ✅ | ✅ |
 | View own calendar | ✅ | — | ✅ |
-| View all doctors' calendars | ❌ | ✅ | ✅ |
+| View all providers' calendars | ❌ | ✅ | ✅ |
 | Edit own availability (calendar events) | ✅ | ❌ | ✅ |
 | Block own time slots | ✅ | ❌ (unless delegated) | ✅ |
 | Book appointment (own patients) | ✅ | ✅ | ✅ |
@@ -1091,12 +1089,12 @@ The n8n workflows (`retell-custom-function-router-v2` and `post-call-processing-
 This is the **most critical endpoint** — replaces the old `Calculate Available Slots` Code node and Google Calendar entirely.
 
 **Business logic (in `calendar.service.ts`):**
-1. Resolve the doctor by `provider_id`, else by `provider_name` (case-insensitive), else fall back to the first provider
+1. Resolve the provider by `provider_id`, else by `provider_name` (case-insensitive), else fall back to the first provider
 2. `duration = AppointmentDurations[appointment_type]` (default 30)
-3. Fetch the doctor's `CalendarEvent` rows of type `AVAILABLE` that overlap the requested date
+3. Fetch the provider's `CalendarEvent` rows of type `AVAILABLE` that overlap the requested date
 4. If there are none → return `{ slots: [], duration, provider_name }`
 5. Fetch `CalendarEvent` rows of type `BLOCKED` / `VACATION` for that date → unavailable ranges
-6. Fetch `Appointment` records (status `CONFIRMED`/`COMPLETED`) for that date and doctor → unavailable ranges
+6. Fetch `Appointment` records (status `CONFIRMED`/`COMPLETED`) for that date and provider → unavailable ranges
 7. Within each `AVAILABLE` window, step every 30 minutes and propose a slot of length `duration`
 8. Skip a slot whose end exceeds its `AVAILABLE` window
 9. Skip a slot that overlaps any `BLOCKED`/`VACATION` range or existing appointment
@@ -1178,13 +1176,13 @@ VITE_API_URL="http://localhost:3000"
 - [ ] better-auth integration (email/password + roles)
 - [ ] Fastify server with `@node-openapi/fastify` + `@fastify/swagger` + `@fastify/swagger-ui`
 - [ ] `requireAuth`, `requireRole`, `requireApiKey` middleware
-- [ ] Admin: create initial users (1 ADMIN, 1 DOCTOR, 1 ASSISTANT)
+- [ ] Admin: create initial users (1 ADMIN, 1 PROVIDER, 1 ASSISTANT)
 - [ ] React app scaffold (Vite + TanStack Router + TanStack Query)
 - [ ] TanStack Router file-based route setup (`__root.tsx`, `_auth.tsx`, `login.tsx`)
 - [ ] shadcn setup + LoginPage with session-based redirect
 
 ### Phase 2 — Core API (Week 3–4)
-- [ ] Doctor CRUD routes (with Zod schemas + OpenAPI tags)
+- [ ] Provider CRUD routes (with Zod schemas + OpenAPI tags)
 - [ ] CalendarEvent CRUD (availability / blocked / vacation)
 - [ ] `GET /api/calendar/slots` — full availability logic
 - [ ] `GET /api/calendar/:id/events` — for react-big-calendar
@@ -1240,7 +1238,7 @@ VITE_API_URL="http://localhost:3000"
 | ORM | `Prisma` | Already in monorepo stack, type-safe, great migration tooling |
 | Session storage | Cookie (better-auth) | Simpler than JWT for web app, automatic refresh |
 | n8n auth | API Key | Stateless, simple, no OAuth complexity needed for server-to-server |
-| Doctor profile | Separate table from User | Separation of concerns — auth vs. business data |
+| Provider profile | Separate table from User | Separation of concerns — auth vs. business data |
 | Client router | `TanStack Router` | End-to-end type safety, file-based routing via Vite plugin, `beforeLoad` for auth guards, no runtime routing errors |
 | API type provider | `@node-openapi/fastify` | Zod validates requests + infers TypeScript types + generates OpenAPI spec from one source of truth |
 | API docs | `@fastify/swagger` + `@fastify/swagger-ui` | Auto-generated, always in sync, Swagger UI for development exploration |
