@@ -15,7 +15,7 @@ All functions use **HTTP POST** method.
 
 **Name**: `check_availability`
 
-**Description**: Check available appointment slots for a given date and optional doctor. Call this when a patient wants to schedule or reschedule an appointment to see what times are available. Optionally pass `provider_name` to filter results for a specific doctor.
+**Description**: Check available appointment slots for a given date and optional doctor. Slots are computed live from each doctor's own calendar (their available hours minus existing bookings, breaks, and time off), so availability varies by doctor and by date. Call this when a patient wants to schedule or reschedule an appointment to see what times are available. Optionally pass `provider_name` to filter results for a specific doctor; if omitted, slots are returned for the first available doctor.
 
 **URL**: `https://n8ndev.appointer.hu/webhook/retell-custom-functions`
 
@@ -248,6 +248,11 @@ All functions use **HTTP POST** method.
     "callback_requested": {
       "type": "boolean",
       "description": "Whether the patient requested a callback from the office"
+    },
+    "preferred_time": {
+      "type": "string",
+      "description": "The patient's preferred time of day for a callback or visit",
+      "enum": ["morning", "afternoon", "evening"]
     }
   }
 }
@@ -259,7 +264,7 @@ All functions use **HTTP POST** method.
 
 **Name**: `list_available_providers`
 
-**Description**: Get a list of doctors who have at least one available appointment slot on a given date. Call this when the caller asks which doctors are available on a date, or when the caller has no preferred doctor and you want to offer choices before checking specific slots.
+**Description**: Get a list of doctors who have at least one available appointment slot on a given date, based on each doctor's own calendar. Call this when the caller asks which doctors are available on a date, or when the caller has no preferred doctor and you want to offer choices before checking specific slots.
 
 **URL**: `https://n8ndev.appointer.hu/webhook/retell-custom-functions`
 

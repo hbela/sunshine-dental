@@ -727,7 +727,7 @@ PUT    /api/doctors/me                 → Update own profile (DOCTOR only)
 GET    /api/calendar/slots
        ?doctor_id=&date=&appointment_type=
        → Available slots for a given date
-       → Response: { slots: ["09:00","09:30"], duration: 30, doctor_name: "Dr. Smith" }
+       → Response: { slots: ["09:00","09:30"], duration: 30, provider_name: "Dr. Smith" }
 
 GET    /api/calendar/:doctor_id/events
        ?from=&to=
@@ -777,7 +777,7 @@ GET    /api/appointments/patient/:patient_id → Patient appointment history
   appointment_type: AppointmentType  // required
   date:             string    // YYYY-MM-DD, required
   time:             string    // HH:MM, required
-  doctor_name:      string?   // if omitted, first available doctor assigned
+  provider_name:    string?   // if omitted, first available doctor assigned
   is_new_patient:   boolean
   notes:            string?
   call_id:          string?   // Retell call_id
@@ -1109,7 +1109,7 @@ The n8n workflows (`retell-custom-function-router-v2` and `post-call-processing-
 This is the **most critical endpoint** — replaces the old `Calculate Available Slots` Code node and Google Calendar entirely.
 
 **Business logic (in `calendar.service.ts`):**
-1. Look up doctor by `doctor_name` (or return error if not found)
+1. Look up doctor by `provider_name` (or return error if not found)
 2. Get active `AvailabilityPattern` for that doctor
 3. Get `PatternRule` for the requested day of week
 4. If no rule or `isAvailable = false` → return `{ slots: [] }`
@@ -1119,7 +1119,7 @@ This is the **most critical endpoint** — replaces the old `Calculate Available
 8. Skip slots during `breakStart → breakEnd`
 9. Skip slots conflicting with existing appointments or blocked times
 10. Filter: slot end must be ≤ `endTime`
-11. Return `{ slots: [...], duration: N, doctor_name: "..." }`
+11. Return `{ slots: [...], duration: N, provider_name: "..." }`
 
 ---
 

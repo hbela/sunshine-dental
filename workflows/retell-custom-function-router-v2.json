@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## ⚙️ Configuration Required\n\nSet these **n8n environment variables** before activating:\n\n| Variable | Description | Example |\n|---|---|---|\n| `FASTIFY_API_BASE_URL` | Fastify API base URL | `http://localhost:3000` |\n| `FASTIFY_API_KEY` | API authentication key | `your-secret-key` |\n\n**Set via:** n8n → Settings → Environment Variables\n\n---\n\n### What changed from v1:\n- ❌ Google Calendar removed → ✅ `GET /api/calendar/slots`\n- ❌ Google Sheets (Appointments) removed → ✅ `POST /api/appointments`\n- ❌ Google Sheets (Patient Info) removed → ✅ `POST /api/patients`\n- ❌ Calculate Available Slots Code node removed → ✅ Handled server-side in Fastify\n- ✅ New `doctor_name` parameter supported in check_availability & book_appointment",
+        "content": "## ⚙️ Configuration Required\n\nSet these **n8n environment variables** before activating:\n\n| Variable | Description | Example |\n|---|---|---|\n| `FASTIFY_API_BASE_URL` | Fastify API base URL | `http://localhost:3000` |\n| `FASTIFY_API_KEY` | API authentication key | `your-secret-key` |\n\n**Set via:** n8n → Settings → Environment Variables\n\n---\n\n### What changed from v1:\n- ❌ Google Calendar removed → ✅ `GET /api/calendar/slots`\n- ❌ Google Sheets (Appointments) removed → ✅ `POST /api/appointments`\n- ❌ Google Sheets (Patient Info) removed → ✅ `POST /api/patients`\n- ❌ Calculate Available Slots Code node removed → ✅ Handled server-side in Fastify\n- ✅ `provider_name` parameter supported in check_availability & book_appointment (availability comes from CalendarEvent rows in the DB)",
         "height": 340,
         "width": 520,
         "color": 7
@@ -181,7 +181,7 @@
     },
     {
       "parameters": {
-        "url": "=https://7782-2001-4c4e-1d16-d800-ec6d-d545-aca1-e371.ngrok-free.app/api/calendar/slots",
+        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/calendar/slots",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -204,7 +204,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": " Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
             }
           ]
         },
@@ -241,7 +241,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
             }
           ]
         },
@@ -305,6 +305,7 @@
       "parameters": {
         "conditions": {
           "options": {
+            "version": 2,
             "caseSensitive": true,
             "leftValue": "",
             "typeValidation": "strict"
@@ -315,7 +316,8 @@
               "rightValue": "",
               "operator": {
                 "type": "string",
-                "operation": "notEmpty"
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
@@ -336,7 +338,7 @@
       "parameters": {
         "sendTo": "={{ $('Retell Webhook').first().json.body.args.email }}",
         "subject": "Appointment Confirmation - Sunshine Dental Clinic",
-        "message": "<h2>Appointment Confirmed!</h2><p>Dear {{ $('Retell Webhook').first().json.body.args.patient_name }},</p><p>Your appointment has been confirmed with the following details:</p><ul><li><strong>Date:</strong> {{ $('Retell Webhook').first().json.body.args.date }}</li><li><strong>Time:</strong> {{ $('Retell Webhook').first().json.body.args.time }}</li><li><strong>Type:</strong> {{ $('Retell Webhook').first().json.body.args.appointment_type.replace(/_/g, ' ') }}</li><li><strong>Doctor:</strong> {{ $('Retell Webhook').first().json.body.args.doctor_name || 'Will be confirmed' }}</li></ul>{{ $('Retell Webhook').first().json.body.args.is_new_patient ? '<p><strong>New Patient Reminder:</strong> Please arrive 15 minutes early and bring your photo ID, insurance card, and a list of current medications.</p>' : '' }}<p>If you need to cancel or reschedule, please call us at least 24 hours in advance at (555) 123-4567.</p><p>We look forward to seeing you!</p><p>Best regards,<br>Sunshine Dental Clinic</p>",
+        "message": "=<h2>Appointment Confirmed!</h2><p>Dear {{ $('Retell Webhook').first().json.body.args.patient_name }},</p><p>Your appointment has been confirmed with the following details:</p><ul><li><strong>Date:</strong> {{ $('Retell Webhook').first().json.body.args.date }}</li><li><strong>Time:</strong> {{ $('Retell Webhook').first().json.body.args.time }}</li><li><strong>Type:</strong> {{ $('Retell Webhook').first().json.body.args.appointment_type.replace(/_/g, ' ') }}</li><li><strong>Doctor:</strong> {{ $('Retell Webhook').first().json.body.args.provider_name || 'Will be confirmed' }}</li></ul>{{ $('Retell Webhook').first().json.body.args.is_new_patient ? '<p><strong>New Patient Reminder:</strong> Please arrive 15 minutes early and bring your photo ID, insurance card, and a list of current medications.</p>' : '' }}<p>If you need to cancel or reschedule, please call us at least 24 hours in advance at (555) 123-4567.</p><p>We look forward to seeing you!</p><p>Best regards,<br>Sunshine Dental Clinic</p>",
         "options": {}
       },
       "id": "480aeaba-ddb9-4d23-845b-a357769a3a5b",
@@ -377,7 +379,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
             }
           ]
         },
@@ -417,6 +419,7 @@
       "parameters": {
         "conditions": {
           "options": {
+            "version": 2,
             "caseSensitive": true,
             "leftValue": "",
             "typeValidation": "strict"
@@ -427,7 +430,8 @@
               "rightValue": true,
               "operator": {
                 "type": "boolean",
-                "operation": "true"
+                "operation": "true",
+                "singleValue": true
               }
             }
           ],
@@ -492,7 +496,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
             }
           ]
         },
@@ -578,7 +582,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer d2e68fde950f1a54521f7eaf2bc094af217991d03ff0d79a2cffeeaa850cbf8a"
+              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
             }
           ]
         },
