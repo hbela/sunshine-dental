@@ -44,7 +44,7 @@ This system replaces Google Sheets, Google Calendar, and all hardcoded availabil
 - **Replace Google Sheets** with a proper PostgreSQL database (via Prisma)
 - **Replace Google Calendar** with a custom in-app calendar powered by `react-big-calendar`
 - **Secure all API endpoints** with `better-auth` using role-based access control
-- **Enable multi-doctor management** with dynamic availability patterns and delegation
+- **Enable multi-doctor management** with per-doctor availability calendars and delegation
 - **Provide a clean admin UI** for Doctors and Assistants to manage the clinic
 - **Auto-generate OpenAPI documentation** from Zod schemas, always in sync with the API
 
@@ -181,8 +181,7 @@ dental-clinic-monorepo/
 │       │   │   ├── _auth/
 │       │   │   │   ├── index.tsx     ← / → Dashboard
 │       │   │   │   ├── calendar/
-│       │   │   │   │   ├── index.tsx       ← /calendar
-│       │   │   │   │   ├── patterns.tsx    ← /calendar/patterns (DOCTOR only)
+│       │   │   │   │   ├── index.tsx       ← /calendar (availability edited inline via event modal)
 │       │   │   │   │   └── delegation.tsx  ← /calendar/delegation (DOCTOR only)
 │       │   │   │   ├── appointments/
 │       │   │   │   │   └── index.tsx       ← /appointments
@@ -332,8 +331,7 @@ model Doctor {
   updatedAt    DateTime @updatedAt
 
   appointments        Appointment[]
-  availabilityPatterns AvailabilityPattern[]
-  blockedTimes        BlockedTime[]
+  calendarEvents      CalendarEvent[]
   delegationsOwned    CalendarDelegation[] @relation("DelegationOwner")
   delegationsReceived CalendarDelegation[] @relation("DelegationDelegate")
 }
@@ -419,55 +417,33 @@ model CallLog {
   createdAt           DateTime @default(now())
 }
 
-// Availability patterns — named reusable weekly schedules
-model AvailabilityPattern {
-  id         String        @id @default(cuid())
+// Calendar events — the single source of availability. Each row is one
+// block of time on a doctor's calendar: when they are AVAILABLE for
+// bookings, or BLOCKED / on VACATION. Bookable slots are derived from
+// these rows at query time — there are no separate weekly-pattern,
+// pattern-rule, or blocked-time tables.
+// (In the implementation this entity is `Provider` / `providerId`; the PRD
+// keeps the "Doctor" naming used elsewhere in this document.)
+model CalendarEvent {
+  id         String            @id @default(cuid())
   doctorId   String
-  doctor     Doctor        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  name       String        // "Standard Week", "Summer Schedule"
-  isActive   Boolean       @default(false)
-  validFrom  DateTime?     @db.Date
-  validUntil DateTime?     @db.Date
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-
-  rules PatternRule[]
+  doctor     Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  title      String            // "Morning Shift", "Break", "Vacation"
+  start      DateTime          // full datetime (date + time)
+  end        DateTime          // full datetime (date + time)
+  allDay     Boolean           @default(false)
+  type       CalendarEventType @default(AVAILABLE)
+  recurrence String?           // RRULE string for recurring events (future use)
+  notes      String?
+  createdBy  String?           // userId of whoever created it (doctor or delegated assistant)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
 }
 
-// Weekly rules within a pattern
-model PatternRule {
-  id          String              @id @default(cuid())
-  patternId   String
-  pattern     AvailabilityPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
-  dayOfWeek   DayOfWeek
-  startTime   DateTime            @db.Time
-  endTime     DateTime            @db.Time
-  breakStart  DateTime?           @db.Time
-  breakEnd    DateTime?           @db.Time
-  isAvailable Boolean             @default(true)
-}
-
-enum DayOfWeek {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
-}
-
-// One-off blocked times (vacations, admin time)
-model BlockedTime {
-  id          String   @id @default(cuid())
-  doctorId    String
-  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  date        DateTime @db.Date
-  startTime   DateTime? @db.Time
-  endTime     DateTime? @db.Time
-  isFullDay   Boolean  @default(false)
-  reason      String?  // 'Vacation', 'Conference', 'Admin'
-  createdAt   DateTime @default(now())
+enum CalendarEventType {
+  AVAILABLE   // bookable time
+  BLOCKED     // break, admin, otherwise unavailable
+  VACATION    // time off
 }
 
 // Calendar delegation
@@ -524,7 +500,7 @@ export const auth = betterAuth({
             'appointments:own:read',
             'appointments:own:write',
             'patients:read',
-            'patterns:own:manage',
+            'calendar:own:manage',
             'delegation:own:manage',
           ]
         },
@@ -725,28 +701,35 @@ PUT    /api/doctors/me                 → Update own profile (DOCTOR only)
 
 ```
 GET    /api/calendar/slots
-       ?doctor_id=&date=&appointment_type=
-       → Available slots for a given date
+       ?provider_id=&provider_name=&date=&appointment_type=
+       → Bookable slots for a date, derived from the doctor's CalendarEvent rows
        → Response: { slots: ["09:00","09:30"], duration: 30, provider_name: "Dr. Smith" }
 
-GET    /api/calendar/:doctor_id/events
+GET    /api/calendar/available-providers
+       ?date=&appointment_type=
+       → Doctors with at least one open slot on that date
+       → Response: [{ provider_id, provider_name, available_slots }]
+
+GET    /api/calendar/:provider_id/events
        ?from=&to=
-       → All events (appointments + blocked times) in a date range
+       → All CalendarEvents (availability/blocked/vacation) + appointments in range
        → Used by react-big-calendar
 
-POST   /api/calendar/:doctor_id/block  → Block a time slot (ASSISTANT or owner DOCTOR)
-DELETE /api/calendar/block/:id         → Remove a block
+POST   /api/calendar/events            → Create a CalendarEvent (AVAILABLE / BLOCKED / VACATION)
+PUT    /api/calendar/events/:id        → Update a CalendarEvent
+DELETE /api/calendar/events/:id        → Delete a CalendarEvent
+       (create/update/delete: owner DOCTOR or a delegated ASSISTANT)
 ```
 
-### 7.6 Availability Patterns Routes
+### 7.6 Availability Management
 
-```
-GET    /api/patterns/:doctor_id        → List doctor's patterns
-POST   /api/patterns/:doctor_id        → Create pattern
-PUT    /api/patterns/:id               → Update pattern rules
-PUT    /api/patterns/:id/activate      → Set as active pattern (deactivates others)
-DELETE /api/patterns/:id               → Delete pattern
-```
+There are no separate pattern/rule routes. Availability is managed directly as
+`CalendarEvent` rows through the calendar event routes in §7.5: a doctor (or a
+delegated assistant) adds `AVAILABLE` blocks for bookable hours and
+`BLOCKED` / `VACATION` blocks for time off. `GET /api/calendar/slots` then
+subtracts existing bookings and `BLOCKED`/`VACATION` blocks from the
+`AVAILABLE` windows at query time. Recurring schedules are represented per
+event via the optional `recurrence` (RRULE) field.
 
 ### 7.7 Delegation Routes
 
@@ -853,7 +836,7 @@ GET    /api/call-logs/stats            → Aggregated stats (sentiment counts, c
 |-----------|---------|
 | `Button` | Forms, modals, actions |
 | `Input` / `Label` | Auth forms, patient form |
-| `Form` | Login, patient capture, pattern editor |
+| `Form` | Login, patient capture, calendar event editor |
 | `Card` / `CardHeader` | Dashboard stats, patient card |
 | `Badge` | Appointment status, role indicator |
 | `Dialog` | Appointment modal, block time modal |
@@ -908,9 +891,8 @@ src/routes/
   _auth/
     index.tsx         → / (Dashboard)
     calendar/
-      index.tsx       → /calendar
-      patterns.tsx    → /calendar/patterns  (DOCTOR only — role guard in beforeLoad)
-      delegation.tsx  → /calendar/delegation (DOCTOR only)
+      index.tsx       → /calendar (availability edited inline via event modal)
+      delegation.tsx  → /calendar/delegation (DOCTOR only — role guard in beforeLoad)
     appointments/
       index.tsx       → /appointments
     patients/
@@ -937,17 +919,17 @@ export const Route = createFileRoute('/_auth')({
 })
 ```
 
-**Role-guarded route example (`src/routes/_auth/calendar/patterns.tsx`):**
+**Role-guarded route example (`src/routes/_auth/calendar/delegation.tsx`):**
 ```typescript
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { authClient } from '../../../auth-client'
 
-export const Route = createFileRoute('/_auth/calendar/patterns')({
+export const Route = createFileRoute('/_auth/calendar/delegation')({
   beforeLoad: async () => {
     const { data: session } = await authClient.getSession()
     if (session?.user.role !== 'DOCTOR') throw redirect({ to: '/' })
   },
-  component: AvailabilityPatternsPage,
+  component: DelegationPage,
 })
 ```
 
@@ -956,8 +938,7 @@ export const Route = createFileRoute('/_auth/calendar/patterns')({
 ```
 /login                     → login.tsx           (public)
 /                          → _auth/index.tsx     (Dashboard)
-/calendar                  → _auth/calendar/index.tsx
-/calendar/patterns         → _auth/calendar/patterns.tsx    (DOCTOR only)
+/calendar                  → _auth/calendar/index.tsx       (availability edited inline)
 /calendar/delegation       → _auth/calendar/delegation.tsx  (DOCTOR only)
 /appointments              → _auth/appointments/index.tsx
 /patients                  → _auth/patients/index.tsx       (ASSISTANT, ADMIN)
@@ -1013,9 +994,9 @@ The dashboard shows at-a-glance metrics using `Card` components:
 | `appointment:confirmed` | Blue | Booked appointment |
 | `appointment:cancelled` | Red/strikethrough | Cancelled |
 | `appointment:completed` | Green | Completed visit |
-| `available` | Light green | Available slot (from pattern) |
-| `blocked` | Gray | Manually blocked time |
-| `break` | Light yellow | Lunch/break from pattern |
+| `available` | Light green | `AVAILABLE` CalendarEvent (bookable window) |
+| `blocked` | Gray | `BLOCKED` CalendarEvent (break, admin, unavailable) |
+| `vacation` | Light yellow | `VACATION` CalendarEvent (time off) |
 
 ### 9.3 Interactions by Role
 
@@ -1032,15 +1013,16 @@ The dashboard shows at-a-glance metrics using `Card` components:
 - Book / cancel appointments for any doctor
 - Block/unblock time on delegated calendars
 
-### 9.4 Availability Pattern Editor
+### 9.4 Availability Editor
 
-A separate page (`/calendar/patterns`) with a weekly grid editor:
-- 7-column grid (Mon–Sun), rows = time slots
-- Click/drag to define `startTime → endTime`
-- Set `breakStart → breakEnd` (lunch)
-- Toggle day ON/OFF
-- Name the pattern, set valid date range
-- Activate button → sets `isActive = true` on this pattern, `false` on others
+Availability is edited inline on `/calendar` — there is no separate pattern
+page. Selecting an empty time range (or clicking an existing CalendarEvent)
+opens the event editor modal (`EventEditorModal`), where the doctor or a
+delegated assistant:
+- Sets the title and `start → end` of the block
+- Chooses the type: `AVAILABLE` (bookable), `BLOCKED` (break/admin), or `VACATION` (time off)
+- Optionally marks it all-day, adds notes, or sets a `recurrence` (RRULE)
+- Saves → `POST` / `PUT /api/calendar/events`; deletes → `DELETE /api/calendar/events/:id`
 
 ### 9.5 Data Flow
 
@@ -1048,13 +1030,13 @@ A separate page (`/calendar/patterns`) with a weekly grid editor:
 react-big-calendar renders events
          ↑
 TanStack Query fetches:
-  GET /api/calendar/:doctor_id/events?from=&to=
+  GET /api/calendar/:provider_id/events?from=&to=
          ↑
 Fastify calendar.service.ts:
-  1. Fetch active pattern rules for this doctor
-  2. Fetch blocked times in range
-  3. Fetch appointments in range
-  4. Merge into unified event array
+  1. Fetch CalendarEvents (AVAILABLE/BLOCKED/VACATION) in range
+  2. Fetch appointments in range
+  3. Tag each item with its kind (availability vs appointment)
+  4. Merge into a unified event array
   5. Return to client
 ```
 
@@ -1067,7 +1049,7 @@ Fastify calendar.service.ts:
 | Login / logout | ✅ | ✅ | ✅ |
 | View own calendar | ✅ | — | ✅ |
 | View all doctors' calendars | ❌ | ✅ | ✅ |
-| Edit own availability pattern | ✅ | ❌ | ✅ |
+| Edit own availability (calendar events) | ✅ | ❌ | ✅ |
 | Block own time slots | ✅ | ❌ (unless delegated) | ✅ |
 | Book appointment (own patients) | ✅ | ✅ | ✅ |
 | Cancel appointment | ✅ | ✅ | ✅ |
@@ -1109,17 +1091,16 @@ The n8n workflows (`retell-custom-function-router-v2` and `post-call-processing-
 This is the **most critical endpoint** — replaces the old `Calculate Available Slots` Code node and Google Calendar entirely.
 
 **Business logic (in `calendar.service.ts`):**
-1. Look up doctor by `provider_name` (or return error if not found)
-2. Get active `AvailabilityPattern` for that doctor
-3. Get `PatternRule` for the requested day of week
-4. If no rule or `isAvailable = false` → return `{ slots: [] }`
-5. Check `BlockedTime` for that specific date
-6. Fetch `Appointment` records for that date and doctor
-7. Generate 30-minute slots between `startTime` and `endTime`
-8. Skip slots during `breakStart → breakEnd`
-9. Skip slots conflicting with existing appointments or blocked times
-10. Filter: slot end must be ≤ `endTime`
-11. Return `{ slots: [...], duration: N, provider_name: "..." }`
+1. Resolve the doctor by `provider_id`, else by `provider_name` (case-insensitive), else fall back to the first provider
+2. `duration = AppointmentDurations[appointment_type]` (default 30)
+3. Fetch the doctor's `CalendarEvent` rows of type `AVAILABLE` that overlap the requested date
+4. If there are none → return `{ slots: [], duration, provider_name }`
+5. Fetch `CalendarEvent` rows of type `BLOCKED` / `VACATION` for that date → unavailable ranges
+6. Fetch `Appointment` records (status `CONFIRMED`/`COMPLETED`) for that date and doctor → unavailable ranges
+7. Within each `AVAILABLE` window, step every 30 minutes and propose a slot of length `duration`
+8. Skip a slot whose end exceeds its `AVAILABLE` window
+9. Skip a slot that overlaps any `BLOCKED`/`VACATION` range or existing appointment
+10. Return `{ slots: [...], duration: N, provider_name: "..." }`
 
 ---
 
@@ -1204,7 +1185,7 @@ VITE_API_URL="http://localhost:3000"
 
 ### Phase 2 — Core API (Week 3–4)
 - [ ] Doctor CRUD routes (with Zod schemas + OpenAPI tags)
-- [ ] Availability Patterns CRUD
+- [ ] CalendarEvent CRUD (availability / blocked / vacation)
 - [ ] `GET /api/calendar/slots` — full availability logic
 - [ ] `GET /api/calendar/:id/events` — for react-big-calendar
 - [ ] Appointments CRUD (book, cancel, complete)
@@ -1216,7 +1197,7 @@ VITE_API_URL="http://localhost:3000"
 - [ ] react-big-calendar integration (week + day + month views)
 - [ ] Appointment modal (create / view / cancel)
 - [ ] Block time modal
-- [ ] Availability pattern editor page
+- [ ] Availability editor (inline CalendarEvent modal on /calendar)
 - [ ] Multi-resource view (ASSISTANT role)
 
 ### Phase 4 — Advanced Features (Week 7–8)
