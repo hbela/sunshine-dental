@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## ⚙️ Configuration Required\n\nSet these **n8n environment variables** before activating:\n\n| Variable | Description | Example |\n|---|---|---|\n| `FASTIFY_API_BASE_URL` | Fastify API base URL | `http://localhost:3000` |\n| `FASTIFY_API_KEY` | API authentication key | `your-secret-key` |\n\n**Set via:** n8n → Settings → Environment Variables\n\n---\n\n### What changed from v1:\n- ❌ Google Calendar removed → ✅ `GET /api/calendar/slots`\n- ❌ Google Sheets (Appointments) removed → ✅ `POST /api/appointments`\n- ❌ Google Sheets (Patient Info) removed → ✅ `POST /api/patients`\n- ❌ Calculate Available Slots Code node removed → ✅ Handled server-side in Fastify\n- ✅ `provider_name` parameter supported in check_availability & book_appointment (availability comes from CalendarEvent rows in the DB)",
+        "content": "## ⚙️ Configuration Required\n\n⚠️ This n8n instance runs with `N8N_BLOCK_ENV_ACCESS_IN_NODE`, so `$env.*` **cannot** be used inside nodes (it fails with \"access to env vars denied\"). Set these values **directly** on the 5 HTTP Request nodes — Get Available Slots, Book Appointment, Cancel Appointment, Create Patient, Get Available Providers:\n\n| Placeholder | Replace with |\n|---|---|\n| `https://YOUR-API-BASE-URL` (node URL) | Fastify API base URL, publicly reachable from n8n (e.g. the ngrok https URL) |\n| `Bearer YOUR_FASTIFY_API_KEY` (Authorization header) | `Bearer <key>` matching the API's `process.env.FASTIFY_API_KEY` |\n\n**ngrok note:** start it as `ngrok http 127.0.0.1:3000` (NOT `localhost`, which resolves to IPv6 `::1` on Windows where the API doesn't listen → 502). The ngrok URL changes on every restart, so re-apply it to all 5 nodes each time.\n\n---\n\n### What changed from v1:\n- ❌ Google Calendar removed → ✅ `GET /api/calendar/slots`\n- ❌ Google Sheets (Appointments) removed → ✅ `POST /api/appointments`\n- ❌ Google Sheets (Patient Info) removed → ✅ `POST /api/patients`\n- ❌ Calculate Available Slots Code node removed → ✅ Handled server-side in Fastify\n- ✅ `provider_name` parameter supported in check_availability & book_appointment (availability comes from CalendarEvent rows in the DB)",
         "height": 340,
         "width": 520,
         "color": 7
@@ -181,7 +181,7 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/calendar/slots",
+        "url": "https://YOUR-API-BASE-URL/api/calendar/slots",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -204,7 +204,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
+              "value": "Bearer YOUR_FASTIFY_API_KEY"
             }
           ]
         },
@@ -235,13 +235,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/appointments",
+        "url": "https://YOUR-API-BASE-URL/api/appointments",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
+              "value": "Bearer YOUR_FASTIFY_API_KEY"
             }
           ]
         },
@@ -373,13 +373,13 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/appointments/cancel",
+        "url": "https://YOUR-API-BASE-URL/api/appointments/cancel",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
+              "value": "Bearer YOUR_FASTIFY_API_KEY"
             }
           ]
         },
@@ -490,13 +490,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/patients",
+        "url": "https://YOUR-API-BASE-URL/api/patients",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
+              "value": "Bearer YOUR_FASTIFY_API_KEY"
             }
           ]
         },
@@ -563,7 +563,7 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.FASTIFY_API_BASE_URL }}/api/calendar/available-providers",
+        "url": "https://YOUR-API-BASE-URL/api/calendar/available-providers",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -582,7 +582,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.FASTIFY_API_KEY }}"
+              "value": "Bearer YOUR_FASTIFY_API_KEY"
             }
           ]
         },
