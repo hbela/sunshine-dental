@@ -1,0 +1,24 @@
+{
+    "mcpServers": {
+        "n8n-mcp": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "n8n-mcp"
+            ],
+            "env": {
+                "N8N_API_URL": "https://your-n8n-instance.example",
+                "N8N_API_KEY": "<your-n8n-api-key>"
+            }
+        },
+        "retell-ai": {
+            "command": "node",
+            "args": [
+                "<absolute-path-to>/retellsimp/dist/index.js"
+            ],
+            "env": {
+                "RETELL_API_KEY": "<your-retell-api-key>"
+            }
+        }
+    }
+}
