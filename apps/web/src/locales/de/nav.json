@@ -1,0 +1,9 @@
+{
+  "dashboard": "Übersicht",
+  "calendar": "Kalender",
+  "appointments": "Termine",
+  "patients": "Patienten",
+  "callLogs": "Anrufprotokolle",
+  "users": "Benutzer",
+  "settings": "Einstellungen"
+}

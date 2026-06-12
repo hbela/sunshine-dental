@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import {
   LayoutDashboard,
   Calendar,
@@ -12,30 +13,41 @@ import {
 } from 'lucide-react'
 import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { cn } from '@/lib/utils'
 
 type Role = 'PROVIDER' | 'ASSISTANT' | 'ADMIN'
 const ALL: Role[] = ['PROVIDER', 'ASSISTANT', 'ADMIN']
 
+type NavKey =
+  | 'dashboard'
+  | 'calendar'
+  | 'appointments'
+  | 'patients'
+  | 'callLogs'
+  | 'users'
+  | 'settings'
+
 interface NavItem {
   to: string
-  label: string
+  labelKey: NavKey
   icon: typeof LayoutDashboard
   roles: Role[]
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ALL },
-  { to: '/calendar', label: 'Calendar', icon: Calendar, roles: ALL },
-  { to: '/appointments', label: 'Appointments', icon: ClipboardList, roles: ALL },
-  { to: '/patients', label: 'Patients', icon: Users, roles: ['ASSISTANT', 'ADMIN'] },
-  { to: '/call-logs', label: 'Call Logs', icon: Phone, roles: ['ASSISTANT', 'ADMIN'] },
-  { to: '/admin/users', label: 'Users', icon: Shield, roles: ['ADMIN'] },
-  { to: '/settings', label: 'Settings', icon: Settings, roles: ALL },
+  { to: '/', labelKey: 'dashboard', icon: LayoutDashboard, roles: ALL },
+  { to: '/calendar', labelKey: 'calendar', icon: Calendar, roles: ALL },
+  { to: '/appointments', labelKey: 'appointments', icon: ClipboardList, roles: ALL },
+  { to: '/patients', labelKey: 'patients', icon: Users, roles: ['ASSISTANT', 'ADMIN'] },
+  { to: '/call-logs', labelKey: 'callLogs', icon: Phone, roles: ['ASSISTANT', 'ADMIN'] },
+  { to: '/admin/users', labelKey: 'users', icon: Shield, roles: ['ADMIN'] },
+  { to: '/settings', labelKey: 'settings', icon: Settings, roles: ALL },
 ]
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: session } = authClient.useSession()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
@@ -52,10 +64,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex h-screen w-full overflow-hidden">
       <aside className="flex w-64 flex-col border-r bg-card">
         <div className="flex h-16 items-center border-b px-6">
-          <span className="text-lg font-bold text-foreground">Sunshine Dental</span>
+          <span className="text-lg font-bold text-foreground">{t('appName')}</span>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {items.map(({ to, label, icon: Icon }) => {
+          {items.map(({ to, labelKey, icon: Icon }) => {
             const active = to === '/' ? pathname === '/' : pathname.startsWith(to)
             return (
               <Link
@@ -69,7 +81,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 )}
               >
                 <Icon className="size-4" />
-                {label}
+                {t(`nav:${labelKey}`)}
               </Link>
             )
           })}
@@ -80,6 +92,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <header className="flex h-16 items-center justify-between border-b bg-card px-6">
           <div />
           <div className="flex items-center gap-4">
+            <LanguageSwitcher />
             {user && (
               <div className="text-right leading-tight">
                 <div className="text-sm font-medium text-foreground">{user.name}</div>
@@ -90,7 +103,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             )}
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="size-4" />
-              Logout
+              {t('logout')}
             </Button>
           </div>
         </header>

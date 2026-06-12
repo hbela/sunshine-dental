@@ -1,0 +1,9 @@
+{
+  "dashboard": "Dashboard",
+  "calendar": "Calendar",
+  "appointments": "Appointments",
+  "patients": "Patients",
+  "callLogs": "Call Logs",
+  "users": "Users",
+  "settings": "Settings"
+}
