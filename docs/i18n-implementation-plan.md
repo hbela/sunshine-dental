@@ -1,150 +1,156 @@
-# i18n Implementation Plan — Multi-language Web App (English + Hungarian)
+# i18n / Multilingual Plan — Web App + Voice Agent (English · Hungarian · German)
 
-> Goal: make the **web app** (`apps/web`) multi-language, starting with **English (`en`, default)** and **Hungarian (`hu`)**, with a clean structure for adding more languages later.
+> Goal: make **both** patient/staff channels work in **English (`en`, fallback)**, **Hungarian
+> (`hu`)**, and **German (`de`)** — the React admin app *and* the Retell phone agent.
 
 Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
----
+## Why
 
-## 1. Scope
+The clinic is in **Hungary** and serves patients from different countries — notably many
+**German-speaking** patients who call for affordable, high-quality care, plus Hungarian and English
+speakers. Today everything is English-only: the web admin UI is hardcoded English, and the Retell
+voice agent (`agent_0c73886e96f6cf2ad878def30e` / LLM `llm_9144fb5e818b3d841e18ab084b99`) runs at
+`language: en-US` with an English prompt and English n8n responses/FAQ/emails.
 
-**In scope (v1):**
-- All user-facing UI text in `apps/web` (nav, pages, forms, modals, buttons, toasts, validation messages).
-- Date / time / number formatting per locale (Hungarian uses `YYYY. MM. DD.`, 24-hour, `,` decimal).
-- `react-big-calendar` toolbar + labels.
-- Enum display labels (appointment types, statuses, roles, calendar-event types).
-- A language switcher + persistence of the user's choice.
+**Decisions:**
+- Languages: **en** (fallback), **hu**, **de**.
+- Voice: **auto-detect the caller's language from speech** (one multilingual agent).
+- Web UI default: **browser-detected, fall back to English**.
 
-**Out of scope (tracked as future phases, see §9):**
-- API response/error messages (Fastify) — stay English in v1; client maps known codes later.
-- The **Retell voice agent** Hungarian experience (Hungarian voice, prompt, FAQ data, n8n responses) — separate, larger track.
-- Translating data entered by users (patient names, notes).
-
----
-
-## 2. Approach & library choice
-
-- **`react-i18next`** (+ `i18next`) — the standard for React/Vite; works with TanStack Router and shadcn.
-- **`i18next-browser-languagedetector`** — detect from localStorage → `navigator.language`, default `en`.
-- **Resources bundled as JSON** under `apps/web/src/locales/<lng>/<namespace>.json` (no network backend needed; Vite bundles them).
-- **Dates** via existing `date-fns` + its locales (`enUS`, `hu`); **numbers** via `Intl.NumberFormat`.
-- Default + fallback language: `en`. No RTL needed (both `en` and `hu` are LTR).
-
-**Decisions to confirm (defaults chosen — change here if desired):**
-- Persistence: **localStorage** (`sd.lang`) in v1. *(Optional later: add `User.locale` to persist server-side per user — see §9.)*
-- Namespacing: split by feature area (below) rather than one giant file, to keep PR diffs small.
+**Architectural principle — the API stays language-neutral.** Fastify returns data + canonical enum
+codes, never localized prose. Localization lives only in the two presentation layers (the React app,
+and the Retell prompt + n8n nodes). Booking/availability behave identically in every language.
 
 ---
 
-## 3. Locale file structure
+# Track A — Web admin app (`apps/web`), en/hu/de
 
-```
-apps/web/src/
-  i18n/
-    index.ts            ← i18next init (resources, detector, fallback)
-    useFormat.ts        ← locale-aware date/number helpers (wraps date-fns + Intl)
-  locales/
-    en/
-      common.json       ← buttons, generic words (save, cancel, loading, error…)
-      nav.json          ← sidebar labels
-      auth.json         ← login page
-      dashboard.json
-      calendar.json     ← calendar page + rbc toolbar + event editor
-      appointments.json ← appointment modal/list/booking form
-      patients.json
-      callLogs.json
-      settings.json
-      admin.json        ← users admin
-      enums.json        ← AppointmentType / AppointmentStatus / Role / CalendarEventType labels
-      validation.json   ← zod/react-hook-form messages
-    hu/
-      …same files, Hungarian values
-```
+Library: **`react-i18next`** + **`i18next`** + **`i18next-browser-languagedetector`**; JSON resources
+bundled by Vite; `date-fns` locales for dates; `Intl` for numbers.
 
-> Keep keys identical across `en` and `hu`. `en` is the source of truth for the key set.
-
----
-
-## 4. Phase 0 — Setup & infrastructure
-
+## A0. Setup & infrastructure
 - [ ] Add deps to `apps/web`: `i18next`, `react-i18next`, `i18next-browser-languagedetector`.
-- [ ] Create `src/i18n/index.ts`: init i18next with the namespaces above, `fallbackLng: 'en'`, `supportedLngs: ['en','hu']`, language detector (order: `localStorage`, `navigator`), and `interpolation.escapeValue: false`.
-- [ ] Create empty `en/*.json` and `hu/*.json` files with matching keys (start with `common`, `nav`).
-- [ ] Import `./i18n` in `src/main.tsx` **before** `<RouterProvider>`, and confirm `<html lang>` updates on language change (e.g. via an effect on `i18n.language`).
-- [ ] Add a typed `t` helper / module augmentation (`react-i18next.d.ts`) so missing keys are TypeScript errors.
+- [ ] `src/i18n/index.ts`: init i18next — `supportedLngs: ['en','hu','de']`, `fallbackLng: 'en'`,
+      detector order `['localStorage','navigator']`, `interpolation.escapeValue: false`.
+- [ ] Import `./i18n` in `src/main.tsx` **before** `<RouterProvider>`; update `<html lang>` on change.
+- [ ] Typed keys via `react-i18next.d.ts` module augmentation (missing keys = TS errors).
 
-## Phase 1 — Core framework wiring
+## A1. Locale files
+```
+apps/web/src/locales/{en,hu,de}/
+  common.json  nav.json  auth.json  dashboard.json  calendar.json
+  appointments.json  patients.json  callLogs.json  settings.json
+  admin.json  enums.json  validation.json
+```
+- [ ] `en` is the source-of-truth key set; `hu` and `de` mirror it exactly.
 
-- [ ] Create `src/i18n/useFormat.ts` exposing `formatDate`, `formatTime`, `formatDateTime`, `formatNumber` that read the active locale (`date-fns` `hu`/`enUS`, `Intl`).
-- [ ] Add a `LanguageSwitcher` component (uses `i18n.changeLanguage`, writes `localStorage`).
-- [ ] Decide switcher placement: header in `components/layout/AppLayout.tsx` **and** the Settings page (§Phase 5).
+## A2. Formatting helper
+- [ ] `src/i18n/useFormat.ts` exposing `formatDate/formatTime/formatDateTime/formatNumber`, reading the
+      active locale (`date-fns` `enUS`/`hu`/`de`, `Intl.NumberFormat`).
 
-## Phase 2 — Extract UI strings (by area)
+## A3. String extraction (replace hardcoded text with `t(...)`)
+File-by-file — representative paths:
+- [ ] `components/layout/AppLayout.tsx` — nav labels, "Sunshine Dental", "Logout", role → `nav`,`common`.
+- [ ] `routes/login.tsx` → `auth`.
+- [ ] `routes/_auth/index.tsx` (Dashboard) → `dashboard`.
+- [ ] `routes/_auth/calendar.tsx` + `components/calendar/DentalCalendar.tsx` → `calendar`.
+- [ ] `components/calendar/AppointmentModal.tsx` (row labels, booking form) → `appointments`,`common`.
+- [ ] `components/calendar/EventEditorModal.tsx` → `calendar`.
+- [ ] `routes/_auth/appointments.tsx`, `patients.tsx`, `call-logs.tsx`, `admin/users.tsx`, `settings.tsx`.
+- [ ] `hooks/useCalendar.ts` + `lib/*` toasts/errors → `common`.
+- [ ] Sweep `components/ui/*` for embedded text / aria-labels.
 
-> For each file: replace hardcoded text with `t('namespace:key')`, add keys to `en/*.json`, then translate in `hu/*.json`.
+## A4. Dates, numbers & calendar
+- [ ] Replace raw `date-fns` `format(...)` (e.g. `AppointmentModal.tsx` ~L106-107) with `useFormat`.
+- [ ] Configure `react-big-calendar` localizer with the active `date-fns` locale + translated
+      `messages` (next/previous/today/month/week/day/agenda/noEventsInRange…) + `culture`.
+- [ ] `lib/calendar-utils.ts` is pure date math — **no change**, just confirm.
+- [ ] HU/DE weeks start Monday — `date-fns` locales handle it; confirm rbc respects it.
 
-- [ ] `components/layout/AppLayout.tsx` — nav labels, "Sunshine Dental", "Logout", role display → `nav.json`, `common.json`.
-- [ ] `routes/login.tsx` — auth form (labels, buttons, errors) → `auth.json`.
-- [ ] `routes/_auth/index.tsx` — Dashboard → `dashboard.json`.
-- [ ] `routes/_auth/calendar.tsx` + `components/calendar/DentalCalendar.tsx` — page chrome, controls → `calendar.json`.
-- [ ] `components/calendar/AppointmentModal.tsx` — row labels ("Date", "Time", "Phone", "Notes"), booking form, buttons → `appointments.json` + `common.json`.
-- [ ] `components/calendar/EventEditorModal.tsx` — availability/blocked/vacation editor → `calendar.json`.
-- [ ] `routes/_auth/appointments.tsx` — list/filters/empty states → `appointments.json`.
-- [ ] `routes/_auth/patients.tsx` — `patients.json`.
-- [ ] `routes/_auth/call-logs.tsx` — `callLogs.json`.
-- [ ] `routes/_auth/admin/users.tsx` — `admin.json`.
-- [ ] `routes/_auth/settings.tsx` — `settings.json` (also hosts the switcher).
-- [ ] `hooks/useCalendar.ts` + `lib/*` — toast/success/error strings surfaced to the user → `common.json`.
-- [ ] Sweep `components/ui/*` for any embedded text (e.g. dialog close, aria-labels).
+## A5. Enums & dynamic labels
+- [ ] `enums.json` maps for `AppointmentType / AppointmentStatus / Role / CalendarEventType`
+      (keys = canonical codes from `@repo/shared`); `tEnum()` helper replaces
+      `appointmentType.replace(/_/g,' ')`. **Display only — values sent to the API stay canonical.**
 
-## Phase 3 — Dates, numbers & calendar
+## A6. Switcher & persistence
+- [ ] 3-way `LanguageSwitcher` (EN/HU/DE) in the header **and** the Settings page (currently a stub).
+- [ ] Persist to `localStorage` (`sd.lang`); restore via detector; update `<html lang>` + `document.title`.
 
-- [ ] Replace raw `date-fns` `format(...)` calls with `useFormat` helpers passing the active locale (notably `AppointmentModal.tsx` lines ~106–107, and any agenda/list formatting).
-- [ ] Configure `react-big-calendar` localizer with the active `date-fns` locale and pass a translated `messages` prop (next/previous/today/month/week/day/agenda/date/time/event/noEventsInRange…) and `culture`.
-- [ ] Verify `lib/calendar-utils.ts` wall-clock logic is locale-independent (it is — pure date math; **no change**, just confirm).
-- [ ] Localize week start if needed (Hungarian weeks start Monday — `date-fns` `hu` locale handles this; confirm rbc respects it).
+## A7. QA & tooling
+- [ ] en/hu/de key-parity check (script/CI).
+- [ ] Optional ESLint `no-literal-string` guard scoped to `src/routes` & `src/components`.
+- [ ] Trilingual QA pass: every page, both roles, calendar views, modals, toasts, empty/error states;
+      watch layout overflow (HU/DE strings run 30-40% longer).
 
-## Phase 4 — Enums & dynamic labels
-
-- [ ] Build `enums.json` maps for `AppointmentType`, `AppointmentStatus`, `Role`, `CalendarEventType` (keys = enum values from `@repo/shared`).
-- [ ] Add a helper `tEnum(kind, value)` and replace ad-hoc displays (e.g. `appointmentType.replace(/_/g,' ')`) across calendar/appointments components.
-- [ ] Ensure values **sent to the API stay canonical** (uppercase enum codes) — only the **display** is translated.
-
-## Phase 5 — Language switcher & persistence
-
-- [ ] Wire `LanguageSwitcher` into the header and Settings page.
-- [ ] Persist to `localStorage` (`sd.lang`); restore on load via the detector.
-- [ ] Update `<html lang>` and `document.title` on change.
-- [ ] (Optional) Pre-select from `navigator.language` on first visit when no stored value.
-
-## Phase 6 — QA, tooling & docs
-
-- [ ] Add an ESLint guard for hardcoded JSX text (e.g. `eslint-plugin-i18next` `no-literal-string`) — opt-in, scoped to `src/routes` & `src/components`.
-- [ ] Add a CI/script check that `en` and `hu` key sets match (no missing/extra keys).
-- [ ] Manual QA pass in both languages: every page, both roles, calendar views, modals, toasts, empty/error states; check for layout overflow (Hungarian strings run longer).
-- [ ] Update `README.md` / this doc with "how to add a language" + "how to add a translatable string".
+*(Future, not v1: per-user `User.locale` in Prisma; API `Accept-Language` error messages.)*
 
 ---
 
-## 9. Future / optional tracks (not v1)
+# Track B — Voice agent (Retell + n8n), auto-detect en/hu/de
 
-- [ ] **Per-user persistence:** add `locale String?` to `User` (Prisma), expose via auth/profile, hydrate i18next from it on login (overrides localStorage).
-- [ ] **API message i18n:** have Fastify return stable error **codes** (it already returns some `code`s); map to translated strings client-side, or send `Accept-Language` and translate server-side.
-- [ ] **Voice agent Hungarian:** Hungarian Retell voice + a `hu` system prompt + Hungarian `get_faq_answer` data + Hungarian n8n response strings. Large, separate effort — link from `docs/retell-agent-prompt.md`.
+The multilingual **gpt-4.1** LLM converses in the caller's language; n8n localizes only the
+**written/factual** patient-facing output (FAQ, confirmation email).
+
+## B0. Retell agent configuration — **spike first** (riskiest)
+- [ ] Enable **multilingual / auto-detect** on the agent; confirm multilingual **transcription (STT)**.
+- [ ] Pick a **voice that speaks EN + HU + DE acceptably** — **Hungarian TTS is the main unknown**.
+      Audition candidates (`retell_list_voices`, prefer multilingual providers) and **listen** in all
+      three languages before committing; validate or replace `retell-Cimo`.
+- [ ] Agent-level voice/language may need the **Retell dashboard** (current `retell-mcp` only updates
+      prompt + tools). Optionally extend `retell-mcp` (`C:\devs\retell-mcp`) with an `update_agent` tool.
+
+## B1. System prompt — add a "Language Handling" section (targeted merge, **do NOT overwrite**)
+The live prompt is the source of truth (richer than docs; includes the 2026-06-12 search-cap rule).
+- [ ] `retell_get_llm` → insert a Language section → `retell_update_llm_prompt`. The section: detect the
+      caller's language (en/hu/de) from the opening turns; **conduct the whole call in it** (greeting,
+      questions, confirmations); if a tool returns English data, **relay it in the caller's language**;
+      and **pass the detected `language` code to every custom function**.
+
+## B2. Custom-function tool schemas — add `language`
+- [ ] Add optional `language` enum (`en`/`hu`/`de`) to the 6 tools (used by `get_faq_answer` +
+      `book_appointment`), via the SDK `general_tools` round-trip (same method as `provider_name` /
+      `preferred_time`). Mirror in `docs/retell-custom-functions.md`.
+
+## B3. n8n router localization (workflow `rQ7I7vX2oAYnNIbR`)
+- [ ] **FAQ Handler**: split the English `faqData` into **per-language dictionaries (en/hu/de)** keyed
+      by `body.args.language` (fallback en). **Also fix the content** — it's US placeholder (`(555)`
+      numbers, "123 Main Street, Anytown", `$` fees) → real HU clinic address, **HUF** amounts, EU/HU
+      insurers — then translate.
+- [ ] **Send Confirmation Email**: localize subject + HTML body per `language` (en/hu/de).
+- [ ] **Format\* nodes** (availability/booking/cancel/providers/patient): **leave returning English
+      data**; the multilingual LLM relays it in the caller's language (B1). *(Lower-risk than 3× spoken
+      prose; pure-data return is the noted alternative, not v1.)*
+
+## B4. Docs & tests
+- [ ] Update `docs/retell-agent-prompt.md` (Language section) + `docs/retell-custom-functions.md`
+      (`language` param) to mirror live.
+- [ ] Extend the **Retell Simulation** scenario set with HU + DE personas (re-seed same day, use
+      `Nguyen`/`Martinez`, give personas a terminal exit — see the simulation loop-guard notes).
 
 ---
 
-## Acceptance criteria (v1)
+## Verification
 
-- [ ] Switching to Hungarian translates **all** visible UI text on every page (no English leakage outside user data).
-- [ ] Dates, times, and numbers render in Hungarian format when `hu` is active.
-- [ ] Language choice persists across reloads.
-- [ ] Adding a third language requires only a new `locales/<lng>/` folder + switcher entry (no code changes in components).
-- [ ] Values sent to the API are unchanged (enums stay canonical); booking/availability still work in both languages.
+**Track A:** `pnpm --filter web dev`; switch en→hu→de; confirm every page/modal/calendar view +
+dates/numbers localize with no English leakage (outside user data); run the key-parity check.
 
-## Risks & notes
+**Track B (per language):**
+1. Re-seed availability the same day (`pnpm --filter @repo/api db:seed`); confirm
+   `GET /api/calendar/available-providers?...` is non-empty.
+2. Drive the webhook (smoke-test pattern) with `language: "hu"`/`"de"`: `get_faq_answer` returns
+   localized FAQ; `book_appointment` (+`provider_name`+`language`) creates the appointment under the
+   right provider (language-neutral) and the email renders in that language; hard-delete test rows.
+3. Run a **Retell test/simulation** call per language end-to-end (greeting → availability → booking);
+   confirm the agent stays in the caller's language and audio quality is acceptable.
 
-- Hungarian text is typically **30–40% longer** than English — watch sidebar/button/table layouts.
-- Keep translation keys **semantic** (`appointments.bookButton`), not English-literal, so copy edits don't churn keys.
-- `react-big-calendar` + `date-fns` locale wiring is the fiddliest part — tackle it on a spike before bulk extraction.
-- Don't put translations in `packages/shared` (it's API-shared); enum **codes** live in shared, enum **labels** live in `apps/web/locales`.
+## Risks
+- **Hungarian voice (TTS) + transcription quality** — biggest unknown; spike B0 first.
+- LLM relaying English tool data into HU/DE — validate phrasing; fall back to data-return if weak.
+- **FAQ factual accuracy** per language (addresses, HUF, insurers) — real content + human review.
+- Web UI text expansion (HU/DE longer) — watch sidebar/buttons/tables.
+- Keep enum **codes** canonical end-to-end; only labels/prose are translated.
+
+## Suggested sequencing
+1. This doc (done). 2. **B0 voice spike** (de-risk Hungarian). 3. Track A A0-A4 ∥ B1-B3.
+4. Track A bulk extraction + B4 docs/tests. 5. Full trilingual QA on both channels.
