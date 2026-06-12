@@ -1,0 +1,21 @@
+{
+  "title": "Termine",
+  "comingSoon": "Die Terminverwaltung ist bald verfügbar.",
+  "bookTitle": "Termin buchen",
+  "bookDescription": "Einen neuen Termin für diesen Behandler erstellen.",
+  "book": "Buchen",
+  "booking": "Wird gebucht…",
+  "patientName": "Patientenname",
+  "patientNameRequired": "Patientenname ist erforderlich",
+  "phone": "Telefon",
+  "email": "E-Mail",
+  "invalidEmail": "Ungültige E-Mail",
+  "type": "Typ",
+  "date": "Datum",
+  "time": "Uhrzeit",
+  "notes": "Notizen",
+  "cancelAppointment": "Termin stornieren",
+  "cancelling": "Wird storniert…",
+  "markCompleted": "Als abgeschlossen markieren",
+  "completing": "Wird abgeschlossen…"
+}

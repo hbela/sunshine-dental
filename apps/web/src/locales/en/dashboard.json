@@ -1,0 +1,9 @@
+{
+  "title": "Dashboard",
+  "stats": {
+    "appointmentsToday": "Appointments Today",
+    "pendingCallbacks": "Pending Callbacks",
+    "callsThisWeek": "Calls This Week",
+    "sentimentScore": "Sentiment Score"
+  }
+}

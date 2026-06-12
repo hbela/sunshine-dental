@@ -1,0 +1,45 @@
+{
+  "title": "Kalender",
+  "allProviders": "Alle Behandler",
+  "addEvent": "Ereignis hinzufügen",
+  "bookAppointment": "Termin buchen",
+  "legend": {
+    "confirmed": "Bestätigt",
+    "completed": "Abgeschlossen",
+    "cancelled": "Storniert",
+    "available": "Verfügbar",
+    "blocked": "Blockiert",
+    "vacation": "Urlaub"
+  },
+  "rbc": {
+    "today": "Heute",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "month": "Monat",
+    "week": "Woche",
+    "day": "Tag",
+    "agenda": "Agenda",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "event": "Ereignis",
+    "allDay": "Ganztägig",
+    "noEventsInRange": "In diesem Zeitraum gibt es keine Ereignisse.",
+    "showMore": "+{{count}} weitere"
+  },
+  "event": {
+    "editTitle": "Kalenderereignis bearbeiten",
+    "addTitle": "Kalenderereignis hinzufügen",
+    "description": "Verfügbarkeit, blockierte Zeit oder Urlaub.",
+    "titleLabel": "Titel",
+    "titleRequired": "Titel ist erforderlich",
+    "type": "Typ",
+    "start": "Beginn",
+    "startRequired": "Beginn ist erforderlich",
+    "end": "Ende",
+    "endRequired": "Ende ist erforderlich",
+    "endAfterStart": "Das Ende muss nach dem Beginn liegen",
+    "allDay": "Ganztägig",
+    "notes": "Notizen",
+    "defaultTitle": "Verfügbarkeit"
+  }
+}

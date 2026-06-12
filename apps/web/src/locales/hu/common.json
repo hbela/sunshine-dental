@@ -2,11 +2,14 @@
   "appName": "Sunshine Dental",
   "logout": "Kijelentkezés",
   "save": "Mentés",
+  "saving": "Mentés…",
   "cancel": "Mégse",
   "delete": "Törlés",
+  "deleting": "Törlés…",
   "edit": "Szerkesztés",
   "close": "Bezárás",
   "loading": "Betöltés…",
   "error": "Valami hiba történt",
-  "language": "Nyelv"
+  "language": "Nyelv",
+  "comingSoon": "Hamarosan."
 }

@@ -1,0 +1,45 @@
+{
+  "title": "Calendar",
+  "allProviders": "All providers",
+  "addEvent": "Add event",
+  "bookAppointment": "Book appointment",
+  "legend": {
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "available": "Available",
+    "blocked": "Blocked",
+    "vacation": "Vacation"
+  },
+  "rbc": {
+    "today": "Today",
+    "previous": "Back",
+    "next": "Next",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "agenda": "Agenda",
+    "date": "Date",
+    "time": "Time",
+    "event": "Event",
+    "allDay": "All day",
+    "noEventsInRange": "There are no events in this range.",
+    "showMore": "+{{count}} more"
+  },
+  "event": {
+    "editTitle": "Edit calendar event",
+    "addTitle": "Add calendar event",
+    "description": "Availability, blocked time, or vacation.",
+    "titleLabel": "Title",
+    "titleRequired": "Title is required",
+    "type": "Type",
+    "start": "Start",
+    "startRequired": "Start is required",
+    "end": "End",
+    "endRequired": "End is required",
+    "endAfterStart": "End must be after start",
+    "allDay": "All day",
+    "notes": "Notes",
+    "defaultTitle": "Availability"
+  }
+}

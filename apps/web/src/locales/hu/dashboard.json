@@ -1,0 +1,9 @@
+{
+  "title": "Irányítópult",
+  "stats": {
+    "appointmentsToday": "Mai időpontok",
+    "pendingCallbacks": "Függő visszahívások",
+    "callsThisWeek": "Hívások ezen a héten",
+    "sentimentScore": "Hangulati pontszám"
+  }
+}

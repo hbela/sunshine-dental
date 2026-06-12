@@ -30,11 +30,11 @@ Library: **`react-i18next`** + **`i18next`** + **`i18next-browser-languagedetect
 bundled by Vite; `date-fns` locales for dates; `Intl` for numbers.
 
 ## A0. Setup & infrastructure
-- [ ] Add deps to `apps/web`: `i18next`, `react-i18next`, `i18next-browser-languagedetector`.
-- [ ] `src/i18n/index.ts`: init i18next — `supportedLngs: ['en','hu','de']`, `fallbackLng: 'en'`,
+- [x] Add deps to `apps/web`: `i18next`, `react-i18next`, `i18next-browser-languagedetector`.
+- [x] `src/i18n/index.ts`: init i18next — `supportedLngs: ['en','hu','de']`, `fallbackLng: 'en'`,
       detector order `['localStorage','navigator']`, `interpolation.escapeValue: false`.
-- [ ] Import `./i18n` in `src/main.tsx` **before** `<RouterProvider>`; update `<html lang>` on change.
-- [ ] Typed keys via `react-i18next.d.ts` module augmentation (missing keys = TS errors).
+- [x] Import `./i18n` in `src/main.tsx` **before** `<RouterProvider>`; update `<html lang>` on change.
+- [x] Typed keys via `react-i18next.d.ts` module augmentation (missing keys = TS errors).
 
 ## A1. Locale files
 ```
@@ -43,42 +43,46 @@ apps/web/src/locales/{en,hu,de}/
   appointments.json  patients.json  callLogs.json  settings.json
   admin.json  enums.json  validation.json
 ```
-- [ ] `en` is the source-of-truth key set; `hu` and `de` mirror it exactly.
+- [x] `en` is the source-of-truth key set; `hu` and `de` mirror it exactly. (11 namespaces; `validation`
+      messages folded into the feature namespaces — `auth`/`appointments`/`calendar` — rather than a
+      standalone file.)
 
 ## A2. Formatting helper
-- [ ] `src/i18n/useFormat.ts` exposing `formatDate/formatTime/formatDateTime/formatNumber`, reading the
+- [x] `src/i18n/useFormat.ts` exposing `formatDate/formatTime/formatDateTime/formatNumber`, reading the
       active locale (`date-fns` `enUS`/`hu`/`de`, `Intl.NumberFormat`).
 
 ## A3. String extraction (replace hardcoded text with `t(...)`)
 File-by-file — representative paths:
-- [ ] `components/layout/AppLayout.tsx` — nav labels, "Sunshine Dental", "Logout", role → `nav`,`common`.
-- [ ] `routes/login.tsx` → `auth`.
-- [ ] `routes/_auth/index.tsx` (Dashboard) → `dashboard`.
-- [ ] `routes/_auth/calendar.tsx` + `components/calendar/DentalCalendar.tsx` → `calendar`.
-- [ ] `components/calendar/AppointmentModal.tsx` (row labels, booking form) → `appointments`,`common`.
-- [ ] `components/calendar/EventEditorModal.tsx` → `calendar`.
-- [ ] `routes/_auth/appointments.tsx`, `patients.tsx`, `call-logs.tsx`, `admin/users.tsx`, `settings.tsx`.
-- [ ] `hooks/useCalendar.ts` + `lib/*` toasts/errors → `common`.
-- [ ] Sweep `components/ui/*` for embedded text / aria-labels.
+- [x] `components/layout/AppLayout.tsx` — nav labels, "Sunshine Dental", "Logout", role → `nav`,`common`.
+- [x] `routes/login.tsx` → `auth`.
+- [x] `routes/_auth/index.tsx` (Dashboard) → `dashboard`.
+- [x] `routes/_auth/calendar.tsx` + `components/calendar/DentalCalendar.tsx` → `calendar`.
+- [x] `components/calendar/AppointmentModal.tsx` (row labels, booking form) → `appointments`,`common`.
+- [x] `components/calendar/EventEditorModal.tsx` → `calendar`.
+- [x] `routes/_auth/appointments.tsx`, `patients.tsx`, `call-logs.tsx`, `admin/users.tsx`, `settings.tsx`.
+- [ ] `hooks/useCalendar.ts` + `lib/*` toasts/errors → `common`. (No literal user-facing strings found
+      there yet — errors surface via `apiErrorMessage`; revisit when toasts are added.)
+- [ ] Sweep `components/ui/*` for embedded text / aria-labels. (Primitives are text-free today; recheck.)
 
 ## A4. Dates, numbers & calendar
-- [ ] Replace raw `date-fns` `format(...)` (e.g. `AppointmentModal.tsx` ~L106-107) with `useFormat`.
-- [ ] Configure `react-big-calendar` localizer with the active `date-fns` locale + translated
+- [x] Replace raw `date-fns` `format(...)` (e.g. `AppointmentModal.tsx` ~L106-107) with `useFormat`.
+- [x] Configure `react-big-calendar` localizer with the active `date-fns` locale + translated
       `messages` (next/previous/today/month/week/day/agenda/noEventsInRange…) + `culture`.
-- [ ] `lib/calendar-utils.ts` is pure date math — **no change**, just confirm.
-- [ ] HU/DE weeks start Monday — `date-fns` locales handle it; confirm rbc respects it.
+- [x] `lib/calendar-utils.ts` is pure date math — **no change**, just confirm.
+- [x] HU/DE weeks start Monday — `date-fns` locales handle it; confirmed rbc respects it via `culture`.
 
 ## A5. Enums & dynamic labels
-- [ ] `enums.json` maps for `AppointmentType / AppointmentStatus / Role / CalendarEventType`
-      (keys = canonical codes from `@repo/shared`); `tEnum()` helper replaces
+- [x] `enums.json` maps for `AppointmentType / AppointmentStatus / Role / CalendarEventType`
+      (keys = canonical codes from `@repo/shared`); `useEnum().tEnum()` helper replaces
       `appointmentType.replace(/_/g,' ')`. **Display only — values sent to the API stay canonical.**
 
 ## A6. Switcher & persistence
-- [ ] 3-way `LanguageSwitcher` (EN/HU/DE) in the header **and** the Settings page (currently a stub).
-- [ ] Persist to `localStorage` (`sd.lang`); restore via detector; update `<html lang>` + `document.title`.
+- [x] 3-way `LanguageSwitcher` (EN/HU/DE) in the header **and** the Settings page (now a real section).
+- [x] Persist to `localStorage` (`sd.lang`); restore via detector; update `<html lang>`.
+      (`document.title` is static "Sunshine Dental" — no per-page titles to localize yet.)
 
 ## A7. QA & tooling
-- [ ] en/hu/de key-parity check (script/CI).
+- [x] en/hu/de key-parity check (script) — all 11 namespaces match. *(CI wiring still TODO.)*
 - [ ] Optional ESLint `no-literal-string` guard scoped to `src/routes` & `src/components`.
 - [ ] Trilingual QA pass: every page, both roles, calendar views, modals, toasts, empty/error states;
       watch layout overflow (HU/DE strings run 30-40% longer).

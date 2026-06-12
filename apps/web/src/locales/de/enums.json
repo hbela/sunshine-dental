@@ -1,0 +1,27 @@
+{
+  "appointmentType": {
+    "CLEANING": "Zahnreinigung",
+    "NEW_PATIENT_EXAM": "Erstuntersuchung",
+    "DEEP_CLEANING": "Tiefenreinigung",
+    "FILLING": "Füllung",
+    "CROWN_PREP": "Kronenpräparation",
+    "CONSULTATION": "Beratung",
+    "EMERGENCY": "Notfall"
+  },
+  "appointmentStatus": {
+    "CONFIRMED": "Bestätigt",
+    "CANCELLED": "Storniert",
+    "COMPLETED": "Abgeschlossen",
+    "NO_SHOW": "Nicht erschienen"
+  },
+  "calendarEventType": {
+    "AVAILABLE": "Verfügbar",
+    "BLOCKED": "Blockiert",
+    "VACATION": "Urlaub"
+  },
+  "role": {
+    "PROVIDER": "Behandler",
+    "ASSISTANT": "Assistenz",
+    "ADMIN": "Administrator"
+  }
+}

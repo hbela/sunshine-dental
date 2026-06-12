@@ -1,0 +1,27 @@
+{
+  "appointmentType": {
+    "CLEANING": "Cleaning",
+    "NEW_PATIENT_EXAM": "New patient exam",
+    "DEEP_CLEANING": "Deep cleaning",
+    "FILLING": "Filling",
+    "CROWN_PREP": "Crown prep",
+    "CONSULTATION": "Consultation",
+    "EMERGENCY": "Emergency"
+  },
+  "appointmentStatus": {
+    "CONFIRMED": "Confirmed",
+    "CANCELLED": "Cancelled",
+    "COMPLETED": "Completed",
+    "NO_SHOW": "No-show"
+  },
+  "calendarEventType": {
+    "AVAILABLE": "Available",
+    "BLOCKED": "Blocked",
+    "VACATION": "Vacation"
+  },
+  "role": {
+    "PROVIDER": "Provider",
+    "ASSISTANT": "Assistant",
+    "ADMIN": "Admin"
+  }
+}

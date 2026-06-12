@@ -1,0 +1,27 @@
+{
+  "appointmentType": {
+    "CLEANING": "Fogtisztítás",
+    "NEW_PATIENT_EXAM": "Új páciens vizsgálat",
+    "DEEP_CLEANING": "Mélytisztítás",
+    "FILLING": "Tömés",
+    "CROWN_PREP": "Koronaelőkészítés",
+    "CONSULTATION": "Konzultáció",
+    "EMERGENCY": "Sürgősségi"
+  },
+  "appointmentStatus": {
+    "CONFIRMED": "Megerősítve",
+    "CANCELLED": "Lemondva",
+    "COMPLETED": "Befejezve",
+    "NO_SHOW": "Nem jelent meg"
+  },
+  "calendarEventType": {
+    "AVAILABLE": "Elérhető",
+    "BLOCKED": "Foglalt",
+    "VACATION": "Szabadság"
+  },
+  "role": {
+    "PROVIDER": "Szolgáltató",
+    "ASSISTANT": "Asszisztens",
+    "ADMIN": "Adminisztrátor"
+  }
+}

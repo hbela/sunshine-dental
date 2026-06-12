@@ -2,11 +2,14 @@
   "appName": "Sunshine Dental",
   "logout": "Abmelden",
   "save": "Speichern",
+  "saving": "Wird gespeichert…",
   "cancel": "Abbrechen",
   "delete": "Löschen",
+  "deleting": "Wird gelöscht…",
   "edit": "Bearbeiten",
   "close": "Schließen",
   "loading": "Wird geladen…",
   "error": "Etwas ist schiefgelaufen",
-  "language": "Sprache"
+  "language": "Sprache",
+  "comingSoon": "Demnächst verfügbar."
 }

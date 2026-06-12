@@ -1,24 +1,29 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-const schema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
-})
-
-type FormValues = z.infer<typeof schema>
+type FormValues = { email: string; password: string }
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('auth')
   const [serverError, setServerError] = useState<string | null>(null)
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email(t('invalidEmail', { defaultValue: 'Enter a valid email' })),
+        password: z.string().min(1, t('passwordRequired', { defaultValue: 'Password is required' })),
+      }),
+    [t],
+  )
   const {
     register,
     handleSubmit,
@@ -33,14 +38,12 @@ function LoginPage() {
         password: values.password,
       })
       if (error) {
-        setServerError(error.message ?? 'Sign in failed. Check your credentials.')
+        setServerError(error.message ?? t('signInFailed'))
         return
       }
       await navigate({ to: '/' })
     } catch {
-      setServerError(
-        'Could not reach the API. Make sure it is running and that the web and API use the same hostname (both localhost).',
-      )
+      setServerError(t('apiUnreachable'))
     }
   }
 
@@ -48,25 +51,25 @@ function LoginPage() {
     <div className="flex h-screen items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Sunshine Dental Clinic</CardTitle>
-          <CardDescription>Sign in to manage your clinic</CardDescription>
+          <CardTitle className="text-2xl">{t('title')}</CardTitle>
+          <CardDescription>{t('subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@sunshine.dental"
+                placeholder={t('emailPlaceholder')}
                 {...register('email')}
               />
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -85,7 +88,7 @@ function LoginPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
+              {isSubmitting ? t('signingIn') : t('signIn')}
             </Button>
           </form>
         </CardContent>

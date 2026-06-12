@@ -1,0 +1,9 @@
+{
+  "title": "Übersicht",
+  "stats": {
+    "appointmentsToday": "Termine heute",
+    "pendingCallbacks": "Ausstehende Rückrufe",
+    "callsThisWeek": "Anrufe diese Woche",
+    "sentimentScore": "Stimmungswert"
+  }
+}

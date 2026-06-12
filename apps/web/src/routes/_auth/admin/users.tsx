@@ -1,14 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { requireRole } from '@/lib/route-guards'
+
+function UsersPage() {
+  const { t } = useTranslation('admin')
+  return (
+    <section>
+      <h1 className="mb-6 text-3xl font-semibold text-foreground">{t('title')}</h1>
+      <div className="rounded-lg border bg-card p-6 text-muted-foreground">{t('comingSoon')}</div>
+    </section>
+  )
+}
 
 export const Route = createFileRoute('/_auth/admin/users')({
   beforeLoad: () => requireRole(['ADMIN']),
-  component: () => (
-    <section>
-      <h1 className="mb-6 text-3xl font-semibold text-foreground">User Management</h1>
-      <div className="rounded-lg border bg-card p-6 text-muted-foreground">
-        Admin user management coming soon.
-      </div>
-    </section>
-  ),
+  component: UsersPage,
 })

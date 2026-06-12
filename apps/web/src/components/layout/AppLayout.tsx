@@ -14,6 +14,7 @@ import {
 import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { useEnum } from '@/i18n/useEnum'
 import { cn } from '@/lib/utils'
 
 type Role = 'PROVIDER' | 'ASSISTANT' | 'ADMIN'
@@ -48,6 +49,7 @@ const NAV: NavItem[] = [
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { tEnum } = useEnum()
   const { data: session } = authClient.useSession()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
@@ -97,7 +99,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <div className="text-right leading-tight">
                 <div className="text-sm font-medium text-foreground">{user.name}</div>
                 <div className="text-xs text-muted-foreground">
-                  {role ?? user.email}
+                  {role ? tEnum('role', role) : user.email}
                 </div>
               </div>
             )}

@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import { AppointmentTypeSchema } from '@repo/shared'
 import {
   Dialog,
@@ -17,6 +17,8 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { apiErrorMessage } from '@/lib/api'
+import { useFormat } from '@/i18n/useFormat'
+import { useEnum } from '@/i18n/useEnum'
 import { isoToWall, wallToDateTimeParts } from '@/lib/calendar-utils'
 import {
   useBookAppointment,
@@ -27,17 +29,15 @@ import {
 
 const APPOINTMENT_TYPES = AppointmentTypeSchema.options
 
-const bookSchema = z.object({
-  patient_name: z.string().min(1, 'Patient name is required'),
-  phone: z.string().optional(),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
-  appointment_type: z.string().min(1),
-  date: z.string().min(1),
-  time: z.string().min(1),
-  notes: z.string().optional(),
-})
-
-type BookValues = z.infer<typeof bookSchema>
+type BookValues = {
+  patient_name: string
+  phone?: string
+  email?: string
+  appointment_type: string
+  date: string
+  time: string
+  notes?: string
+}
 
 interface Props {
   open: boolean
@@ -73,6 +73,10 @@ function ViewAppointment({
   onOpenChange: (o: boolean) => void
   item?: CalendarItem
 }) {
+  const { t } = useTranslation('appointments')
+  const { t: tc } = useTranslation('common')
+  const { tEnum } = useEnum()
+  const { formatDate, formatTime } = useFormat()
   const [error, setError] = useState<string | null>(null)
   const cancel = useCancelAppointment()
   const complete = useCompleteAppointment()
@@ -98,22 +102,23 @@ function ViewAppointment({
       <DialogHeader>
         <DialogTitle>{item.patientName}</DialogTitle>
         <DialogDescription>
-          {item.appointmentType} · {item.status}
+          {item.appointmentType ? tEnum('appointmentType', item.appointmentType) : ''} ·{' '}
+          {item.status ? tEnum('appointmentStatus', item.status) : ''}
         </DialogDescription>
       </DialogHeader>
 
       <div className="space-y-2 text-sm">
-        <Row label="Date" value={format(start, 'EEE, MMM d, yyyy')} />
-        <Row label="Time" value={`${format(start, 'HH:mm')} – ${format(end, 'HH:mm')}`} />
-        {item.patientPhone && <Row label="Phone" value={item.patientPhone} />}
-        {item.notes && <Row label="Notes" value={item.notes} />}
+        <Row label={t('date')} value={formatDate(start, 'EEE, MMM d, yyyy')} />
+        <Row label={t('time')} value={`${formatTime(start)} – ${formatTime(end)}`} />
+        {item.patientPhone && <Row label={t('phone')} value={item.patientPhone} />}
+        {item.notes && <Row label={t('notes')} value={item.notes} />}
       </div>
 
       {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
       <DialogFooter>
         <Button variant="outline" onClick={() => onOpenChange(false)}>
-          Close
+          {tc('close')}
         </Button>
         {isConfirmed && (
           <>
@@ -122,13 +127,13 @@ function ViewAppointment({
               disabled={cancel.isPending}
               onClick={() => run(() => cancel.mutateAsync(item.appointmentId as string))}
             >
-              {cancel.isPending ? 'Cancelling…' : 'Cancel appointment'}
+              {cancel.isPending ? t('cancelling') : t('cancelAppointment')}
             </Button>
             <Button
               disabled={complete.isPending}
               onClick={() => run(() => complete.mutateAsync(item.appointmentId as string))}
             >
-              {complete.isPending ? 'Completing…' : 'Mark completed'}
+              {complete.isPending ? t('completing') : t('markCompleted')}
             </Button>
           </>
         )}
@@ -148,9 +153,26 @@ function CreateAppointment({
   providerId: string
   slotStart?: Date
 }) {
+  const { t } = useTranslation('appointments')
+  const { t: tc } = useTranslation('common')
+  const { tEnum } = useEnum()
   const [error, setError] = useState<string | null>(null)
   const book = useBookAppointment()
   const parts = slotStart ? wallToDateTimeParts(slotStart) : { date: '', time: '' }
+
+  const bookSchema = useMemo(
+    () =>
+      z.object({
+        patient_name: z.string().min(1, t('patientNameRequired')),
+        phone: z.string().optional(),
+        email: z.string().email(t('invalidEmail')).optional().or(z.literal('')),
+        appointment_type: z.string().min(1),
+        date: z.string().min(1),
+        time: z.string().min(1),
+        notes: z.string().optional(),
+      }),
+    [t],
+  )
 
   const {
     register,
@@ -191,13 +213,13 @@ function CreateAppointment({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
-        <DialogTitle>Book appointment</DialogTitle>
-        <DialogDescription>Create a new appointment for this provider.</DialogDescription>
+        <DialogTitle>{t('bookTitle')}</DialogTitle>
+        <DialogDescription>{t('bookDescription')}</DialogDescription>
       </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="patient_name">Patient name</Label>
+          <Label htmlFor="patient_name">{t('patientName')}</Label>
           <Input id="patient_name" {...register('patient_name')} />
           {errors.patient_name && (
             <p className="text-sm text-destructive">{errors.patient_name.message}</p>
@@ -206,22 +228,22 @@ function CreateAppointment({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">{t('phone')}</Label>
             <Input id="phone" {...register('phone')} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('email')}</Label>
             <Input id="email" type="email" {...register('email')} />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="appointment_type">Type</Label>
+          <Label htmlFor="appointment_type">{t('type')}</Label>
           <Select id="appointment_type" {...register('appointment_type')}>
-            {APPOINTMENT_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t.replace(/_/g, ' ')}
+            {APPOINTMENT_TYPES.map((code) => (
+              <option key={code} value={code}>
+                {tEnum('appointmentType', code)}
               </option>
             ))}
           </Select>
@@ -229,17 +251,17 @@ function CreateAppointment({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">{t('date')}</Label>
             <Input id="date" type="date" {...register('date')} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="time">Time</Label>
+            <Label htmlFor="time">{t('time')}</Label>
             <Input id="time" type="time" {...register('time')} />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="notes">Notes</Label>
+          <Label htmlFor="notes">{t('notes')}</Label>
           <Textarea id="notes" {...register('notes')} />
         </div>
 
@@ -247,10 +269,10 @@ function CreateAppointment({
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('cancel')}
           </Button>
           <Button type="submit" disabled={book.isPending}>
-            {book.isPending ? 'Booking…' : 'Book'}
+            {book.isPending ? t('booking') : t('book')}
           </Button>
         </DialogFooter>
       </form>

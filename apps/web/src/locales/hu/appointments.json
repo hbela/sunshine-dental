@@ -1,0 +1,21 @@
+{
+  "title": "Időpontok",
+  "comingSoon": "Az időpontkezelés hamarosan elérhető.",
+  "bookTitle": "Időpont foglalása",
+  "bookDescription": "Új időpont létrehozása ehhez a szolgáltatóhoz.",
+  "book": "Foglalás",
+  "booking": "Foglalás…",
+  "patientName": "Páciens neve",
+  "patientNameRequired": "A páciens nevének megadása kötelező",
+  "phone": "Telefon",
+  "email": "E-mail",
+  "invalidEmail": "Érvénytelen e-mail",
+  "type": "Típus",
+  "date": "Dátum",
+  "time": "Idő",
+  "notes": "Megjegyzések",
+  "cancelAppointment": "Időpont lemondása",
+  "cancelling": "Lemondás…",
+  "markCompleted": "Befejezettnek jelöl",
+  "completing": "Befejezés…"
+}

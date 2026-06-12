@@ -1,0 +1,45 @@
+{
+  "title": "Naptár",
+  "allProviders": "Összes szolgáltató",
+  "addEvent": "Esemény hozzáadása",
+  "bookAppointment": "Időpont foglalása",
+  "legend": {
+    "confirmed": "Megerősítve",
+    "completed": "Befejezve",
+    "cancelled": "Lemondva",
+    "available": "Elérhető",
+    "blocked": "Foglalt",
+    "vacation": "Szabadság"
+  },
+  "rbc": {
+    "today": "Ma",
+    "previous": "Vissza",
+    "next": "Tovább",
+    "month": "Hónap",
+    "week": "Hét",
+    "day": "Nap",
+    "agenda": "Napirend",
+    "date": "Dátum",
+    "time": "Idő",
+    "event": "Esemény",
+    "allDay": "Egész nap",
+    "noEventsInRange": "Nincs esemény ebben az időszakban.",
+    "showMore": "+{{count}} további"
+  },
+  "event": {
+    "editTitle": "Naptáresemény szerkesztése",
+    "addTitle": "Naptáresemény hozzáadása",
+    "description": "Elérhetőség, foglalt idő vagy szabadság.",
+    "titleLabel": "Cím",
+    "titleRequired": "A cím megadása kötelező",
+    "type": "Típus",
+    "start": "Kezdés",
+    "startRequired": "A kezdés megadása kötelező",
+    "end": "Befejezés",
+    "endRequired": "A befejezés megadása kötelező",
+    "endAfterStart": "A befejezésnek a kezdés után kell lennie",
+    "allDay": "Egész nap",
+    "notes": "Megjegyzések",
+    "defaultTitle": "Elérhetőség"
+  }
+}

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
-import type { View, SlotInfo } from 'react-big-calendar'
+import type { View, SlotInfo, Messages } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
-import { enUS } from 'date-fns/locale'
+import { enUS, hu, de } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import { Plus } from 'lucide-react'
 import { authClient } from '@/auth-client'
@@ -15,12 +16,14 @@ import { Button } from '@/components/ui/button'
 import { AppointmentModal } from './AppointmentModal'
 import { EventEditorModal } from './EventEditorModal'
 
+// All three locales registered; the active `culture` (below) selects which one
+// react-big-calendar uses — including each locale's week-start (Mon for hu/de).
 const localizer = dateFnsLocalizer({
   format,
   parse,
   startOfWeek,
   getDay,
-  locales: { 'en-US': enUS },
+  locales: { en: enUS, hu, de },
 })
 
 interface CalEvent {
@@ -74,6 +77,27 @@ function toRbc(item: CalendarItem, resourceId?: string): CalEvent {
 }
 
 export function DentalCalendar() {
+  const { t, i18n } = useTranslation('calendar')
+  const culture = i18n.language?.split('-')[0] ?? 'en'
+  const messages: Messages = useMemo(
+    () => ({
+      today: t('rbc.today'),
+      previous: t('rbc.previous'),
+      next: t('rbc.next'),
+      month: t('rbc.month'),
+      week: t('rbc.week'),
+      day: t('rbc.day'),
+      agenda: t('rbc.agenda'),
+      date: t('rbc.date'),
+      time: t('rbc.time'),
+      event: t('rbc.event'),
+      allDay: t('rbc.allDay'),
+      noEventsInRange: t('rbc.noEventsInRange'),
+      showMore: (count: number) => t('rbc.showMore', { count }),
+    }),
+    [t],
+  )
+
   const { data: session } = authClient.useSession()
   const role = (session?.user as { role?: string } | undefined)?.role
   const userId = session?.user?.id
@@ -149,7 +173,7 @@ export function DentalCalendar() {
                 if (e.target.checked && view !== 'day' && view !== 'week') setView('day')
               }}
             />
-            All providers
+            {t('allProviders')}
           </label>
         )}
 
@@ -180,7 +204,7 @@ export function DentalCalendar() {
             }
           >
             <Plus className="size-4" />
-            Add event
+            {t('addEvent')}
           </Button>
           <Button
             size="sm"
@@ -191,7 +215,7 @@ export function DentalCalendar() {
             }
           >
             <Plus className="size-4" />
-            Book appointment
+            {t('bookAppointment')}
           </Button>
         </div>
       </div>
@@ -201,6 +225,8 @@ export function DentalCalendar() {
       <div className="h-[calc(100vh-260px)] rounded-lg border bg-card p-2">
         <Calendar
           localizer={localizer}
+          culture={culture}
+          messages={messages}
           events={events}
           date={date}
           view={view}
@@ -261,20 +287,21 @@ export function DentalCalendar() {
 }
 
 function Legend() {
-  const items: { color: string; label: string }[] = [
-    { color: '#3b82f6', label: 'Confirmed' },
-    { color: '#22c55e', label: 'Completed' },
-    { color: '#ef4444', label: 'Cancelled' },
-    { color: '#86efac', label: 'Available' },
-    { color: '#9ca3af', label: 'Blocked' },
-    { color: '#fca5a5', label: 'Vacation' },
+  const { t } = useTranslation('calendar')
+  const items: { color: string; key: string }[] = [
+    { color: '#3b82f6', key: 'confirmed' },
+    { color: '#22c55e', key: 'completed' },
+    { color: '#ef4444', key: 'cancelled' },
+    { color: '#86efac', key: 'available' },
+    { color: '#9ca3af', key: 'blocked' },
+    { color: '#fca5a5', key: 'vacation' },
   ]
   return (
     <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
       {items.map((i) => (
-        <span key={i.label} className="flex items-center gap-1.5">
+        <span key={i.key} className="flex items-center gap-1.5">
           <span className="inline-block size-3 rounded-sm" style={{ backgroundColor: i.color }} />
-          {i.label}
+          {t(`legend.${i.key}`)}
         </span>
       ))}
     </div>

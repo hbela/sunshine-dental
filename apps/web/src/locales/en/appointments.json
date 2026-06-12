@@ -1,0 +1,21 @@
+{
+  "title": "Appointments",
+  "comingSoon": "Appointment management coming soon.",
+  "bookTitle": "Book appointment",
+  "bookDescription": "Create a new appointment for this provider.",
+  "book": "Book",
+  "booking": "Booking…",
+  "patientName": "Patient name",
+  "patientNameRequired": "Patient name is required",
+  "phone": "Phone",
+  "email": "Email",
+  "invalidEmail": "Invalid email",
+  "type": "Type",
+  "date": "Date",
+  "time": "Time",
+  "notes": "Notes",
+  "cancelAppointment": "Cancel appointment",
+  "cancelling": "Cancelling…",
+  "markCompleted": "Mark completed",
+  "completing": "Completing…"
+}
