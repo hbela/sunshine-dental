@@ -121,15 +121,16 @@ The live prompt is the source of truth (richer than docs; includes the 2026-06-1
       and all existing fields preserved. Mirrored in `docs/retell-custom-functions.md`.
 
 ## B3. n8n router localization (workflow `rQ7I7vX2oAYnNIbR`)
-- [ ] **FAQ Handler**: split the English `faqData` into **per-language dictionaries (en/hu/de)** keyed
-      by `body.args.language` (fallback en). **Also fix the content** — it's US placeholder (`(555)`
-      numbers, "123 Main Street, Anytown", `$` fees) → real HU clinic address, **HUF** amounts, EU/HU
-      insurers — then translate. *(Blocked on real clinic facts — awaiting from user; will edit the
-      live workflow once provided.)*
-- [ ] **Send Confirmation Email**: localize subject + HTML body per `language` (en/hu/de).
-- [ ] **Format\* nodes** (availability/booking/cancel/providers/patient): **leave returning English
-      data**; the multilingual LLM relays it in the caller's language (B1). *(Lower-risk than 3× spoken
-      prose; pure-data return is the noted alternative, not v1.)*
+- [x] **FAQ Handler**: split into **per-language dictionaries (en/hu/de)** keyed by `body.args.language`
+      (fallback en, then en topic, then a localized fallback line). Content corrected to real HU facts
+      (Budapest address, +36 phone, HUF amounts, Generali/Medicover, **emergency → 112**). Applied live
+      + mirrored to the local JSON. *(Facts are working data, not a real clinic's verified policy —
+      human review still recommended.)*
+- [x] **Send Confirmation Email**: added a **Localize Email** Code node (en/hu/de subject + HTML body,
+      reads `body.args.language`) wired `Has Email?`(true) → Localize Email → Gmail; Gmail now reads
+      `$json.subject/html/sendTo`. Appointment-type label localized. Applied live + mirrored locally.
+- [x] **Format\* nodes** (availability/booking/cancel/providers/patient): left returning English data;
+      the multilingual LLM relays it in the caller's language (B1). *(No change — confirmed.)*
 
 ## B4. Docs & tests
 - [x] Update `docs/retell-agent-prompt.md` (Language section + multilingual agent settings) +

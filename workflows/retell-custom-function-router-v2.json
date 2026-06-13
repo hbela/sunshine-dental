@@ -336,10 +336,12 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $('Retell Webhook').first().json.body.args.email }}",
-        "subject": "Appointment Confirmation - Sunshine Dental Clinic",
-        "message": "=<h2>Appointment Confirmed!</h2><p>Dear {{ $('Retell Webhook').first().json.body.args.patient_name }},</p><p>Your appointment has been confirmed with the following details:</p><ul><li><strong>Date:</strong> {{ $('Retell Webhook').first().json.body.args.date }}</li><li><strong>Time:</strong> {{ $('Retell Webhook').first().json.body.args.time }}</li><li><strong>Type:</strong> {{ $('Retell Webhook').first().json.body.args.appointment_type.replace(/_/g, ' ') }}</li><li><strong>Doctor:</strong> {{ $('Retell Webhook').first().json.body.args.provider_name || 'Will be confirmed' }}</li></ul>{{ $('Retell Webhook').first().json.body.args.is_new_patient ? '<p><strong>New Patient Reminder:</strong> Please arrive 15 minutes early and bring your photo ID, insurance card, and a list of current medications.</p>' : '' }}<p>If you need to cancel or reschedule, please call us at least 24 hours in advance at (555) 123-4567.</p><p>We look forward to seeing you!</p><p>Best regards,<br>Sunshine Dental Clinic</p>",
-        "options": {}
+        "sendTo": "={{ $json.sendTo }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {},
+        "resource": "message",
+        "operation": "send"
       },
       "id": "480aeaba-ddb9-4d23-845b-a357769a3a5b",
       "name": "Send Confirmation Email",
@@ -476,7 +478,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const args = $json.body.args;\nconst topic = args.topic;\n\nconst faqData = {\n  office_hours: 'Our office hours are: Monday through Friday 8:00 AM to 5:00 PM, Saturday 9:00 AM to 1:00 PM. We are closed on Sundays. Please note we have a lunch break from 12:00 PM to 1:00 PM on weekdays.',\n  services: 'We offer: General Dentistry (cleanings, exams, fillings, crowns), Cosmetic Dentistry (teeth whitening, veneers, bonding), Orthodontics (braces, Invisalign), Oral Surgery (extractions, wisdom teeth removal), Pediatric Dentistry (children\\'s cleanings and sealants), and Emergency Dental Care (same-day appointments).',\n  insurance: 'We accept the following insurance providers: Delta Dental, Cigna, Aetna, MetLife, Guardian, and United Healthcare Dental. We also accept patients without insurance. Payment plans are available for procedures over $500. We accept cash, credit/debit cards, and CareCredit.',\n  emergency: 'For dental emergencies during office hours, call (555) 123-4567 and select option 2. For after-hours emergencies, call our emergency line at (555) 123-4568. For severe bleeding or jaw trauma, please go to the nearest emergency room immediately. If you have a knocked-out tooth, keep it moist in milk or saliva and come in right away.',\n  cancellation_policy: 'Please cancel or reschedule at least 24 hours in advance. Late cancellations may incur a $50 fee. No-shows may incur a $75 fee.',\n  new_patient_info: 'New patients should arrive 15 minutes early to fill out paperwork. Please bring your photo ID, insurance card, and a list of current medications. New patient forms are also available on our website at www.sunshinedentalclinic.com.',\n  location: 'We are located at 123 Main Street, Suite 100, Anytown, ST 12345. You can reach us by phone at (555) 123-4567 or by email at info@sunshinedentalclinic.com.',\n  payment_options: 'We accept cash, credit and debit cards, and CareCredit. Payment plans are available for procedures over $500. We also accept most major dental insurance plans.'\n};\n\nconst answer = faqData[topic] || 'I\\'m sorry, I don\\'t have information on that topic. Would you like me to have someone from the office call you back?';\n\nreturn [{ json: { result: answer } }];"
+        "jsCode": "const args = $json.body.args;\nconst topic = args.topic;\nconst lang = ((args.language) || 'en').toString().toLowerCase();\n\nconst faqData = {\n  en: {\n    office_hours: 'Our office hours are Monday to Friday, 8:00 AM to 5:00 PM, and Saturday 9:00 AM to 1:00 PM. We are closed on Sundays. We also have a lunch break from 12:00 PM to 1:00 PM on weekdays.',\n    services: 'We offer general dentistry (cleanings, exams, fillings, crowns), cosmetic dentistry (teeth whitening, veneers, bonding), orthodontics (braces and Invisalign), oral surgery (extractions and wisdom teeth removal), pediatric dentistry for children, and emergency dental care with same-day appointments.',\n    insurance: 'We work with Generali and Medicover, and we also welcome self-paying patients without insurance.',\n    emergency: 'For dental emergencies during our office hours, please call us at +36 20 2576701. For a life-threatening emergency, such as severe bleeding or swelling that affects breathing, call 112 or go to the nearest emergency room immediately. If a tooth has been knocked out, keep it moist in milk or saliva and come in right away.',\n    cancellation_policy: 'Please cancel or reschedule at least 24 hours in advance. Cancellations made less than 24 hours before the appointment may incur a fee of 10,000 HUF.',\n    new_patient_info: 'If you are a new patient, please arrive 15 minutes early and bring your insurance card and a list of any medications you currently take.',\n    location: 'We are located at Dózsa György út 132, 1134 Budapest. You can reach us by phone at +36 20 2576701 or by email at elystrade@gmail.com. You can also find us online at https://sunshine.dental.appointer.hu.',\n    payment_options: 'You can pay in cash in Hungarian forint, or by VISA or Mastercard.'\n  },\n  hu: {\n    office_hours: 'Rendelőnk nyitvatartása hétfőtől péntekig 8:00 és 17:00 óra között, szombaton 9:00 és 13:00 óra között. Vasárnap zárva tartunk. Hétköznaponként 12:00 és 13:00 óra között ebédszünetet tartunk.',\n    services: 'Szolgáltatásaink: általános fogászat (fogkőeltávolítás, vizsgálatok, tömések, koronák), esztétikai fogászat (fogfehérítés, héjak, bondozás), fogszabályozás (rögzített fogszabályozó és Invisalign), szájsebészet (foghúzás és bölcsességfog-eltávolítás), gyermekfogászat, valamint sürgősségi fogászati ellátás aznapi időpontokkal.',\n    insurance: 'A Generali és a Medicover biztosítókkal állunk kapcsolatban, és biztosítás nélküli, önfizető pácienseket is szívesen fogadunk.',\n    emergency: 'Fogászati sürgősség esetén nyitvatartási időben hívjon minket a +36 20 2576701 telefonszámon. Életveszélyes helyzetben, például erős vérzés vagy a légzést akadályozó duzzanat esetén, hívja a 112-t, vagy menjen azonnal a legközelebbi sürgősségi ügyeletre. Ha egy fog kiesett, tartsa nedvesen tejben vagy nyálban, és jöjjön be mihamarabb.',\n    cancellation_policy: 'Kérjük, legalább 24 órával korábban mondja le vagy módosítsa az időpontját. A 24 órán belüli lemondás esetén 10 000 forint díjat számíthatunk fel.',\n    new_patient_info: 'Új páciensként kérjük, érkezzen 15 perccel korábban, és hozza magával a biztosítási kártyáját, valamint a jelenleg szedett gyógyszerei listáját.',\n    location: 'Címünk: 1134 Budapest, Dózsa György út 132. Telefonon a +36 20 2576701 számon, e-mailben az elystrade@gmail.com címen érhet el minket. Online is megtalál minket a https://sunshine.dental.appointer.hu oldalon.',\n    payment_options: 'Fizethet készpénzzel forintban, vagy VISA, illetve Mastercard bankkártyával.'\n  },\n  de: {\n    office_hours: 'Unsere Öffnungszeiten sind Montag bis Freitag von 8:00 bis 17:00 Uhr und Samstag von 9:00 bis 13:00 Uhr. Sonntags haben wir geschlossen. An Wochentagen machen wir von 12:00 bis 13:00 Uhr Mittagspause.',\n    services: 'Wir bieten allgemeine Zahnheilkunde (Zahnreinigung, Untersuchungen, Füllungen, Kronen), ästhetische Zahnheilkunde (Bleaching, Veneers, Bonding), Kieferorthopädie (feste Zahnspangen und Invisalign), Oralchirurgie (Extraktionen und Weisheitszahnentfernung), Kinderzahnheilkunde sowie zahnärztliche Notfallversorgung mit Terminen am selben Tag.',\n    insurance: 'Wir arbeiten mit Generali und Medicover zusammen und nehmen auch Selbstzahler ohne Versicherung gerne auf.',\n    emergency: 'Bei einem zahnärztlichen Notfall rufen Sie uns während der Öffnungszeiten unter +36 20 2576701 an. Bei einem lebensbedrohlichen Notfall, etwa starken Blutungen oder Schwellungen, die die Atmung beeinträchtigen, wählen Sie 112 oder begeben Sie sich sofort in die nächste Notaufnahme. Wenn ein Zahn ausgeschlagen wurde, halten Sie ihn in Milch oder Speichel feucht und kommen Sie umgehend zu uns.',\n    cancellation_policy: 'Bitte sagen Sie Ihren Termin mindestens 24 Stunden im Voraus ab oder verschieben Sie ihn. Bei Absagen weniger als 24 Stunden vor dem Termin kann eine Gebühr von 10.000 HUF anfallen.',\n    new_patient_info: 'Als neue Patientin oder neuer Patient kommen Sie bitte 15 Minuten früher und bringen Sie Ihre Versicherungskarte sowie eine Liste Ihrer aktuellen Medikamente mit.',\n    location: 'Sie finden uns in der Dózsa György út 132, 1134 Budapest. Sie erreichen uns telefonisch unter +36 20 2576701 oder per E-Mail an elystrade@gmail.com. Online finden Sie uns unter https://sunshine.dental.appointer.hu.',\n    payment_options: 'Sie können bar in ungarischen Forint oder mit VISA bzw. Mastercard bezahlen.'\n  }\n};\n\nconst fallback = {\n  en: \"I'm sorry, I don't have information on that topic. Would you like me to have someone from the office call you back?\",\n  hu: 'Sajnálom, erről a témáról nincs információm. Szeretné, ha valaki a rendelőből visszahívná Önt?',\n  de: 'Es tut mir leid, zu diesem Thema habe ich keine Informationen. Möchten Sie, dass Sie jemand aus der Praxis zurückruft?'\n};\n\nconst dict = faqData[lang] || faqData.en;\nconst answer = dict[topic] || faqData.en[topic] || fallback[lang] || fallback.en;\n\nreturn [{ json: { result: answer } }];"
       },
       "id": "c6b2553a-70d4-4bc0-9d42-aa28489fa352",
       "name": "FAQ Handler",
@@ -637,6 +639,19 @@
         1904,
         560
       ]
+    },
+    {
+      "id": "367447f5-5787-470b-994d-d80242c35cfe",
+      "name": "Localize Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1272,
+        120
+      ],
+      "parameters": {
+        "jsCode": "const a = $('Retell Webhook').first().json.body.args;\nconst lang = ((a.language) || 'en').toString().toLowerCase();\nconst type = (a.appointment_type || '').replace(/_/g, ' ');\n\nconst T = {\n  en: { subject: 'Appointment Confirmation - Sunshine Dental Clinic', h: 'Appointment Confirmed!', dear: 'Dear', intro: 'Your appointment has been confirmed with the following details:', date: 'Date', time: 'Time', type: 'Type', doctor: 'Doctor', tbc: 'Will be confirmed', np: '<strong>New Patient Reminder:</strong> Please arrive 15 minutes early and bring your insurance card and a list of current medications.', cancel: 'If you need to cancel or reschedule, please call us at least 24 hours in advance at +36 20 2576701. Cancellations made less than 24 hours in advance may incur a fee of 10,000 HUF.', see: 'We look forward to seeing you!', regards: 'Best regards,', clinic: 'Sunshine Dental Clinic' },\n  hu: { subject: 'Időpont-visszaigazolás – Sunshine Dental Clinic', h: 'Időpontja megerősítve!', dear: 'Kedves', intro: 'Időpontját az alábbi adatokkal megerősítettük:', date: 'Dátum', time: 'Időpont', type: 'Típus', doctor: 'Orvos', tbc: 'Később egyeztetjük', np: '<strong>Emlékeztető új pácienseknek:</strong> Kérjük, érkezzen 15 perccel korábban, és hozza magával a biztosítási kártyáját, valamint a jelenleg szedett gyógyszerei listáját.', cancel: 'Ha le szeretné mondani vagy módosítani szeretné az időpontját, kérjük, hívjon minket legalább 24 órával korábban a +36 20 2576701 telefonszámon. A 24 órán belüli lemondás esetén 10 000 forint díjat számíthatunk fel.', see: 'Várjuk Önt szeretettel!', regards: 'Üdvözlettel:', clinic: 'Sunshine Dental Klinika' },\n  de: { subject: 'Terminbestätigung – Sunshine Dental Clinic', h: 'Ihr Termin ist bestätigt!', dear: 'Liebe/r', intro: 'Ihr Termin wurde mit den folgenden Angaben bestätigt:', date: 'Datum', time: 'Uhrzeit', type: 'Art', doctor: 'Arzt/Ärztin', tbc: 'Wird noch bestätigt', np: '<strong>Hinweis für neue Patienten:</strong> Bitte kommen Sie 15 Minuten früher und bringen Sie Ihre Versicherungskarte sowie eine Liste Ihrer aktuellen Medikamente mit.', cancel: 'Wenn Sie Ihren Termin absagen oder verschieben möchten, rufen Sie uns bitte mindestens 24 Stunden im Voraus unter +36 20 2576701 an. Bei Absagen weniger als 24 Stunden vorher kann eine Gebühr von 10.000 HUF anfallen.', see: 'Wir freuen uns auf Ihren Besuch!', regards: 'Mit freundlichen Grüßen,', clinic: 'Sunshine Dental Klinik' }\n};\n\nconst t = T[lang] || T.en;\n\nlet html = '<h2>' + t.h + '</h2>';\nhtml += '<p>' + t.dear + ' ' + a.patient_name + ',</p>';\nhtml += '<p>' + t.intro + '</p>';\nhtml += '<ul>';\nhtml += '<li><strong>' + t.date + ':</strong> ' + a.date + '</li>';\nhtml += '<li><strong>' + t.time + ':</strong> ' + a.time + '</li>';\nhtml += '<li><strong>' + t.type + ':</strong> ' + type + '</li>';\nhtml += '<li><strong>' + t.doctor + ':</strong> ' + (a.provider_name || t.tbc) + '</li>';\nhtml += '</ul>';\nif (a.is_new_patient) { html += '<p>' + t.np + '</p>'; }\nhtml += '<p>' + t.cancel + '</p>';\nhtml += '<p>' + t.see + '</p>';\nhtml += '<p>' + t.regards + '<br>' + t.clinic + '</p>';\n\nreturn [{ json: { sendTo: a.email, subject: t.subject, html } }];"
+      }
     }
   ],
   "pinData": {},
@@ -742,7 +757,7 @@
       "main": [
         [
           {
-            "node": "Send Confirmation Email",
+            "node": "Localize Email",
             "type": "main",
             "index": 0
           }
@@ -889,6 +904,17 @@
         [
           {
             "node": "Respond to Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Localize Email": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation Email",
             "type": "main",
             "index": 0
           }
