@@ -97,38 +97,43 @@ The multilingual **gpt-4.1** LLM converses in the caller's language; n8n localiz
 **written/factual** patient-facing output (FAQ, confirmation email).
 
 ## B0. Retell agent configuration — **spike first** (riskiest)
-- [ ] Enable **multilingual / auto-detect** on the agent; confirm multilingual **transcription (STT)**.
-- [ ] Pick a **voice that speaks EN + HU + DE acceptably** — **Hungarian TTS is the main unknown**.
-      Audition candidates (`retell_list_voices`, prefer multilingual providers) and **listen** in all
-      three languages before committing; validate or replace `retell-Cimo`.
-- [ ] Agent-level voice/language may need the **Retell dashboard** (current `retell-mcp` only updates
-      prompt + tools). Optionally extend `retell-mcp` (`C:\devs\retell-mcp`) with an `update_agent` tool.
+- [x] Enable **multilingual / auto-detect** on the agent — live agent is already `language: "multi"`,
+      model `gpt-4.1` (multilingual STT). Confirmed via `retell_get_agent`.
+- [~] Pick a **voice that speaks EN + HU + DE acceptably** — **Hungarian TTS is the main unknown**.
+      Live voice is `11labs-Marissa` (ElevenLabs multilingual model covers en/hu/de). Retell voice
+      metadata exposes only `accent` (no per-language list) and **no voice is tagged Hungarian**, so an
+      ElevenLabs voice is the right single-voice architecture for a `multi` agent. **Listening audition
+      of Hungarian quality is a human task — still TODO before launch.**
+- [x] Agent-level voice/language already set (no dashboard step needed for this change). Tool/prompt
+      edits are scripted via `workflows/scripts/retell-add-language.mjs` (Retell SDK round-trip), so no
+      `update_agent` MCP extension was required.
 
 ## B1. System prompt — add a "Language Handling" section (targeted merge, **do NOT overwrite**)
 The live prompt is the source of truth (richer than docs; includes the 2026-06-12 search-cap rule).
-- [ ] `retell_get_llm` → insert a Language section → `retell_update_llm_prompt`. The section: detect the
-      caller's language (en/hu/de) from the opening turns; **conduct the whole call in it** (greeting,
-      questions, confirmations); if a tool returns English data, **relay it in the caller's language**;
-      and **pass the detected `language` code to every custom function**.
+- [x] Inserted a *Language Handling* section into the live prompt (between Personality and Core
+      Responsibilities) via the round-trip script: detect en/hu/de from the opening turns; conduct the
+      whole call in it; relay English tool data in the caller's language; **pass `language` to every
+      custom function**. Mirrored in `docs/retell-agent-prompt.md`.
 
 ## B2. Custom-function tool schemas — add `language`
-- [ ] Add optional `language` enum (`en`/`hu`/`de`) to the 6 tools (used by `get_faq_answer` +
-      `book_appointment`), via the SDK `general_tools` round-trip (same method as `provider_name` /
-      `preferred_time`). Mirror in `docs/retell-custom-functions.md`.
+- [x] Added optional `language` enum (`en`/`hu`/`de`) to all 6 custom tools via the SDK `general_tools`
+      round-trip (`workflows/scripts/retell-add-language.mjs`, idempotent). Verified live; `end_call`
+      and all existing fields preserved. Mirrored in `docs/retell-custom-functions.md`.
 
 ## B3. n8n router localization (workflow `rQ7I7vX2oAYnNIbR`)
 - [ ] **FAQ Handler**: split the English `faqData` into **per-language dictionaries (en/hu/de)** keyed
       by `body.args.language` (fallback en). **Also fix the content** — it's US placeholder (`(555)`
       numbers, "123 Main Street, Anytown", `$` fees) → real HU clinic address, **HUF** amounts, EU/HU
-      insurers — then translate.
+      insurers — then translate. *(Blocked on real clinic facts — awaiting from user; will edit the
+      live workflow once provided.)*
 - [ ] **Send Confirmation Email**: localize subject + HTML body per `language` (en/hu/de).
 - [ ] **Format\* nodes** (availability/booking/cancel/providers/patient): **leave returning English
       data**; the multilingual LLM relays it in the caller's language (B1). *(Lower-risk than 3× spoken
       prose; pure-data return is the noted alternative, not v1.)*
 
 ## B4. Docs & tests
-- [ ] Update `docs/retell-agent-prompt.md` (Language section) + `docs/retell-custom-functions.md`
-      (`language` param) to mirror live.
+- [x] Update `docs/retell-agent-prompt.md` (Language section + multilingual agent settings) +
+      `docs/retell-custom-functions.md` (`language` param on all 6 functions) to mirror live.
 - [ ] Extend the **Retell Simulation** scenario set with HU + DE personas (re-seed same day, use
       `Nguyen`/`Martinez`, give personas a terminal exit — see the simulation loop-guard notes).
 

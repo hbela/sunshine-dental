@@ -1,6 +1,6 @@
 # Retell Custom Functions Configuration
 
-All 5 functions use the **same n8n webhook endpoint URL**:
+All 6 functions use the **same n8n webhook endpoint URL**:
 ```
 https://n8ndev.appointer.hu/webhook/retell-custom-functions
 ```
@@ -8,6 +8,13 @@ https://n8ndev.appointer.hu/webhook/retell-custom-functions
 All functions use **HTTP POST** method.
 
 > For each function below, copy the Name, Description, and Parameters JSON Schema into the Retell dashboard under your agent's "Functions" / "Tools" configuration.
+
+> **Multilingual (`language`):** every function takes an optional `language` enum (`en` / `hu` / `de`)
+> carrying the caller's detected language. The agent is instructed (see the prompt's *Language
+> Handling* section) to set it on every call. The n8n router uses it to localize the FAQ answer and
+> the confirmation email; the other functions return language-neutral data that the LLM relays in the
+> caller's language. The schemas/code are kept in sync with the live agent by
+> `workflows/scripts/retell-add-language.mjs`.
 
 ---
 
@@ -49,6 +56,11 @@ All functions use **HTTP POST** method.
     "provider_name": {
       "type": "string",
       "description": "Name (or partial name) of the preferred doctor. If omitted, returns slots for the first available provider."
+    },
+    "language": {
+      "type": "string",
+      "description": "The caller's detected language, for localizing FAQ answers and the confirmation email. One of: en (English), hu (Hungarian), de (German).",
+      "enum": ["en", "hu", "de"]
     }
   }
 }
@@ -118,6 +130,11 @@ All functions use **HTTP POST** method.
     "notes": {
       "type": "string",
       "description": "Additional notes about the visit reason or special needs"
+    },
+    "language": {
+      "type": "string",
+      "description": "The caller's detected language, for localizing FAQ answers and the confirmation email. One of: en (English), hu (Hungarian), de (German).",
+      "enum": ["en", "hu", "de"]
     }
   }
 }
@@ -158,6 +175,11 @@ All functions use **HTTP POST** method.
     "reason": {
       "type": "string",
       "description": "Reason for cancellation"
+    },
+    "language": {
+      "type": "string",
+      "description": "The caller's detected language, for localizing FAQ answers and the confirmation email. One of: en (English), hu (Hungarian), de (German).",
+      "enum": ["en", "hu", "de"]
     }
   }
 }
@@ -200,6 +222,11 @@ All functions use **HTTP POST** method.
     "specific_question": {
       "type": "string",
       "description": "The specific question the patient asked, for more targeted answers"
+    },
+    "language": {
+      "type": "string",
+      "description": "The caller's detected language, used to return the FAQ answer in that language. One of: en (English), hu (Hungarian), de (German). Falls back to en.",
+      "enum": ["en", "hu", "de"]
     }
   }
 }
@@ -253,6 +280,11 @@ All functions use **HTTP POST** method.
       "type": "string",
       "description": "The patient's preferred time of day for a callback or visit",
       "enum": ["morning", "afternoon", "evening"]
+    },
+    "language": {
+      "type": "string",
+      "description": "The caller's detected language, for localizing FAQ answers and the confirmation email. One of: en (English), hu (Hungarian), de (German).",
+      "enum": ["en", "hu", "de"]
     }
   }
 }
@@ -294,6 +326,11 @@ All functions use **HTTP POST** method.
         "consultation",
         "emergency"
       ]
+    },
+    "language": {
+      "type": "string",
+      "description": "The caller's detected language, for localizing FAQ answers and the confirmation email. One of: en (English), hu (Hungarian), de (German).",
+      "enum": ["en", "hu", "de"]
     }
   }
 }
@@ -336,7 +373,8 @@ When Retell calls a custom function, it sends a POST request with this structure
   "name": "check_availability",
   "args": {
     "date": "2026-03-15",
-    "appointment_type": "cleaning"
+    "appointment_type": "cleaning",
+    "language": "hu"
   },
   "call": {
     "call_id": "call_abc123",
