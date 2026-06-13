@@ -14,6 +14,10 @@ export interface CalendarItem {
   allDay: boolean
   // availability
   eventType?: CalendarEventType
+  recurrence?: string | null
+  /** Series base start/end (recurring events only) — for editing the whole series. */
+  seriesStart?: string
+  seriesEnd?: string
   // appointment
   appointmentId?: string
   status?: AppointmentStatus
@@ -66,6 +70,8 @@ export interface CreateEventInput {
   allDay: boolean
   type: CalendarEventType
   notes?: string
+  /** RRULE string (e.g. "FREQ=WEEKLY;BYDAY=MO,WE"); null/empty clears recurrence. */
+  recurrence?: string | null
 }
 
 function useInvalidateCalendar() {

@@ -40,6 +40,22 @@
     "endAfterStart": "Das Ende muss nach dem Beginn liegen",
     "allDay": "Ganztägig",
     "notes": "Notizen",
-    "defaultTitle": "Verfügbarkeit"
+    "defaultTitle": "Verfügbarkeit",
+    "repeat": "Wiederholung",
+    "repeatNone": "Keine Wiederholung",
+    "repeatDaily": "Täglich",
+    "repeatWeekly": "Wöchentlich",
+    "repeatOn": "Wiederholen an",
+    "repeatUntil": "Bis (optional)",
+    "recurringNote": "Änderungen gelten für die gesamte Serie.",
+    "weekdays": {
+      "SU": "So",
+      "MO": "Mo",
+      "TU": "Di",
+      "WE": "Mi",
+      "TH": "Do",
+      "FR": "Fr",
+      "SA": "Sa"
+    }
   }
 }

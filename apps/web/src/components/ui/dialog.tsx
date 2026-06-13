@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 interface DialogProps {
@@ -9,6 +10,7 @@ interface DialogProps {
 }
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
+  const { t } = useTranslation('common')
   React.useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -26,7 +28,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       <div className="relative z-10 w-full max-w-lg rounded-lg border bg-card p-6 shadow-lg">
         <button
           type="button"
-          aria-label="Close"
+          aria-label={t('close')}
           className="absolute right-4 top-4 text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => onOpenChange(false)}
         >

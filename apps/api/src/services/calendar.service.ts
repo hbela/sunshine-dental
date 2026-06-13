@@ -1,6 +1,52 @@
 import { prisma } from '../lib/prisma.js';
 import { AppointmentDurations } from '@repo/shared';
 import { dateToStr, timeToStr } from '../lib/datetime.js';
+import { expandRecurrence } from '../lib/recurrence.js';
+
+type CalendarEventRow = Awaited<ReturnType<typeof prisma.calendarEvent.findMany>>[number];
+
+/** A concrete occurrence of a (possibly recurring) calendar event. */
+interface ExpandedEvent {
+  event: CalendarEventRow;
+  start: Date;
+  end: Date;
+}
+
+/**
+ * Fetch a provider's calendar events overlapping [rangeStart, rangeEnd],
+ * expanding any recurring series into concrete occurrences. Non-recurring
+ * events are returned as a single occurrence.
+ */
+async function expandedEventsInRange(
+  providerId: string,
+  rangeStart: Date,
+  rangeEnd: Date,
+): Promise<ExpandedEvent[]> {
+  const events = await prisma.calendarEvent.findMany({
+    where: {
+      providerId,
+      OR: [
+        // non-recurring: must overlap the window
+        { recurrence: null, start: { lte: rangeEnd }, end: { gte: rangeStart } },
+        // recurring: series must have started by the window end; occurrences filtered below
+        { recurrence: { not: null }, start: { lte: rangeEnd } },
+      ],
+    },
+    orderBy: { start: 'asc' },
+  });
+
+  const out: ExpandedEvent[] = [];
+  for (const e of events) {
+    if (e.recurrence) {
+      for (const occ of expandRecurrence(e.start, e.end, e.recurrence, rangeStart, rangeEnd)) {
+        out.push({ event: e, start: occ.start, end: occ.end });
+      }
+    } else {
+      out.push({ event: e, start: e.start, end: e.end });
+    }
+  }
+  return out;
+}
 
 // Helper: convert time string "HH:MM" to minutes from midnight
 function timeToMinutes(timeStr: string) {
@@ -55,35 +101,21 @@ export class CalendarService {
     const dayStart = new Date(`${dateString}T00:00:00.000Z`);
     const dayEnd = new Date(`${dateString}T23:59:59.999Z`);
 
-    // 1. Get AVAILABLE events for this provider on this date
-    const availableEvents = await prisma.calendarEvent.findMany({
-      where: {
-        providerId: provider.id,
-        type: 'AVAILABLE',
-        start: { lte: dayEnd },
-        end: { gte: dayStart },
-      },
-      orderBy: { start: 'asc' },
-    });
+    // Expand recurring events too, then partition by type for this day.
+    const occurrences = await expandedEventsInRange(provider.id, dayStart, dayEnd);
+
+    const availableEvents = occurrences.filter((o) => o.event.type === 'AVAILABLE');
 
     if (availableEvents.length === 0) {
       return { slots: [], duration, provider_name: provider.user.name };
     }
 
-    // 2. Get BLOCKED/VACATION events for this date
-    const blockedEvents = await prisma.calendarEvent.findMany({
-      where: {
-        providerId: provider.id,
-        type: { in: ['BLOCKED', 'VACATION'] },
-        start: { lte: dayEnd },
-        end: { gte: dayStart },
-      },
-    });
-
-    const blockedRanges = blockedEvents.map(e => ({
-      start: timeToMinutes(dateToTimeString(e.start)),
-      end: timeToMinutes(dateToTimeString(e.end)),
-    }));
+    const blockedRanges = occurrences
+      .filter((o) => o.event.type === 'BLOCKED' || o.event.type === 'VACATION')
+      .map((o) => ({
+        start: timeToMinutes(dateToTimeString(o.start)),
+        end: timeToMinutes(dateToTimeString(o.end)),
+      }));
 
     // 3. Get existing appointments for this date
     const appointments = await prisma.appointment.findMany({
@@ -174,25 +206,24 @@ export class CalendarService {
     const fromDate = new Date(from);
     const toDate = new Date(to);
 
-    // 1. CalendarEvents overlapping the range
-    const events = await prisma.calendarEvent.findMany({
-      where: {
-        providerId,
-        start: { lte: toDate },
-        end: { gte: fromDate },
-      },
-      orderBy: { start: 'asc' },
-    });
+    // 1. CalendarEvents overlapping the range — recurring series expanded into
+    //    concrete occurrences. Occurrences carry the series definition
+    //    (recurrence + seriesStart/seriesEnd) so the editor can edit the whole
+    //    series rather than the clicked instance.
+    const occurrences = await expandedEventsInRange(providerId, fromDate, toDate);
 
-    const calendarEvents = events.map((e) => ({
+    const calendarEvents = occurrences.map(({ event: e, start, end }) => ({
       id: e.id,
       kind: 'availability' as const,
       title: e.title,
-      start: e.start.toISOString(),
-      end: e.end.toISOString(),
+      start: start.toISOString(),
+      end: end.toISOString(),
       allDay: e.allDay,
       eventType: e.type,
       notes: e.notes,
+      recurrence: e.recurrence,
+      seriesStart: e.recurrence ? e.start.toISOString() : undefined,
+      seriesEnd: e.recurrence ? e.end.toISOString() : undefined,
     }));
 
     // 2. Appointments in the same date range (date is a @db.Date column)

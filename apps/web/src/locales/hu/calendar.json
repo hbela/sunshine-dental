@@ -40,6 +40,22 @@
     "endAfterStart": "A befejezésnek a kezdés után kell lennie",
     "allDay": "Egész nap",
     "notes": "Megjegyzések",
-    "defaultTitle": "Elérhetőség"
+    "defaultTitle": "Elérhetőség",
+    "repeat": "Ismétlődés",
+    "repeatNone": "Nem ismétlődik",
+    "repeatDaily": "Naponta",
+    "repeatWeekly": "Hetente",
+    "repeatOn": "Ismétlés ezeken a napokon",
+    "repeatUntil": "Eddig (opcionális)",
+    "recurringNote": "A módosítások a teljes sorozatra vonatkoznak.",
+    "weekdays": {
+      "SU": "V",
+      "MO": "H",
+      "TU": "K",
+      "WE": "Sze",
+      "TH": "Cs",
+      "FR": "P",
+      "SA": "Szo"
+    }
   }
 }

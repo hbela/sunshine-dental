@@ -19,6 +19,12 @@ import { apiErrorMessage } from '@/lib/api'
 import { useEnum } from '@/i18n/useEnum'
 import { isoToWall, wallToInputValue, inputValueToWall, wallToIso } from '@/lib/calendar-utils'
 import {
+  buildRrule,
+  parseRrule,
+  WEEKDAY_CODES,
+  type RecurrenceFreq,
+} from '@/lib/recurrence'
+import {
   useCreateEvent,
   useUpdateEvent,
   useDeleteEvent,
@@ -26,6 +32,7 @@ import {
 } from '@/hooks/useCalendar'
 
 const EVENT_TYPES = ['AVAILABLE', 'BLOCKED', 'VACATION'] as const
+const WEEKDAY_INDICES = [1, 2, 3, 4, 5, 6, 0] as const // Mon-first display order
 
 type EventValues = {
   title: string
@@ -77,6 +84,7 @@ export function EventEditorModal({ open, onOpenChange, providerId, slotStart, sl
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<EventValues>({
     resolver: zodResolver(eventSchema),
@@ -84,8 +92,9 @@ export function EventEditorModal({ open, onOpenChange, providerId, slotStart, sl
       ? {
           title: item!.title,
           type: item!.eventType ?? 'AVAILABLE',
-          start: wallToInputValue(isoToWall(item!.start)),
-          end: wallToInputValue(isoToWall(item!.end)),
+          // Recurring events edit the whole series, so prefill from the series base.
+          start: wallToInputValue(isoToWall(item!.seriesStart ?? item!.start)),
+          end: wallToInputValue(isoToWall(item!.seriesEnd ?? item!.end)),
           allDay: item!.allDay,
           notes: item!.notes ?? '',
         }
@@ -99,6 +108,23 @@ export function EventEditorModal({ open, onOpenChange, providerId, slotStart, sl
         },
   })
 
+  const initialRec = isEdit ? parseRrule(item!.recurrence) : { freq: 'none' as RecurrenceFreq, byday: [], until: '' }
+  const [freq, setFreq] = useState<RecurrenceFreq>(initialRec.freq)
+  const [byday, setByday] = useState<number[]>(initialRec.byday)
+  const [until, setUntil] = useState(initialRec.until)
+  const startVal = watch('start')
+
+  const onFreqChange = (f: RecurrenceFreq) => {
+    setFreq(f)
+    if (f === 'weekly' && byday.length === 0) {
+      const s = startVal ? inputValueToWall(startVal) : new Date()
+      setByday([s.getDay()])
+    }
+  }
+
+  const toggleDay = (d: number) =>
+    setByday((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))
+
   const onSubmit = async (values: EventValues) => {
     setError(null)
     const payload = {
@@ -109,6 +135,7 @@ export function EventEditorModal({ open, onOpenChange, providerId, slotStart, sl
       end: wallToIso(inputValueToWall(values.end)),
       allDay: values.allDay,
       notes: values.notes || undefined,
+      recurrence: buildRrule({ freq, byday, until }),
     }
     try {
       if (isEdit) {
@@ -176,6 +203,58 @@ export function EventEditorModal({ open, onOpenChange, providerId, slotStart, sl
           <input type="checkbox" className="size-4" {...register('allDay')} />
           {t('event.allDay')}
         </label>
+
+        <div className="space-y-2">
+          <Label htmlFor="repeat">{t('event.repeat')}</Label>
+          <Select
+            id="repeat"
+            value={freq}
+            onChange={(e) => onFreqChange(e.target.value as RecurrenceFreq)}
+          >
+            <option value="none">{t('event.repeatNone')}</option>
+            <option value="daily">{t('event.repeatDaily')}</option>
+            <option value="weekly">{t('event.repeatWeekly')}</option>
+          </Select>
+
+          {freq === 'weekly' && (
+            <div className="space-y-1.5 pt-1">
+              <span className="text-sm text-muted-foreground">{t('event.repeatOn')}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {WEEKDAY_INDICES.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => toggleDay(d)}
+                    className={
+                      'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
+                      (byday.includes(d)
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-input bg-background hover:bg-accent')
+                    }
+                  >
+                    {t(`event.weekdays.${WEEKDAY_CODES[d]}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {freq !== 'none' && (
+            <div className="space-y-1 pt-1">
+              <Label htmlFor="until">{t('event.repeatUntil')}</Label>
+              <Input
+                id="until"
+                type="date"
+                value={until}
+                onChange={(e) => setUntil(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+
+        {isEdit && item!.recurrence && (
+          <p className="text-xs text-muted-foreground">{t('event.recurringNote')}</p>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="notes">{t('event.notes')}</Label>

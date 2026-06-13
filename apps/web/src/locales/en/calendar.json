@@ -40,6 +40,22 @@
     "endAfterStart": "End must be after start",
     "allDay": "All day",
     "notes": "Notes",
-    "defaultTitle": "Availability"
+    "defaultTitle": "Availability",
+    "repeat": "Repeat",
+    "repeatNone": "Does not repeat",
+    "repeatDaily": "Daily",
+    "repeatWeekly": "Weekly",
+    "repeatOn": "Repeat on",
+    "repeatUntil": "Until (optional)",
+    "recurringNote": "Changes apply to the whole series.",
+    "weekdays": {
+      "SU": "Sun",
+      "MO": "Mon",
+      "TU": "Tue",
+      "WE": "Wed",
+      "TH": "Thu",
+      "FR": "Fri",
+      "SA": "Sat"
+    }
   }
 }
