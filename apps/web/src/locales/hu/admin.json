@@ -1,4 +1,33 @@
 {
   "title": "Felhasználókezelés",
-  "comingSoon": "Az adminisztrátori felhasználókezelés hamarosan elérhető."
+  "comingSoon": "Az adminisztrátori felhasználókezelés hamarosan elérhető.",
+  "createUser": "Felhasználó létrehozása",
+  "creating": "Létrehozás…",
+  "createDescription": "Szolgáltatói vagy asszisztensi fiók létrehozása.",
+  "filterByRole": "Szűrés szerepkör szerint",
+  "allRoles": "Minden szerepkör",
+  "empty": "Nincs találat.",
+  "password": "Jelszó",
+  "createdTitle": "Felhasználó létrehozva",
+  "createdDescription": "Ossza meg ezeket az adatokat a felhasználóval. A jelszó csak egyszer jelenik meg.",
+  "temporaryPassword": "Ideiglenes jelszó",
+  "copy": "Másolás",
+  "deleteTitle": "Felhasználó törlése",
+  "deleteConfirm": "Törli a következőt: {{name}}? Ez véglegesen eltávolítja a fiókot, és nem vonható vissza.",
+  "columns": {
+    "name": "Név",
+    "email": "E-mail",
+    "role": "Szerepkör",
+    "created": "Létrehozva"
+  },
+  "provider": {
+    "specialty": "Szakterület",
+    "phone": "Telefon",
+    "bio": "Bemutatkozás"
+  },
+  "validation": {
+    "nameRequired": "A név megadása kötelező",
+    "invalidEmail": "Érvénytelen e-mail",
+    "passwordMin": "A jelszónak legalább 8 karakteresnek kell lennie"
+  }
 }

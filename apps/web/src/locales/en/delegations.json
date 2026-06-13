@@ -1,0 +1,21 @@
+{
+  "title": "Calendar delegation",
+  "description": "Let assistants view, edit, or book on your calendar.",
+  "owned": "Access you granted",
+  "received": "Access granted to you",
+  "noOwned": "You haven't granted access to anyone.",
+  "noReceived": "No one has granted you access.",
+  "grant": "Grant access",
+  "revoke": "Revoke",
+  "owner": "Provider",
+  "selectProvider": "Select a provider…",
+  "delegate": "Assistant",
+  "selectAssistant": "Select an assistant…",
+  "validFrom": "Valid from",
+  "validUntil": "Valid until",
+  "perms": {
+    "view": "View",
+    "edit": "Edit",
+    "book": "Book"
+  }
+}

@@ -17,5 +17,27 @@
   "cancelAppointment": "Termin stornieren",
   "cancelling": "Wird storniert…",
   "markCompleted": "Als abgeschlossen markieren",
-  "completing": "Wird abgeschlossen…"
+  "completing": "Wird abgeschlossen…",
+  "view": "Ansehen",
+  "empty": "Keine Termine entsprechen den Filtern.",
+  "page": "Seite {{page}}",
+  "prev": "Zurück",
+  "next": "Weiter",
+  "filters": {
+    "provider": "Behandler",
+    "allProviders": "Alle Behandler",
+    "status": "Status",
+    "allStatuses": "Alle Status",
+    "date": "Datum",
+    "patient": "Patient",
+    "patientPlaceholder": "Nach Name suchen…"
+  },
+  "columns": {
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "patient": "Patient",
+    "provider": "Behandler",
+    "type": "Typ",
+    "status": "Status"
+  }
 }

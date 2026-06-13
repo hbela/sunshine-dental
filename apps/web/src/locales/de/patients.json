@@ -1,4 +1,36 @@
 {
   "title": "Patienten",
-  "comingSoon": "Die Patientenakten sind bald verfügbar."
+  "comingSoon": "Die Patientenakten sind bald verfügbar.",
+  "searchPlaceholder": "Nach Name oder Telefon suchen…",
+  "empty": "Keine Patienten gefunden.",
+  "view": "Ansehen",
+  "page": "Seite {{page}}",
+  "prev": "Zurück",
+  "next": "Weiter",
+  "detailSubtitle": "Patientenakte",
+  "reason": "Grund",
+  "preferredTime": "Bevorzugte Zeit",
+  "notes": "Notizen",
+  "history": "Terminverlauf",
+  "noHistory": "Noch keine Termine.",
+  "yes": "Ja",
+  "no": "Nein",
+  "nameRequired": "Name ist erforderlich",
+  "invalidEmail": "Ungültige E-Mail",
+  "columns": {
+    "name": "Name",
+    "phone": "Telefon",
+    "email": "E-Mail",
+    "flags": "Merkmale",
+    "created": "Hinzugefügt"
+  },
+  "flags": {
+    "new": "Neuer Patient",
+    "callback": "Rückruf erwünscht"
+  },
+  "preferredTimes": {
+    "morning": "Vormittag",
+    "afternoon": "Nachmittag",
+    "evening": "Abend"
+  }
 }

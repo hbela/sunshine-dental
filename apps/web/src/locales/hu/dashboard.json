@@ -4,6 +4,8 @@
     "appointmentsToday": "Mai időpontok",
     "pendingCallbacks": "Függő visszahívások",
     "callsThisWeek": "Hívások ezen a héten",
-    "sentimentScore": "Hangulati pontszám"
+    "sentimentScore": "Hangulati pontszám",
+    "confirmedToday": "Mai megerősített",
+    "completedToday": "Mai befejezett"
   }
 }

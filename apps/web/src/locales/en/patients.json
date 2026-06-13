@@ -1,4 +1,36 @@
 {
   "title": "Patients",
-  "comingSoon": "Patient records coming soon."
+  "comingSoon": "Patient records coming soon.",
+  "searchPlaceholder": "Search by name or phone…",
+  "empty": "No patients found.",
+  "view": "View",
+  "page": "Page {{page}}",
+  "prev": "Previous",
+  "next": "Next",
+  "detailSubtitle": "Patient record",
+  "reason": "Reason",
+  "preferredTime": "Preferred time",
+  "notes": "Notes",
+  "history": "Appointment history",
+  "noHistory": "No appointments yet.",
+  "yes": "Yes",
+  "no": "No",
+  "nameRequired": "Name is required",
+  "invalidEmail": "Invalid email",
+  "columns": {
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "flags": "Flags",
+    "created": "Added"
+  },
+  "flags": {
+    "new": "New patient",
+    "callback": "Callback requested"
+  },
+  "preferredTimes": {
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening"
+  }
 }

@@ -1,4 +1,33 @@
 {
   "title": "User Management",
-  "comingSoon": "Admin user management coming soon."
+  "comingSoon": "Admin user management coming soon.",
+  "createUser": "Create user",
+  "creating": "Creating…",
+  "createDescription": "Create a provider or assistant account.",
+  "filterByRole": "Filter by role",
+  "allRoles": "All roles",
+  "empty": "No users found.",
+  "password": "Password",
+  "createdTitle": "User created",
+  "createdDescription": "Share these credentials with the user. The password is shown only once.",
+  "temporaryPassword": "Temporary password",
+  "copy": "Copy",
+  "deleteTitle": "Delete user",
+  "deleteConfirm": "Delete {{name}}? This permanently removes the account and cannot be undone.",
+  "columns": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "created": "Created"
+  },
+  "provider": {
+    "specialty": "Specialty",
+    "phone": "Phone",
+    "bio": "Bio"
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "invalidEmail": "Invalid email",
+    "passwordMin": "Password must be at least 8 characters"
+  }
 }

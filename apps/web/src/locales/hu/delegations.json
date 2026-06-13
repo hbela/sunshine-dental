@@ -1,0 +1,21 @@
+{
+  "title": "Naptár-hozzáférés",
+  "description": "Engedélyezze, hogy asszisztensek megtekintsék, szerkesszék vagy foglaljanak a naptárában.",
+  "owned": "Általad adott hozzáférések",
+  "received": "Neked adott hozzáférések",
+  "noOwned": "Még nem adtál hozzáférést senkinek.",
+  "noReceived": "Senki sem adott neked hozzáférést.",
+  "grant": "Hozzáférés adása",
+  "revoke": "Visszavonás",
+  "owner": "Szolgáltató",
+  "selectProvider": "Válasszon szolgáltatót…",
+  "delegate": "Asszisztens",
+  "selectAssistant": "Válasszon asszisztenst…",
+  "validFrom": "Érvényes ettől",
+  "validUntil": "Érvényes eddig",
+  "perms": {
+    "view": "Megtekintés",
+    "edit": "Szerkesztés",
+    "book": "Foglalás"
+  }
+}

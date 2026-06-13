@@ -1,0 +1,21 @@
+{
+  "title": "Kalenderfreigabe",
+  "description": "Erlauben Sie Assistenzkräften, Ihren Kalender anzusehen, zu bearbeiten oder zu buchen.",
+  "owned": "Von Ihnen erteilte Freigaben",
+  "received": "Ihnen erteilte Freigaben",
+  "noOwned": "Sie haben niemandem Zugriff erteilt.",
+  "noReceived": "Ihnen wurde kein Zugriff erteilt.",
+  "grant": "Zugriff erteilen",
+  "revoke": "Entziehen",
+  "owner": "Behandler",
+  "selectProvider": "Behandler auswählen…",
+  "delegate": "Assistenzkraft",
+  "selectAssistant": "Assistenzkraft auswählen…",
+  "validFrom": "Gültig ab",
+  "validUntil": "Gültig bis",
+  "perms": {
+    "view": "Ansehen",
+    "edit": "Bearbeiten",
+    "book": "Buchen"
+  }
+}

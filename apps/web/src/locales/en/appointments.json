@@ -17,5 +17,27 @@
   "cancelAppointment": "Cancel appointment",
   "cancelling": "Cancelling…",
   "markCompleted": "Mark completed",
-  "completing": "Completing…"
+  "completing": "Completing…",
+  "view": "View",
+  "empty": "No appointments match your filters.",
+  "page": "Page {{page}}",
+  "prev": "Previous",
+  "next": "Next",
+  "filters": {
+    "provider": "Provider",
+    "allProviders": "All providers",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "date": "Date",
+    "patient": "Patient",
+    "patientPlaceholder": "Search by name…"
+  },
+  "columns": {
+    "date": "Date",
+    "time": "Time",
+    "patient": "Patient",
+    "provider": "Provider",
+    "type": "Type",
+    "status": "Status"
+  }
 }

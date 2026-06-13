@@ -12,6 +12,7 @@ import enPatients from '@/locales/en/patients.json'
 import enCallLogs from '@/locales/en/callLogs.json'
 import enSettings from '@/locales/en/settings.json'
 import enAdmin from '@/locales/en/admin.json'
+import enDelegations from '@/locales/en/delegations.json'
 import enEnums from '@/locales/en/enums.json'
 
 import huCommon from '@/locales/hu/common.json'
@@ -24,6 +25,7 @@ import huPatients from '@/locales/hu/patients.json'
 import huCallLogs from '@/locales/hu/callLogs.json'
 import huSettings from '@/locales/hu/settings.json'
 import huAdmin from '@/locales/hu/admin.json'
+import huDelegations from '@/locales/hu/delegations.json'
 import huEnums from '@/locales/hu/enums.json'
 
 import deCommon from '@/locales/de/common.json'
@@ -36,6 +38,7 @@ import dePatients from '@/locales/de/patients.json'
 import deCallLogs from '@/locales/de/callLogs.json'
 import deSettings from '@/locales/de/settings.json'
 import deAdmin from '@/locales/de/admin.json'
+import deDelegations from '@/locales/de/delegations.json'
 import deEnums from '@/locales/de/enums.json'
 
 export const supportedLngs = ['en', 'hu', 'de'] as const
@@ -54,6 +57,7 @@ export const namespaces = [
   'callLogs',
   'settings',
   'admin',
+  'delegations',
   'enums',
 ] as const
 
@@ -70,6 +74,7 @@ export const resources = {
     callLogs: enCallLogs,
     settings: enSettings,
     admin: enAdmin,
+    delegations: enDelegations,
     enums: enEnums,
   },
   hu: {
@@ -83,6 +88,7 @@ export const resources = {
     callLogs: huCallLogs,
     settings: huSettings,
     admin: huAdmin,
+    delegations: huDelegations,
     enums: huEnums,
   },
   de: {
@@ -96,6 +102,7 @@ export const resources = {
     callLogs: deCallLogs,
     settings: deSettings,
     admin: deAdmin,
+    delegations: deDelegations,
     enums: deEnums,
   },
 } as const

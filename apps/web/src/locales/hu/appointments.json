@@ -17,5 +17,27 @@
   "cancelAppointment": "Időpont lemondása",
   "cancelling": "Lemondás…",
   "markCompleted": "Befejezettnek jelöl",
-  "completing": "Befejezés…"
+  "completing": "Befejezés…",
+  "view": "Megtekintés",
+  "empty": "Nincs a szűrőknek megfelelő időpont.",
+  "page": "{{page}}. oldal",
+  "prev": "Előző",
+  "next": "Következő",
+  "filters": {
+    "provider": "Szolgáltató",
+    "allProviders": "Minden szolgáltató",
+    "status": "Állapot",
+    "allStatuses": "Minden állapot",
+    "date": "Dátum",
+    "patient": "Páciens",
+    "patientPlaceholder": "Keresés név alapján…"
+  },
+  "columns": {
+    "date": "Dátum",
+    "time": "Idő",
+    "patient": "Páciens",
+    "provider": "Szolgáltató",
+    "type": "Típus",
+    "status": "Állapot"
+  }
 }

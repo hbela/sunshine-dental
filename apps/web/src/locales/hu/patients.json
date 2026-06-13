@@ -1,4 +1,36 @@
 {
   "title": "Páciensek",
-  "comingSoon": "A páciensnyilvántartás hamarosan elérhető."
+  "comingSoon": "A páciensnyilvántartás hamarosan elérhető.",
+  "searchPlaceholder": "Keresés név vagy telefonszám alapján…",
+  "empty": "Nincs találat.",
+  "view": "Megtekintés",
+  "page": "{{page}}. oldal",
+  "prev": "Előző",
+  "next": "Következő",
+  "detailSubtitle": "Páciens adatlap",
+  "reason": "Indok",
+  "preferredTime": "Preferált időpont",
+  "notes": "Megjegyzések",
+  "history": "Korábbi időpontok",
+  "noHistory": "Még nincs időpont.",
+  "yes": "Igen",
+  "no": "Nem",
+  "nameRequired": "A név megadása kötelező",
+  "invalidEmail": "Érvénytelen e-mail",
+  "columns": {
+    "name": "Név",
+    "phone": "Telefon",
+    "email": "E-mail",
+    "flags": "Jelzők",
+    "created": "Hozzáadva"
+  },
+  "flags": {
+    "new": "Új páciens",
+    "callback": "Visszahívás kérve"
+  },
+  "preferredTimes": {
+    "morning": "Délelőtt",
+    "afternoon": "Délután",
+    "evening": "Este"
+  }
 }

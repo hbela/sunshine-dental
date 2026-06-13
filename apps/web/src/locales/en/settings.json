@@ -2,5 +2,28 @@
   "title": "Settings",
   "comingSoon": "Profile and password settings coming soon.",
   "language": "Language",
-  "languageDescription": "Choose the language for the admin interface."
+  "languageDescription": "Choose the language for the admin interface.",
+  "saved": "Saved",
+  "account": {
+    "title": "Account",
+    "description": "Update your name. Your email is used to sign in.",
+    "name": "Name",
+    "email": "Email",
+    "emailReadonly": "Contact an administrator to change your email."
+  },
+  "password": {
+    "title": "Password",
+    "description": "Change the password you use to sign in.",
+    "current": "Current password",
+    "new": "New password",
+    "change": "Change password",
+    "tooShort": "New password must be at least 8 characters."
+  },
+  "provider": {
+    "title": "Provider profile",
+    "description": "Details shown to staff on the calendar and booking forms.",
+    "specialty": "Specialty",
+    "phone": "Phone",
+    "bio": "Bio"
+  }
 }

@@ -4,6 +4,8 @@
     "appointmentsToday": "Appointments Today",
     "pendingCallbacks": "Pending Callbacks",
     "callsThisWeek": "Calls This Week",
-    "sentimentScore": "Sentiment Score"
+    "sentimentScore": "Sentiment Score",
+    "confirmedToday": "Confirmed Today",
+    "completedToday": "Completed Today"
   }
 }

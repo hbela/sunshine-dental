@@ -2,5 +2,28 @@
   "title": "Beállítások",
   "comingSoon": "A profil- és jelszóbeállítások hamarosan elérhetők.",
   "language": "Nyelv",
-  "languageDescription": "Válassza ki az adminisztrációs felület nyelvét."
+  "languageDescription": "Válassza ki az adminisztrációs felület nyelvét.",
+  "saved": "Mentve",
+  "account": {
+    "title": "Fiók",
+    "description": "Frissítse a nevét. Az e-mail-címmel jelentkezhet be.",
+    "name": "Név",
+    "email": "E-mail",
+    "emailReadonly": "Az e-mail módosításához forduljon az adminisztrátorhoz."
+  },
+  "password": {
+    "title": "Jelszó",
+    "description": "Módosítsa a bejelentkezéshez használt jelszót.",
+    "current": "Jelenlegi jelszó",
+    "new": "Új jelszó",
+    "change": "Jelszó módosítása",
+    "tooShort": "Az új jelszónak legalább 8 karakteresnek kell lennie."
+  },
+  "provider": {
+    "title": "Szolgáltatói profil",
+    "description": "A naptárban és a foglalási űrlapokon megjelenő adatok.",
+    "specialty": "Szakterület",
+    "phone": "Telefon",
+    "bio": "Bemutatkozás"
+  }
 }
