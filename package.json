@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "n8n:patch-ngrok": "node workflows/patch-ngrok-url.mjs"
+    "n8n:patch-ngrok": "node workflows/patch-ngrok-url.mjs",
+    "retell:audition": "node workflows/scripts/retell-voice-audition.mjs"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

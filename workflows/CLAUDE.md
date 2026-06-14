@@ -2,6 +2,16 @@
 
 This directory contains n8n workflow JSON files for the **Sunshine Dental** voice agent integration with [Retell AI](https://www.retellai.com/).
 
+## Agent voice & model (cost choice)
+
+The prod agent (`agent_0c73886e96f6cf2ad878def30e`, LLM `llm_9144fb5e818b3d841e18ab084b99`) runs:
+
+- **Voice: `openai-Chloe`** (~$0.015/min) — chosen over the original `11labs-Marissa` (ElevenLabs, ~$0.08/min) after a 3-way A/B audition confirmed OpenAI/Cartesia hold up in **Hungarian** over the phone. Saves ~$100/mo.
+- **Model: `gpt-4.1-mini`** — the reliability/cost sweet spot for a multilingual, tool-calling booking agent (nano was too weak for function-calling). If it starts dropping the `language` param or fumbling `YYYY-MM-DD` dates, step back up.
+- All-in ≈ **$0.036/min** (voice + LLM + telephony) ≈ ~$65/mo at ~1,800 min.
+
+Re-run the voice A/B anytime with `pnpm retell:audition` (script: `workflows/scripts/retell-voice-audition.mjs`); change the voice with the same Retell SDK pattern as `retell-add-language.mjs`.
+
 ## Workflows
 
 | File | Workflow Name | Purpose |
