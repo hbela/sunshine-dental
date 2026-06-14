@@ -38,6 +38,30 @@ function die(msg) {
   throw new Error(msg);
 }
 
+// n8n's public-API PUT validates `settings` against a fixed schema and rejects
+// any key outside this set. Keep only allowed keys so re-saving a workflow that
+// carries internal-only props (binaryMode, availableInMCP, …) doesn't 400.
+const ALLOWED_SETTINGS_KEYS = new Set([
+  'executionOrder',
+  'saveExecutionProgress',
+  'saveManualExecutions',
+  'saveDataErrorExecution',
+  'saveDataSuccessExecution',
+  'executionTimeout',
+  'errorWorkflow',
+  'timezone',
+  'callerPolicy',
+  'callerIds',
+]);
+
+function sanitizeSettings(settings) {
+  const out = {};
+  for (const [k, v] of Object.entries(settings ?? {})) {
+    if (ALLOWED_SETTINGS_KEYS.has(k)) out[k] = v;
+  }
+  return out;
+}
+
 // ── Resolve n8n API credentials (env → .mcp.json) ───────────────────────────
 function resolveN8nConfig() {
   let url = process.env.N8N_API_URL;
@@ -124,12 +148,15 @@ async function main() {
     return;
   }
 
-  // n8n public API PUT accepts only name / nodes / connections / settings.
+  // n8n public API PUT accepts only name / nodes / connections / settings, and
+  // its `settings` schema rejects unknown keys ("settings must NOT have additional
+  // properties"). The GET returns internal-only props (e.g. binaryMode,
+  // availableInMCP) that the PUT schema doesn't allow, so whitelist before sending.
   await n8n('PUT', `/workflows/${WORKFLOW_ID}`, N8N_KEY, N8N_URL, {
     name: wf.name,
     nodes: wf.nodes,
     connections: wf.connections,
-    settings: wf.settings ?? {},
+    settings: sanitizeSettings(wf.settings),
   });
 
   console.log(`\n✓ Patched ${changed.length} node(s) and saved the workflow.`);
