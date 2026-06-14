@@ -1,0 +1,51 @@
+# Production stack for Coolify (Hetzner VPS).
+#
+# Coolify builds both images from the repo, injects the env vars below as
+# secrets, and points your domain at the `web` service via its Traefik proxy.
+# The `api` service is internal only (no public domain) — `web` reverse-proxies
+# /api to it over this compose network.
+#
+# Set these in Coolify's "Environment Variables" UI (do NOT commit real values):
+#   DATABASE_URL          Prisma.io production Postgres URL (?sslmode=require)
+#   WEB_ORIGIN            https://your-domain.com  (CORS + better-auth origin)
+#   BETTER_AUTH_URL       https://your-domain.com  (must match the public URL)
+#   BETTER_AUTH_SECRET    32+ char random string   (openssl rand -base64 32)
+#   FASTIFY_API_KEY       shared key for n8n/Retell webhook auth
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL}
+      WEB_ORIGIN: ${WEB_ORIGIN}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      FASTIFY_API_KEY: ${FASTIFY_API_KEY}
+    expose:
+      - "3000"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    # Coolify attaches the domain + TLS to this published port via Traefik.
+    ports:
+      - "80"
+    depends_on:
+      - api
+    restart: unless-stopped

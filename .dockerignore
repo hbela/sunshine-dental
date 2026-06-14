@@ -1,0 +1,21 @@
+# Build context excludes — keep images small and reproducible.
+**/node_modules
+**/dist
+**/.next
+**/*.tsbuildinfo
+
+# Secrets / local env — env vars are injected by Coolify at runtime.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Prisma client is regenerated inside the image (prisma generate).
+apps/api/src/generated
+
+# VCS / tooling / docs not needed at build time.
+.git
+.github
+.vscode
+docs
+workflows
+**/*.md
