@@ -10,6 +10,7 @@ import { usePatients, usePatient, useUpdatePatient, type Patient } from '@/hooks
 import { useEnum } from '@/i18n/useEnum'
 import { useFormat } from '@/i18n/useFormat'
 import { apiErrorMessage } from '@/lib/api'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -98,16 +99,8 @@ function PatientsPage() {
                 <td className="px-4 py-3">{p.email ?? '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
-                    {p.isNewPatient && (
-                      <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-800">
-                        {t('flags.new')}
-                      </span>
-                    )}
-                    {p.callbackRequested && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
-                        {t('flags.callback')}
-                      </span>
-                    )}
+                    {p.isNewPatient && <Badge variant="secondary">{t('flags.new')}</Badge>}
+                    {p.callbackRequested && <Badge variant="outline">{t('flags.callback')}</Badge>}
                   </div>
                 </td>
                 <td className="px-4 py-3">{formatDate(new Date(p.createdAt), 'PP')}</td>

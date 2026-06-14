@@ -7,6 +7,7 @@ import { useRole } from '@/hooks/useRole'
 import { useOwnProviderId, useProvider, useUpdateMyProvider } from '@/hooks/useProfile'
 import { DelegationsSection } from '@/components/settings/DelegationsSection'
 import { apiErrorMessage } from '@/lib/api'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -78,7 +79,7 @@ function AccountSection() {
         <Button type="submit" disabled={status === 'saving' || !name.trim()}>
           {status === 'saving' ? tc('saving') : tc('save')}
         </Button>
-        {status === 'saved' && <span className="text-sm text-green-600">{t('saved')}</span>}
+        {status === 'saved' && <Badge variant="secondary">{t('saved')}</Badge>}
       </div>
     </form>
   )
@@ -135,7 +136,7 @@ function PasswordSection() {
         <Button type="submit" disabled={status === 'saving' || !current || !next}>
           {status === 'saving' ? tc('saving') : t('password.change')}
         </Button>
-        {status === 'saved' && <span className="text-sm text-green-600">{t('saved')}</span>}
+        {status === 'saved' && <Badge variant="secondary">{t('saved')}</Badge>}
       </div>
     </form>
   )
@@ -216,7 +217,7 @@ function ProviderProfileSection() {
         <Button type="submit" disabled={update.isPending}>
           {update.isPending ? tc('saving') : tc('save')}
         </Button>
-        {status === 'saved' && <span className="text-sm text-green-600">{t('saved')}</span>}
+        {status === 'saved' && <Badge variant="secondary">{t('saved')}</Badge>}
       </div>
     </form>
   )

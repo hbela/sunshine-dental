@@ -15,6 +15,7 @@ import {
 import { useEnum } from '@/i18n/useEnum'
 import { useFormat } from '@/i18n/useFormat'
 import { apiErrorMessage } from '@/lib/api'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -36,18 +37,19 @@ function parseDate(d: string) {
   return new Date(`${d}T00:00:00`)
 }
 
-function statusClasses(status: string) {
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
+
+function statusVariant(status: string): BadgeVariant {
   switch (status) {
     case 'CONFIRMED':
-      return 'bg-blue-100 text-blue-800'
+      return 'default'
     case 'COMPLETED':
-      return 'bg-green-100 text-green-800'
+      return 'secondary'
     case 'CANCELLED':
-      return 'bg-red-100 text-red-800'
     case 'NO_SHOW':
-      return 'bg-amber-100 text-amber-800'
+      return 'destructive'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'outline'
   }
 }
 
@@ -196,11 +198,9 @@ function AppointmentsPage() {
                 <td className="px-4 py-3">{a.providerName}</td>
                 <td className="px-4 py-3">{tEnum('appointmentType', a.appointmentType)}</td>
                 <td className="px-4 py-3">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${statusClasses(a.status)}`}
-                  >
+                  <Badge variant={statusVariant(a.status)}>
                     {tEnum('appointmentStatus', a.status)}
-                  </span>
+                  </Badge>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Button variant="outline" size="sm" onClick={() => setSelected(a)}>

@@ -10,6 +10,7 @@ import {
   type CallLog,
 } from '@/hooks/useCallLogs'
 import { useFormat } from '@/i18n/useFormat'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,16 +26,16 @@ function formatDuration(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-function sentimentClasses(sentiment: string | null) {
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
+
+function sentimentVariant(sentiment: string | null): BadgeVariant {
   switch (sentiment) {
     case 'Positive':
-      return 'bg-green-100 text-green-800'
+      return 'default'
     case 'Negative':
-      return 'bg-red-100 text-red-800'
-    case 'Neutral':
-      return 'bg-gray-100 text-gray-800'
+      return 'destructive'
     default:
-      return 'bg-muted text-muted-foreground'
+      return 'secondary'
   }
 }
 
@@ -192,11 +193,9 @@ function CallLogsPage() {
                 <td className="px-4 py-3">{formatDuration(c.durationSeconds)}</td>
                 <td className="px-4 py-3">
                   {c.sentiment ? (
-                    <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${sentimentClasses(c.sentiment)}`}
-                    >
+                    <Badge variant={sentimentVariant(c.sentiment)}>
                       {t(`sentiment.${c.sentiment}`, { defaultValue: c.sentiment })}
-                    </span>
+                    </Badge>
                   ) : (
                     '—'
                   )}
