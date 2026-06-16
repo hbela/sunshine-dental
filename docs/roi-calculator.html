@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sunshine Dental — ROI Calculator</title>
+<style>
+  :root{
+    --ink:#1a2b3c; --muted:#5b6b7b; --brand:#0ea5a4; --brand-dark:#0b7e7d;
+    --accent:#f5b301; --line:#e3e9ef; --bg-soft:#f4f9f9; --good:#0b7e7d; --bad:#b23b3b;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    margin:0;background:#eef4f5;line-height:1.45}
+  .wrap{max-width:860px;margin:0 auto;padding:24px 18px}
+  .brandbar{display:flex;align-items:center;justify-content:space-between;
+    border-bottom:3px solid var(--brand);padding-bottom:10px;margin-bottom:6px}
+  .logo{font-size:20px;font-weight:800;color:var(--brand);letter-spacing:-.5px}
+  .logo span{color:var(--accent)}
+  .tagline{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+  h1{font-size:22px;margin:14px 0 2px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--brand-dark);
+    margin:0 0 12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+  label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+  label .hint{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:1px}
+  input[type=number]{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;
+    font-size:15px;color:var(--ink)}
+  input[type=range]{width:100%;accent-color:var(--brand)}
+  .rangeval{float:right;font-weight:700;color:var(--brand-dark)}
+  .result{background:linear-gradient(135deg,var(--bg-soft),#fff)}
+  .big{font-size:34px;font-weight:800;letter-spacing:-1px;margin:2px 0}
+  .big.good{color:var(--good)} .big.bad{color:var(--bad)}
+  .metric{padding:10px 0;border-bottom:1px dashed var(--line)}
+  .metric:last-child{border-bottom:none}
+  .metric .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .metric .v{font-size:20px;font-weight:700}
+  .verdict{margin-top:14px;padding:12px 14px;border-radius:10px;font-weight:600;font-size:14px}
+  .verdict.win{background:#e7f5f1;color:var(--good);border:1px solid #b8e0d6}
+  .verdict.lose{background:#fbeaea;color:var(--bad);border:1px solid #f0c9c9}
+  .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:18px;font-style:italic}
+  .reset{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;
+    font-size:12px;color:var(--muted);cursor:pointer;margin-top:14px}
+  .cur{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brandbar">
+    <div class="logo">☀ Sunshine<span> Dental</span></div>
+    <div class="tagline">ROI Calculator</div>
+  </div>
+
+  <h1>What is a missed call costing your clinic?</h1>
+  <p class="sub">Adjust the numbers to match your practice. Everything recalculates live. <span class="cur">Currency: € (edit symbol in code if needed)</span></p>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="card">
+      <h2>Your numbers</h2>
+
+      <label>Patient calls you currently miss / month
+        <span class="hint">After-hours, lunch, hold-time, overflow. Don't know? Most clinics miss 20–40%.</span>
+        <span class="rangeval" id="missedVal">60</span>
+      </label>
+      <input type="range" id="missed" min="0" max="300" value="60" step="5">
+
+      <label>Of those, % that become a booked patient once answered
+        <span class="hint">A realistic share that would book if someone picked up.</span>
+        <span class="rangeval" id="convVal">25%</span>
+      </label>
+      <input type="range" id="conv" min="0" max="100" value="25" step="1">
+
+      <label for="value">Average value of one new patient (first year, €)
+        <span class="hint">Industry range ~€500–€1,500+. Use your own if you know it.</span>
+      </label>
+      <input type="number" id="value" value="700" min="0" step="50">
+
+      <label for="price">Sunshine Dental plan price (€ / month)</label>
+      <input type="number" id="price" value="549" min="0" step="10">
+
+      <button class="reset" id="reset">Reset to defaults</button>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="card result">
+      <h2>Your return</h2>
+
+      <div class="metric">
+        <div class="k">Extra booked patients / month</div>
+        <div class="v" id="patients">—</div>
+      </div>
+      <div class="metric">
+        <div class="k">Extra revenue / month</div>
+        <div class="v" id="revMonth">—</div>
+      </div>
+      <div class="metric">
+        <div class="k">Extra revenue / year</div>
+        <div class="v" id="revYear">—</div>
+      </div>
+      <div class="metric">
+        <div class="k">Net gain / month (after the plan)</div>
+        <div class="big good" id="net">—</div>
+      </div>
+      <div class="metric">
+        <div class="k">Return on investment</div>
+        <div class="v" id="roi">—</div>
+      </div>
+
+      <div class="verdict win" id="verdict">—</div>
+    </div>
+  </div>
+
+  <p class="foot">Estimates for illustration only — actual results depend on your call volume and patient value.<br>
+  Sunshine Dental — your front desk that never sleeps.</p>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const euro = n => '€' + Math.round(n).toLocaleString('en-IE');
+  const defaults = { missed:60, conv:25, value:700, price:549 };
+
+  function calc(){
+    const missed = +$('missed').value;
+    const conv   = +$('conv').value;
+    const value  = +$('value').value || 0;
+    const price  = +$('price').value || 0;
+
+    $('missedVal').textContent = missed;
+    $('convVal').textContent = conv + '%';
+
+    const patients = missed * (conv/100);
+    const revMonth = patients * value;
+    const revYear  = revMonth * 12;
+    const net      = revMonth - price;
+    const roi      = price > 0 ? (net / price) : 0;
+
+    $('patients').textContent = patients.toFixed(1);
+    $('revMonth').textContent = euro(revMonth);
+    $('revYear').textContent  = euro(revYear);
+    $('net').textContent      = (net>=0?'+':'') + euro(net);
+    $('net').className        = 'big ' + (net>=0?'good':'bad');
+    $('roi').textContent      = price>0 ? (roi>=0?roi.toFixed(1)+'×':'—') : '—';
+
+    const v = $('verdict');
+    if(net >= 0 && price > 0){
+      const mult = (revMonth/price);
+      v.className = 'verdict win';
+      v.textContent = `✅ Pays for itself ${mult>=1?mult.toFixed(1)+'× over':''} — capturing about ${patients.toFixed(1)} extra patients a month more than covers the €${price}/mo plan.`;
+    } else if(price > 0){
+      v.className = 'verdict lose';
+      v.textContent = `At these inputs it doesn't break even. It books ${patients.toFixed(1)} patients/mo — raise call volume, conversion, or patient value to see the payback.`;
+    } else {
+      v.className = 'verdict win';
+      v.textContent = 'Enter a plan price to see the payback.';
+    }
+  }
+
+  ['missed','conv','value','price'].forEach(id => {
+    $(id).addEventListener('input', calc);
+  });
+  $('reset').addEventListener('click', () => {
+    Object.entries(defaults).forEach(([k,val]) => $(k).value = val);
+    calc();
+  });
+  calc();
+</script>
+</body>
+</html>

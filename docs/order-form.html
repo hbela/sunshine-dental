@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sunshine Dental — Order Form</title>
+<style>
+  :root{
+    --ink:#1a2b3c; --muted:#5b6b7b; --brand:#0ea5a4; --brand-dark:#0b7e7d;
+    --accent:#f5b301; --line:#d8e0e7; --bg-soft:#f4f9f9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    font-size:10.5px;line-height:1.4}
+  .page{max-width:800px;margin:0 auto;padding:24px 32px}
+  h1{font-size:20px;margin:0 0 1px;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:10px;margin:0 0 12px}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--brand-dark);
+    margin:14px 0 6px;border-bottom:1.5px solid var(--line);padding-bottom:3px}
+  p{margin:0 0 6px}
+  .brandbar{display:flex;align-items:center;justify-content:space-between;
+    border-bottom:3px solid var(--brand);padding-bottom:8px}
+  .tagline{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+  .providerline{background:var(--bg-soft);border:1px solid var(--line);border-radius:6px;
+    padding:6px 10px;font-size:10px;margin:10px 0}
+  .providerline b{color:var(--brand-dark)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 8px}
+  th,td{text-align:left;padding:5px 8px;border:1px solid var(--line);vertical-align:middle}
+  th{background:var(--brand);color:#fff;font-weight:600;font-size:9.5px}
+  .fill{color:var(--muted)}
+  .twocol{display:flex;gap:16px}
+  .twocol>div{flex:1}
+  .plans th,.plans td{text-align:center}
+  .plans td:first-child,.plans th:first-child{text-align:left}
+  .plans .sel{font-size:15px;color:var(--brand)}
+  .opts{font-size:10px;line-height:1.7}
+  .box{display:inline-block;width:11px;height:11px;border:1.5px solid var(--brand);
+    border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .compliance{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+  .compliance ol{margin:4px 0 0;padding-left:4px;list-style:none}
+  .compliance li{margin-bottom:5px;padding-left:20px;text-indent:-20px}
+  .note{font-size:9px;color:var(--muted);font-style:italic;margin-top:6px}
+  .sig{margin-top:14px}
+  .sigrow{display:flex;gap:24px;margin-top:18px}
+  .sigrow>div{flex:1}
+  .sigline{border-bottom:1px solid var(--ink);height:22px;margin-bottom:3px}
+  .siglabel{font-size:9px;color:var(--muted)}
+  .foot{text-align:center;color:var(--muted);font-size:9px;margin-top:14px;font-style:italic}
+  .logosvg{display:block}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brandbar">
+    <svg class="logosvg" width="190" height="40" viewBox="0 0 190 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sunshine Dental">
+      <g stroke="#f5b301" stroke-width="2.4" stroke-linecap="round">
+        <line x1="20" y1="3" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="37"/>
+        <line x1="3" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="37" y2="20"/>
+        <line x1="8" y1="8" x2="12" y2="12"/><line x1="28" y1="28" x2="32" y2="32"/>
+        <line x1="32" y1="8" x2="28" y2="12"/><line x1="12" y1="28" x2="8" y2="32"/>
+      </g>
+      <circle cx="20" cy="20" r="9.5" fill="#f5b301"/>
+      <path d="M16.4 16.2c0-1.7 1.4-2.8 3.6-2.8s3.6 1.1 3.6 2.8c0 2-1 3-1.5 5.1-.3 1.3-.4 3.6-1 3.6-.7 0-.6-2.2-1.1-2.2s-.4 2.2-1.1 2.2c-.6 0-.7-2.3-1-3.6-.5-2.1-1.5-3.1-1.5-5.1z" fill="#ffffff"/>
+      <text x="46" y="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" letter-spacing="-0.5" fill="#0ea5a4">Sunshine<tspan fill="#f5b301"> Dental</tspan></text>
+    </svg>
+    <div class="tagline">Order Form</div>
+  </div>
+
+  <h1>Service Order Form</h1>
+  <p class="sub">This Order Form is Schedule 1 to, and incorporates, the SaaS Subscription Agreement and its Data Processing Agreement.</p>
+
+  <div class="providerline">
+    <b>Provider:</b> [Your Company Name] &nbsp;·&nbsp; [email] &nbsp;·&nbsp; [phone] &nbsp;·&nbsp; [website]
+  </div>
+
+  <h2>Customer (Clinic)</h2>
+  <table>
+    <tr><td style="width:34%">Clinic legal name</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Trading name (if different)</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Address</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Company / tax no.</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Primary contact (name &amp; role)</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Email</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Phone</td><td class="fill">&nbsp;</td></tr>
+  </table>
+
+  <h2>Selected Plan</h2>
+  <table class="plans">
+    <tr><th></th><th>Starter</th><th>Professional</th><th>Multi-Location</th></tr>
+    <tr><td>Select</td><td class="sel">☐</td><td class="sel">☐</td><td class="sel">☐</td></tr>
+    <tr><td>Monthly fee</td><td>€____</td><td>€____</td><td>€____</td></tr>
+    <tr><td>Call answering</td><td>After-hours/overflow</td><td>24/7</td><td>24/7</td></tr>
+    <tr><td>Included minutes / mo</td><td>____</td><td>____</td><td>Pooled ____</td></tr>
+    <tr><td>Locations / providers</td><td>____</td><td>____</td><td>____</td></tr>
+    <tr><td>Languages</td><td>____</td><td>____</td><td>____</td></tr>
+  </table>
+
+  <div class="twocol">
+    <div class="opts">
+      <span class="box"></span>Billing: Monthly &nbsp;&nbsp; <span class="box"></span>Annual (~2 months free)<br>
+      <span class="box"></span>Initial term: 1 month &nbsp;&nbsp; <span class="box"></span>12 months<br>
+      Renewal notice: <b>30 days</b>
+    </div>
+    <div class="opts">
+      Setup fee (one-time): <b>€________</b> &nbsp; <span class="box"></span>Waived (annual)<br>
+      Overage rate: <b>€______ / minute</b> beyond bundle<br>
+      Pilot rate (if any): <b>€______/mo</b> for ____ months (for feedback + testimonial)
+    </div>
+  </div>
+
+  <h2>Onboarding Inputs (needed to go live)</h2>
+  <div class="twocol">
+    <div class="opts">
+      <span class="box"></span>Clinic opening hours per day<br>
+      <span class="box"></span>Providers (names, specialties, hours)<br>
+      <span class="box"></span>Appointment types &amp; durations<br>
+      <span class="box"></span>Top FAQs (location, parking, insurance)
+    </div>
+    <div class="opts">
+      <span class="box"></span>Preferred AI voice &amp; language(s)<br>
+      <span class="box"></span>Phone number to forward / port<br>
+      <span class="box"></span>Staff accounts (name, email, role)<br>
+      Target go-live date: <b>____________</b>
+    </div>
+  </div>
+
+  <h2>Compliance Acknowledgment (required)</h2>
+  <div class="compliance">
+    <p style="margin:0 0 4px">By signing, the Customer confirms it understands and agrees that:</p>
+    <ol>
+      <li><span class="box"></span>The Customer is the <b>Data Controller</b>; the Provider is the <b>Data Processor</b>. A <b>Data Processing Agreement</b> is signed alongside this Order Form.</li>
+      <li><span class="box"></span>The Customer will display a <b>patient privacy notice</b> stating calls may be handled by an <b>AI assistant</b> and <b>recorded</b>.</li>
+      <li><span class="box"></span>The <b>in-call AI disclosure stays enabled</b> (the agent identifies the clinic, purpose, and its AI nature) and will not be disabled.</li>
+      <li><span class="box"></span>The Customer obtains any <b>patient consents</b> required under GDPR / local healthcare-privacy law.</li>
+      <li><span class="box"></span>The AI is an <b>operational support tool</b>, may occasionally err, and staff review bookings &amp; call records as normal.</li>
+      <li><span class="box"></span>Subprocessors (e.g. [Retell AI, Hetzner, telephony, email]) are listed in the DPA; the Customer consents to their use.</li>
+    </ol>
+    <p class="note">If the clinic or any called patients are in the US, additional rules (e.g. TCPA, possibly HIPAA) apply — flag this so the Provider can adjust the setup.</p>
+  </div>
+
+  <div class="sig">
+    <h2>Signatures</h2>
+    <div class="sigrow">
+      <div>
+        <div class="sigline"></div><div class="siglabel">Provider — Name &amp; Title</div>
+        <div class="sigline" style="margin-top:14px"></div><div class="siglabel">Signature &amp; Date</div>
+      </div>
+      <div>
+        <div class="sigline"></div><div class="siglabel">Customer — Name &amp; Title</div>
+        <div class="sigline" style="margin-top:14px"></div><div class="siglabel">Signature &amp; Date</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">Questions? Contact [your email / phone]. Thank you for choosing Sunshine Dental.</p>
+
+</div>
+</body>
+</html>
