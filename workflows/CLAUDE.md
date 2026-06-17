@@ -66,3 +66,18 @@ pnpm n8n:patch-ngrok --dry-run  # preview changes without writing
 - The post-call workflow is also webhook-triggered — use a test POST with a sample Retell payload
 - Check execution results in n8n after each test run before going live
 - **Empty availability / unexpected callback during testing usually means a stale ngrok URL** — run `pnpm n8n:patch-ngrok` first, then re-test.
+
+## Saving a call transcript
+
+Export any Retell call to `docs/transcripts/<call_id>.md` (metadata + analysis summary + tool
+calls + full transcript):
+
+```bash
+pnpm retell:save-transcript               # most recent call
+pnpm retell:save-transcript --latest      # same
+pnpm retell:save-transcript call_abc123…  # a specific call
+pnpm retell:save-transcript --latest --agent agent_0c73886e96f6cf2ad878def30e
+```
+
+`RETELL_API_KEY` is read from env, else from the gitignored `.mcp.json`
+(`mcpServers["retell-ai"].env`). Script: `workflows/scripts/retell-save-transcript.mjs`.
