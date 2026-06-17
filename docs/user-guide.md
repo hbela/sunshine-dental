@@ -31,6 +31,10 @@ The key point: it works around the clock. A patient with a toothache at 9 PM on 
 
 This is the web screen your team logs into. It's where the humans stay in control of everything the AI does. From here, staff can see every appointment, manage the calendar, look up patients, and review what happened on every phone call.
 
+Staff sign in with their own email and password:
+
+![Sign-in screen](assets/screenshots/01-login.png)
+
 ---
 
 ## How it all fits together
@@ -80,6 +84,8 @@ flowchart TD
 ### 📊 Dashboard (home screen)
 A quick "how are we doing today" overview — today's appointments, patients waiting for a callback, how many calls came in this week, and how happy callers sounded.
 
+![Dashboard overview](assets/screenshots/02-dashboard.png)
+
 ### 📅 Calendar
 The heart of the app. A visual weekly/daily/monthly calendar showing all appointments and each dentist's working hours.
 
@@ -89,13 +95,19 @@ The heart of the app. A visual weekly/daily/monthly calendar showing all appoint
 - **Book, move, or cancel appointments** with simple clicks and drag-and-drop
 - See **all providers side-by-side** so the front desk can manage the whole clinic at a glance
 
+![Weekly calendar with provider availability](assets/screenshots/03-calendar.png)
+
 The AI receptionist reads from this same calendar — so it only ever offers time slots that are genuinely free. No double-bookings.
 
 ### 👥 Patients
 A simple address book of everyone who's contacted the clinic. The AI automatically adds new callers here, and staff can search, view history, and update details.
 
+![Patient list with search and flags](assets/screenshots/04-patients.png)
+
 ### 📋 Appointments
 A clean list of every appointment — upcoming, completed, or cancelled. Filter by day, by dentist, or by patient. Mark visits as completed when they're done.
+
+![Appointments list](assets/screenshots/05-appointments.png)
 
 ### ☎️ Call Logs
 A record of every phone call the AI handled, including:
@@ -104,7 +116,19 @@ A record of every phone call the AI handled, including:
 - How the caller seemed to **feel** (positive / neutral / unhappy)
 - Whether the call was **successful**
 
+![Call logs with sentiment and outcome](assets/screenshots/06-call-logs.png)
+
 This is your quality-control window — you can always see exactly what the AI said and did.
+
+### 👤 Users (Admins)
+Owners and managers manage their team here — creating staff accounts and setting each person's role.
+
+![User management](assets/screenshots/07-admin-users.png)
+
+### ⚙️ Settings
+Personal account preferences — update your name, change your password, and (for dentists) delegate your calendar to an assistant. Language and light/dark theme are toggled any time from the top bar.
+
+![Settings](assets/screenshots/08-settings.png)
 
 ---
 
