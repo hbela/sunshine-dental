@@ -136,7 +136,7 @@ The live prompt is the source of truth (richer than docs; includes the 2026-06-1
 - [x] Update `docs/retell-agent-prompt.md` (Language section + multilingual agent settings) +
       `docs/retell-custom-functions.md` (`language` param on all 6 functions) to mirror live.
 - [ ] Extend the **Retell Simulation** scenario set with HU + DE personas (re-seed same day, use
-      `Nguyen`/`Martinez`, give personas a terminal exit — see the simulation loop-guard notes).
+      `Nagy`/`Kis`, give personas a terminal exit — see the simulation loop-guard notes).
 
 ---
 

@@ -169,6 +169,10 @@ export function DentalCalendar() {
 
   const availableViews: View[] = allProviders ? ['day', 'week'] : ['month', 'week', 'day', 'agenda']
 
+  // Constrain the time-grid (week/day) to clinic hours: 8:00 AM – 8:00 PM.
+  const minTime = useMemo(() => new Date(1970, 0, 1, 8, 0, 0), [])
+  const maxTime = useMemo(() => new Date(1970, 0, 1, 20, 0, 0), [])
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -233,7 +237,7 @@ export function DentalCalendar() {
 
       <Legend />
 
-      <div className="h-[calc(100vh-260px)] rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+      <div className="h-[1280px] rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
         <Calendar
           localizer={localizer}
           culture={culture}
@@ -242,6 +246,8 @@ export function DentalCalendar() {
           date={date}
           view={view}
           views={availableViews}
+          min={minTime}
+          max={maxTime}
           onNavigate={setDate}
           onView={setView}
           selectable

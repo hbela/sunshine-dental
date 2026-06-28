@@ -39,8 +39,8 @@ async function main() {
 
   const usersData: Array<{ name: string; email: string; password: string; role: SeedRole }> = [
     { name: 'Dr. Admin',        email: 'admin@sunshine.dental', password: 'Admin1234!',     role: 'ADMIN'     },
-    { name: 'Dr. Alice Nguyen', email: 'alice@sunshine.dental', password: 'Provider1234!',  role: 'PROVIDER'  },
-    { name: 'Dr. Bob Martinez', email: 'bob@sunshine.dental',   password: 'Provider1234!',  role: 'PROVIDER'  },
+    { name: 'Dr. Ibolya Nagy',  email: 'alice@sunshine.dental', password: 'Provider1234!',  role: 'PROVIDER'  },
+    { name: 'Dr. Kis István',   email: 'bob@sunshine.dental',   password: 'Provider1234!',  role: 'PROVIDER'  },
     { name: 'Sara Johnson',     email: 'sara@sunshine.dental',  password: 'Assistant1234!', role: 'ASSISTANT' },
   ];
 
@@ -235,7 +235,7 @@ async function main() {
   // ── 8. Call Logs ──────────────────────────────────────────────────────────
   await prisma.callLog.createMany({
     data: [
-      { callId: 'call_seed_001', agentId: 'agent_sunshine_01', patientId: patients[0]!.id, fromNumber: '+15551001', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 187, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'Agent: Hello, Sunshine Dental. How can I help?\nUser: Hi, I\'d like to book a cleaning.', summary: 'Patient John Smith booked a routine cleaning with Dr. Alice Nguyen.', sentiment: 'Positive', successful: true, startTime: daysFromNow(-1, 10, 15), endTime: daysFromNow(-1, 10, 18) },
+      { callId: 'call_seed_001', agentId: 'agent_sunshine_01', patientId: patients[0]!.id, fromNumber: '+15551001', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 187, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'Agent: Hello, Sunshine Dental. How can I help?\nUser: Hi, I\'d like to book a cleaning.', summary: 'Patient John Smith booked a routine cleaning with Dr. Ibolya Nagy.', sentiment: 'Positive', successful: true, startTime: daysFromNow(-1, 10, 15), endTime: daysFromNow(-1, 10, 18) },
       { callId: 'call_seed_002', agentId: 'agent_sunshine_01', patientId: patients[1]!.id, fromNumber: '+15551002', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 243, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'Agent: Hello, Sunshine Dental.\nUser: I have a terrible toothache.', summary: 'New patient Emily Chen reporting tooth pain. Booked new patient exam.', sentiment: 'Neutral', successful: true, startTime: daysFromNow(-1, 14, 30), endTime: daysFromNow(-1, 14, 34) },
       { callId: 'call_seed_003', agentId: 'agent_sunshine_01', patientId: null, fromNumber: '+15559999', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 42, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'User: Actually I\'ll call back, sorry.', summary: 'Caller hung up before completing booking.', sentiment: 'Neutral', successful: false, startTime: daysFromNow(-2, 9, 5), endTime: daysFromNow(-2, 9, 6) },
     ],

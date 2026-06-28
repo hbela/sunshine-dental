@@ -16,7 +16,6 @@ import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { useEnum } from '@/i18n/useEnum'
 import { cn } from '@/lib/utils'
 
 type Role = 'PROVIDER' | 'ASSISTANT' | 'ADMIN'
@@ -51,13 +50,16 @@ const NAV: NavItem[] = [
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { tEnum } = useEnum()
   const { data: session } = authClient.useSession()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   const user = session?.user
   const role = (user as { role?: Role } | undefined)?.role
   const items = role ? NAV.filter((item) => item.roles.includes(role)) : NAV
+
+  const activeItem = items.find((item) =>
+    item.to === '/' ? pathname === '/' : pathname.startsWith(item.to),
+  )
 
   const handleLogout = async () => {
     await authClient.signOut()
@@ -99,16 +101,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-16 items-center justify-between px-6">
-          <div />
+          <h1 className="text-base font-semibold text-foreground">
+            {activeItem ? t(`nav:${activeItem.labelKey}`) : ''}
+          </h1>
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <LanguageSwitcher />
             {user && (
               <div className="text-right leading-tight">
                 <div className="text-sm font-medium text-foreground">{user.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {role ? tEnum('role', role) : user.email}
-                </div>
               </div>
             )}
             <Button variant="outline" size="sm" onClick={handleLogout}>

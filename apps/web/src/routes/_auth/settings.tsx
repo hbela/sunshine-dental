@@ -230,8 +230,6 @@ function SettingsPage() {
 
   return (
     <section className="max-w-2xl space-y-4">
-      <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
-
       <SettingsCard title={t('account.title')} description={t('account.description')}>
         <AccountSection />
       </SettingsCard>

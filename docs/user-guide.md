@@ -148,7 +148,7 @@ A dentist can also **delegate** their calendar to an assistant — letting the f
 
 ## A day in the life
 
-**8:55 PM, after hours.** A patient calls with a chipped tooth. The AI answers, finds the next available emergency slot tomorrow at 9:00 AM with Dr. Nguyen, books it, takes the patient's name and number, and confirms. No human involved.
+**8:55 PM, after hours.** A patient calls with a chipped tooth. The AI answers, finds the next available emergency slot tomorrow at 9:00 AM with Dr. Nagy, books it, takes the patient's name and number, and confirms. No human involved.
 
 **9:05 AM, next morning.** The front desk assistant logs in. The dashboard already shows the new 9:00 AM appointment on the calendar and the new patient in the system. She reads the call summary, sees everything is in order, and gets the room ready.
 

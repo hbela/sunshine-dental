@@ -45,8 +45,6 @@ function PatientsPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
-
       <div className="max-w-sm">
         <Input
           value={search}

@@ -48,8 +48,7 @@ function UsersPage() {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
+      <div className="flex items-center justify-end">
         <Button variant="gradient" onClick={() => setCreating(true)}>
           <Plus className="size-4" />
           {t('createUser')}

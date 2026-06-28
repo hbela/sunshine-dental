@@ -77,8 +77,6 @@ function CallLogsPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
-
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Stat label={t('stats.total')} value={stats?.totalCalls} />

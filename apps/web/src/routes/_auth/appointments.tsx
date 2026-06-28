@@ -86,8 +86,6 @@ function AppointmentsPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
-
       {/* Filters */}
       <div className="grid grid-cols-1 gap-3 rounded-2xl bg-muted/50 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1">

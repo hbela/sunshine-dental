@@ -58,9 +58,9 @@ function resolveApiKey() {
 // weekday + date, time-of-day, and an email reference. Hungarian and German
 // are where the cheaper engines tend to fall down — listen to those closely.
 const BEGIN_MESSAGE = [
-  "Hi, this is Sunshine Dental. Your appointment with Doctor Nguyen is confirmed for Tuesday, June sixteenth at two thirty in the afternoon. A confirmation has been sent to your email.",
-  "Jó napot kívánok, itt a Sunshine Dental. Időpontját Doktor Nguyennél keddre, június tizenhatodikára, délután fél háromra rögzítettük. A megerősítést elküldtük e-mailben.",
-  "Guten Tag, hier ist Sunshine Dental. Ihr Termin bei Doktor Nguyen ist für Dienstag, den sechzehnten Juni um halb drei nachmittags bestätigt. Eine Bestätigung wurde an Ihre E-Mail-Adresse gesendet.",
+  "Hi, this is Sunshine Dental. Your appointment with Doctor Nagy is confirmed for Tuesday, June sixteenth at two thirty in the afternoon. A confirmation has been sent to your email.",
+  "Jó napot kívánok, itt a Sunshine Dental. Időpontját Doktor Nagynál keddre, június tizenhatodikára, délután fél háromra rögzítettük. A megerősítést elküldtük e-mailben.",
+  "Guten Tag, hier ist Sunshine Dental. Ihr Termin bei Doktor Nagy ist für Dienstag, den sechzehnten Juni um halb drei nachmittags bestätigt. Eine Bestätigung wurde an Ihre E-Mail-Adresse gesendet.",
 ].join('\n\n')
 
 const AUDITION_PROMPT =
