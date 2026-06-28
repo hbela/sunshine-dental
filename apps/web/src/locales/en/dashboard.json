@@ -1,5 +1,12 @@
 {
   "title": "Dashboard",
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "overview": "Clinic overview",
+  "providerOverview": "Your schedule",
   "stats": {
     "appointmentsToday": "Appointments Today",
     "pendingCallbacks": "Pending Callbacks",
@@ -7,5 +14,15 @@
     "sentimentScore": "Sentiment Score",
     "confirmedToday": "Confirmed Today",
     "completedToday": "Completed Today"
+  },
+  "schedule": {
+    "title": "Today's Schedule",
+    "empty": "No appointments scheduled for today.",
+    "viewAll": "View all"
+  },
+  "recentCalls": {
+    "title": "Recent Calls",
+    "empty": "No recent calls.",
+    "viewAll": "View all"
   }
 }

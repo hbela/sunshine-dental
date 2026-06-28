@@ -42,26 +42,36 @@ type ModalState =
   | { type: 'edit-event'; item: CalendarItem; providerId: string }
   | null
 
+/** Soft tonal event colors — calm pastels from the sage/blush palette, not saturated. */
+const EVENT_COLORS = {
+  confirmed: { bg: '#cfe0c0', fg: '#3e4a37' }, // soft sage
+  completed: { bg: '#fed7d2', fg: '#7a5b58' }, // blush
+  cancelled: { bg: '#ffdad6', fg: '#93000a' }, // soft error
+  noShow: { bg: '#efe3cc', fg: '#6b5a2f' }, // soft sand
+  available: { bg: '#e7f0d8', fg: '#3e4a37' }, // light mint
+  blocked: { bg: '#e4e2df', fg: '#5d615a' }, // neutral
+  vacation: { bg: '#fcdae5', fg: '#58404a' }, // soft pink
+} as const
+
 function eventPropGetter(event: CalEvent) {
   const it = event.resource
   const style: CSSProperties = {}
-  let bg = '#3b82f6'
+  let c: { bg: string; fg: string } = EVENT_COLORS.confirmed
   if (it.kind === 'appointment') {
     if (it.status === 'CANCELLED') {
-      bg = '#ef4444'
+      c = EVENT_COLORS.cancelled
       style.textDecoration = 'line-through'
-    } else if (it.status === 'COMPLETED') bg = '#22c55e'
-    else if (it.status === 'NO_SHOW') bg = '#f59e0b'
-    else bg = '#3b82f6'
-    style.color = '#ffffff'
+    } else if (it.status === 'COMPLETED') c = EVENT_COLORS.completed
+    else if (it.status === 'NO_SHOW') c = EVENT_COLORS.noShow
+    else c = EVENT_COLORS.confirmed
   } else {
-    if (it.eventType === 'BLOCKED') bg = '#9ca3af'
-    else if (it.eventType === 'VACATION') bg = '#fca5a5'
-    else bg = '#86efac'
-    style.color = '#14532d'
+    if (it.eventType === 'BLOCKED') c = EVENT_COLORS.blocked
+    else if (it.eventType === 'VACATION') c = EVENT_COLORS.vacation
+    else c = EVENT_COLORS.available
   }
-  style.backgroundColor = bg
-  style.borderColor = bg
+  style.backgroundColor = c.bg
+  style.color = c.fg
+  style.border = 'none'
   return { style }
 }
 
@@ -207,6 +217,7 @@ export function DentalCalendar() {
             {t('addEvent')}
           </Button>
           <Button
+            variant="gradient"
             size="sm"
             disabled={!activeProviderId}
             onClick={() =>
@@ -222,7 +233,7 @@ export function DentalCalendar() {
 
       <Legend />
 
-      <div className="h-[calc(100vh-260px)] rounded-lg border bg-card p-2">
+      <div className="h-[calc(100vh-260px)] rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
         <Calendar
           localizer={localizer}
           culture={culture}
@@ -289,18 +300,18 @@ export function DentalCalendar() {
 function Legend() {
   const { t } = useTranslation('calendar')
   const items: { color: string; key: string }[] = [
-    { color: '#3b82f6', key: 'confirmed' },
-    { color: '#22c55e', key: 'completed' },
-    { color: '#ef4444', key: 'cancelled' },
-    { color: '#86efac', key: 'available' },
-    { color: '#9ca3af', key: 'blocked' },
-    { color: '#fca5a5', key: 'vacation' },
+    { color: EVENT_COLORS.confirmed.bg, key: 'confirmed' },
+    { color: EVENT_COLORS.completed.bg, key: 'completed' },
+    { color: EVENT_COLORS.cancelled.bg, key: 'cancelled' },
+    { color: EVENT_COLORS.available.bg, key: 'available' },
+    { color: EVENT_COLORS.blocked.bg, key: 'blocked' },
+    { color: EVENT_COLORS.vacation.bg, key: 'vacation' },
   ]
   return (
-    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+    <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
       {items.map((i) => (
         <span key={i.key} className="flex items-center gap-1.5">
-          <span className="inline-block size-3 rounded-sm" style={{ backgroundColor: i.color }} />
+          <span className="inline-block size-3 rounded-md" style={{ backgroundColor: i.color }} />
           {t(`legend.${i.key}`)}
         </span>
       ))}

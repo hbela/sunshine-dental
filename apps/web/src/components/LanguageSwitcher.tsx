@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
       aria-label={t('language')}
       value={value}
       onChange={(e) => void i18n.changeLanguage(e.target.value)}
-      className="h-9 rounded-md border bg-background px-2 text-sm text-foreground"
+      className="h-9 rounded-xl border border-transparent bg-muted px-3 text-sm text-foreground transition-colors focus-visible:bg-primary-fixed focus-visible:outline-none"
     >
       {supportedLngs.map((lng) => (
         <option key={lng} value={lng}>

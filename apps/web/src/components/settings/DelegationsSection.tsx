@@ -88,7 +88,7 @@ export function DelegationsSection() {
         ) : (
           <ul className="space-y-2">
             {received.map((d) => (
-              <li key={d.id} className="rounded-md border p-3 text-sm">
+              <li key={d.id} className="rounded-xl bg-muted/40 p-3 text-sm">
                 <div className="font-medium text-foreground">{providerName(d.ownerId)}</div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   {[d.canView && t('perms.view'), d.canEdit && t('perms.edit'), d.canBook && t('perms.book')]
@@ -131,7 +131,7 @@ function DelegationRow({
     update.mutate({ id: d.id, [key]: !d[key] })
 
   return (
-    <li className="rounded-md border p-3 text-sm">
+    <li className="rounded-xl bg-muted/40 p-3 text-sm">
       <div className="flex items-center justify-between">
         <span className="font-medium text-foreground">{title}</span>
         <Button variant="ghost" size="sm" onClick={onRevoke} aria-label={t('revoke')}>
@@ -214,7 +214,7 @@ function GrantForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-md border bg-muted/30 p-3">
+    <form onSubmit={onSubmit} className="space-y-3 rounded-2xl bg-muted/50 p-4">
       {isAdmin && (
         <div className="space-y-1">
           <Label htmlFor="g-owner">{t('owner')}</Label>
@@ -268,7 +268,7 @@ function GrantForm({
         <Button type="button" variant="outline" size="sm" onClick={onDone}>
           {tc('cancel')}
         </Button>
-        <Button type="submit" size="sm" disabled={!canSubmit || create.isPending}>
+        <Button type="submit" variant="gradient" size="sm" disabled={!canSubmit || create.isPending}>
           {create.isPending ? tc('saving') : t('grant')}
         </Button>
       </div>

@@ -271,7 +271,7 @@ function CreateAppointment({
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {tc('cancel')}
           </Button>
-          <Button type="submit" disabled={book.isPending}>
+          <Button type="submit" variant="gradient" disabled={book.isPending}>
             {book.isPending ? t('booking') : t('book')}
           </Button>
         </DialogFooter>

@@ -58,9 +58,9 @@ function PatientsPage() {
         />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+          <thead className="bg-muted/40 text-left text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">{t('columns.name')}</th>
               <th className="px-4 py-3 font-medium">{t('columns.phone')}</th>
@@ -93,7 +93,7 @@ function PatientsPage() {
               </tr>
             )}
             {rows.map((p) => (
-              <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
+              <tr key={p.id} className="transition-colors even:bg-muted/20 hover:bg-primary-fixed/30">
                 <td className="px-4 py-3 font-medium text-foreground">{p.name}</td>
                 <td className="px-4 py-3">{p.phone ?? '—'}</td>
                 <td className="px-4 py-3">{p.email ?? '—'}</td>
@@ -162,7 +162,7 @@ function PatientDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const [editing, setEditing] = useState(false)
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
+    <Dialog open variant="sheet" onOpenChange={(o) => !o && onClose()}>
       <DialogHeader>
         <DialogTitle>{patient?.name ?? tc('loading')}</DialogTitle>
         <DialogDescription>{t('detailSubtitle')}</DialogDescription>
@@ -198,7 +198,10 @@ function PatientDetail({ id, onClose }: { id: string; onClose: () => void }) {
             ) : (
               <ul className="space-y-1 text-sm">
                 {patient.appointments.map((a) => (
-                  <li key={a.id} className="flex justify-between gap-3 border-b py-1 last:border-0">
+                  <li
+                    key={a.id}
+                    className="flex justify-between gap-3 rounded-lg px-2 py-1.5 even:bg-muted/30"
+                  >
                     <span>
                       {formatDate(new Date(`${a.date}T00:00:00`), 'PP')} · {a.startTime}
                     </span>
@@ -345,7 +348,7 @@ function PatientEditForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           {tc('cancel')}
         </Button>
-        <Button type="submit" disabled={update.isPending}>
+        <Button type="submit" variant="gradient" disabled={update.isPending}>
           <Check className="size-4" />
           {update.isPending ? tc('saving') : tc('save')}
         </Button>

@@ -76,7 +76,7 @@ function AccountSection() {
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={status === 'saving' || !name.trim()}>
+        <Button type="submit" variant="gradient" disabled={status === 'saving' || !name.trim()}>
           {status === 'saving' ? tc('saving') : tc('save')}
         </Button>
         {status === 'saved' && <Badge variant="secondary">{t('saved')}</Badge>}
@@ -133,7 +133,7 @@ function PasswordSection() {
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={status === 'saving' || !current || !next}>
+        <Button type="submit" variant="gradient" disabled={status === 'saving' || !current || !next}>
           {status === 'saving' ? tc('saving') : t('password.change')}
         </Button>
         {status === 'saved' && <Badge variant="secondary">{t('saved')}</Badge>}
@@ -214,7 +214,7 @@ function ProviderProfileSection() {
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={update.isPending}>
+        <Button type="submit" variant="gradient" disabled={update.isPending}>
           {update.isPending ? tc('saving') : tc('save')}
         </Button>
         {status === 'saved' && <Badge variant="secondary">{t('saved')}</Badge>}

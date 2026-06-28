@@ -1,5 +1,12 @@
 {
   "title": "Irányítópult",
+  "greeting": {
+    "morning": "Jó reggelt",
+    "afternoon": "Szép napot",
+    "evening": "Jó estét"
+  },
+  "overview": "Klinikai áttekintés",
+  "providerOverview": "Az Ön naptára",
   "stats": {
     "appointmentsToday": "Mai időpontok",
     "pendingCallbacks": "Függő visszahívások",
@@ -7,5 +14,15 @@
     "sentimentScore": "Hangulati pontszám",
     "confirmedToday": "Mai megerősített",
     "completedToday": "Mai befejezett"
+  },
+  "schedule": {
+    "title": "Mai időbeosztás",
+    "empty": "Mára nincs ütemezett időpont.",
+    "viewAll": "Összes"
+  },
+  "recentCalls": {
+    "title": "Legutóbbi hívások",
+    "empty": "Nincsenek legutóbbi hívások.",
+    "viewAll": "Összes"
   }
 }

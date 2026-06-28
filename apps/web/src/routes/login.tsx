@@ -87,7 +87,7 @@ function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" variant="gradient" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? t('signingIn') : t('signIn')}
             </Button>
           </form>

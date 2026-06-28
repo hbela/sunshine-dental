@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sunshine Dental - Appointments Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@100..900&family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#e4e2df",
+                      "on-secondary-container": "#7a5b58",
+                      "inverse-surface": "#30302e",
+                      "error-container": "#ffdad6",
+                      "on-primary-container": "#ceddc2",
+                      "on-tertiary-fixed-variant": "#58404a",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed": "#fcdae5",
+                      "inverse-primary": "#bdcbb1",
+                      "on-error-container": "#93000a",
+                      "tertiary": "#584049",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "surface-container-highest": "#e4e2df",
+                      "surface-bright": "#fbfdf6",
+                      "outline-variant": "#c5c8be",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#55624d",
+                      "primary-fixed": "#d9e7cc",
+                      "surface-container-low": "#f2f4ed",
+                      "on-background": "#1b1c1a",
+                      "on-tertiary": "#ffffff",
+                      "surface-container": "#f0edea",
+                      "secondary-fixed-dim": "#e4beba",
+                      "secondary-container": "#ffd6d2",
+                      "surface-container-high": "#eae8e4",
+                      "on-primary-fixed-variant": "#3e4a37",
+                      "on-secondary-fixed": "#2b1614",
+                      "inverse-on-surface": "#f3f0ed",
+                      "secondary-fixed": "#ffdad6",
+                      "on-surface": "#191c18",
+                      "tertiary-fixed-dim": "#dfbec9",
+                      "on-surface-variant": "#444841",
+                      "primary-fixed-dim": "#bdcbb1",
+                      "on-tertiary-fixed": "#29161e",
+                      "tertiary-container": "#715761",
+                      "primary": "#3e4a37",
+                      "primary-container": "#55624d",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#dcdad6",
+                      "on-secondary-fixed-variant": "#5b403d",
+                      "outline": "#757870",
+                      "surface": "#f8faf3",
+                      "on-tertiary-container": "#f1cfdb",
+                      "background": "#fbf9f5",
+                      "on-primary-fixed": "#131e0e",
+                      "secondary": "#755754"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "2xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "5rem",
+                      "gutter": "1.5rem",
+                      "gap-section": "2.75rem",
+                      "margin-mobile": "1.25rem"
+              },
+              "fontFamily": {
+                      "title-md": ["Plus Jakarta Sans"],
+                      "headline-lg": ["Manrope"],
+                      "display-lg": ["Manrope"],
+                      "body-md": ["Plus Jakarta Sans"],
+                      "label-md": ["Plus Jakarta Sans"],
+                      "headline-lg-mobile": ["Manrope"],
+                      "body-lg": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "500"}],
+                      "display-lg": ["56px", {"lineHeight": "64px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "500"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav-glow {
+            box-shadow: 0 0 20px 4px #d9e7cd;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c5c8be; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-lg min-h-screen selection:bg-primary-fixed">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-screen w-72 bg-surface-container-low flex flex-col p-6 z-50">
+<div class="mb-12 px-4">
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Sunshine Dental</h1>
+<p class="font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest mt-1">Provider Portal</p>
+</div>
+<nav class="flex-grow space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-xl transition-all duration-400" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-xl transition-all duration-400" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Calendar</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-primary font-bold bg-primary-fixed/40 rounded-xl active-nav-glow transition-all duration-400" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">event_available</span>
+<span class="font-label-md text-label-md">Appointments</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-xl transition-all duration-400" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Patients</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-xl transition-all duration-400" href="#">
+<span class="material-symbols-outlined">call</span>
+<span class="font-label-md text-label-md">Call Logs</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-xl transition-all duration-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-xl transition-all duration-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4 pt-6 border-t border-outline-variant/15">
+<div class="flex items-center gap-3 px-4 py-2 bg-surface-container-lowest rounded-2xl shadow-sm">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of a friendly female dental practitioner in a clean clinical environment, soft natural lighting, warm and welcoming expression, high-end editorial photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTtk0zZ84SOFYntgIM4P-05NneFTnmAvx_kqCApq4IXxSyOXTGRflJeM4N_Zyb43oVoNjdE2Y-OgMM1SfDA4HxyF-JioJ6QgqBt-Mv5gXNetkPHZJpT9HwyJ0qksAQLe70lltHVvdSuK4xROIYdNv8Pq0xMHNV2A66EE4a0R02GDF_iG7lz0xY4LRfRhQXGQNJXMkEbBsDtMFcEwdRd2X17pe4TnZF7_LUtxJ0wjMGxDa29e_1yEdGoN6yUvV6uco9wVLJX6O_vCLO"/>
+<div class="overflow-hidden">
+<p class="font-title-md text-[14px] truncate">Dr. Sarah Miller</p>
+<p class="font-label-md text-[10px] text-on-surface-variant">Senior Specialist</p>
+</div>
+</div>
+<a class="flex items-center gap-4 px-4 py-3 text-error hover:bg-error-container/20 rounded-xl transition-all duration-400" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<main class="ml-72 min-h-screen bg-surface flex flex-col">
+<!-- Header -->
+<header class="h-20 px-12 flex justify-end items-center gap-8 bg-transparent">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">translate</span>
+<span class="ml-1 font-label-md text-label-md uppercase">EN</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+</div>
+<div class="h-6 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface leading-none">Sarah Miller</p>
+<p class="font-label-md text-[10px] text-on-surface-variant uppercase mt-1">Admin Access</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-xs">SM</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="px-margin-desktop pb-12 flex flex-col gap-gap-section">
+<!-- Page Title -->
+<div class="relative">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Appointments</h2>
+<span class="absolute -top-2 left-44 font-body-md text-body-md text-on-surface-variant opacity-60 italic">— All upcoming visits</span>
+</div>
+<!-- Filter Bar -->
+<div class="bg-surface-container-low rounded-2xl p-6 flex flex-wrap lg:flex-nowrap items-end gap-6 shadow-sm">
+<div class="flex-grow space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Provider</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-xl h-12 px-4 font-body-md focus:ring-2 focus:ring-primary-fixed-dim transition-all">
+<option>All providers</option>
+<option>Dr. Sarah Miller</option>
+<option>Dr. Nguyen</option>
+</select>
+</div>
+<div class="flex-grow space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Status</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-xl h-12 px-4 font-body-md focus:ring-2 focus:ring-primary-fixed-dim transition-all">
+<option>All statuses</option>
+<option>Confirmed</option>
+<option>Completed</option>
+<option>Pending</option>
+<option>Cancelled</option>
+</select>
+</div>
+<div class="flex-grow space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Date</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-xl h-12 px-4 font-body-md focus:ring-2 focus:ring-primary-fixed-dim transition-all" type="date"/>
+</div>
+<div class="flex-grow-[2] space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Patient name</label>
+<div class="relative">
+<input class="w-full bg-primary-fixed border-none rounded-xl h-12 pl-11 pr-4 font-body-md focus:ring-2 focus:ring-primary-container/20 transition-all placeholder:text-on-primary-fixed-variant/50" placeholder="Search patients..." type="text"/>
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-primary-fixed-variant/70">search</span>
+</div>
+</div>
+</div>
+<!-- Table Card -->
+<div class="bg-surface-container-lowest rounded-2xl shadow-[0px_4px_40px_0px_#55624d0f] overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low/50">
+<tr>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest">Date</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest">Time</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest">Patient</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest">Provider</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest">Type</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest text-center">Status</th>
+<th class="px-8 py-5 font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-md divide-y divide-transparent">
+<!-- Row 1 -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-8 py-6 font-semibold">Oct 24, 2024</td>
+<td class="px-8 py-6 text-on-surface-variant">09:00 – 09:30</td>
+<td class="px-8 py-6 text-on-surface">Emma Walsh</td>
+<td class="px-8 py-6 text-on-surface-variant">Dr. Nguyen</td>
+<td class="px-8 py-6">Cleaning</td>
+<td class="px-8 py-6">
+<span class="block mx-auto w-fit px-4 py-1.5 rounded-full text-[12px] font-bold bg-primary-fixed text-on-primary-fixed">CONFIRMED</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:bg-primary-fixed/30 px-4 py-1.5 rounded-lg transition-all font-semibold text-sm">View</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group bg-surface-container-low/20 hover:bg-surface-container-low/40 transition-colors">
+<td class="px-8 py-6 font-semibold">Oct 24, 2024</td>
+<td class="px-8 py-6 text-on-surface-variant">10:00 – 10:45</td>
+<td class="px-8 py-6 text-on-surface">James Carter</td>
+<td class="px-8 py-6 text-on-surface-variant">Dr. Miller</td>
+<td class="px-8 py-6">Check-up</td>
+<td class="px-8 py-6">
+<span class="block mx-auto w-fit px-4 py-1.5 rounded-full text-[12px] font-bold bg-secondary-container text-on-secondary-container">COMPLETED</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:bg-primary-fixed/30 px-4 py-1.5 rounded-lg transition-all font-semibold text-sm">View</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-8 py-6 font-semibold">Oct 24, 2024</td>
+<td class="px-8 py-6 text-on-surface-variant">11:30 – 12:00</td>
+<td class="px-8 py-6 text-on-surface">Sarah Bloom</td>
+<td class="px-8 py-6 text-on-surface-variant">Dr. Nguyen</td>
+<td class="px-8 py-6">Filling</td>
+<td class="px-8 py-6">
+<span class="block mx-auto w-fit px-4 py-1.5 rounded-full text-[12px] font-bold bg-surface-dim text-on-surface-variant">PENDING</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:bg-primary-fixed/30 px-4 py-1.5 rounded-lg transition-all font-semibold text-sm">View</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group bg-surface-container-low/20 hover:bg-surface-container-low/40 transition-colors">
+<td class="px-8 py-6 font-semibold">Oct 24, 2024</td>
+<td class="px-8 py-6 text-on-surface-variant">13:00 – 13:30</td>
+<td class="px-8 py-6 text-on-surface">Marcus Thorne</td>
+<td class="px-8 py-6 text-on-surface-variant">Dr. Nguyen</td>
+<td class="px-8 py-6">Root Canal</td>
+<td class="px-8 py-6">
+<span class="block mx-auto w-fit px-4 py-1.5 rounded-full text-[12px] font-bold bg-error-container/60 text-error">CANCELLED</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:bg-primary-fixed/30 px-4 py-1.5 rounded-lg transition-all font-semibold text-sm">View</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-8 py-6 font-semibold">Oct 24, 2024</td>
+<td class="px-8 py-6 text-on-surface-variant">14:00 – 14:30</td>
+<td class="px-8 py-6 text-on-surface">Lily Henderson</td>
+<td class="px-8 py-6 text-on-surface-variant">Dr. Miller</td>
+<td class="px-8 py-6">Orthodontics</td>
+<td class="px-8 py-6">
+<span class="block mx-auto w-fit px-4 py-1.5 rounded-full text-[12px] font-bold bg-primary-fixed text-on-primary-fixed">CONFIRMED</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:bg-primary-fixed/30 px-4 py-1.5 rounded-lg transition-all font-semibold text-sm">View</button>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="group bg-surface-container-low/20 hover:bg-surface-container-low/40 transition-colors">
+<td class="px-8 py-6 font-semibold">Oct 24, 2024</td>
+<td class="px-8 py-6 text-on-surface-variant">15:00 – 15:30</td>
+<td class="px-8 py-6 text-on-surface">Robert Vance</td>
+<td class="px-8 py-6 text-on-surface-variant">Dr. Nguyen</td>
+<td class="px-8 py-6">Consultation</td>
+<td class="px-8 py-6">
+<span class="block mx-auto w-fit px-4 py-1.5 rounded-full text-[12px] font-bold bg-primary-fixed text-on-primary-fixed">CONFIRMED</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:bg-primary-fixed/30 px-4 py-1.5 rounded-lg transition-all font-semibold text-sm">View</button>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-8 py-6 font-semibold">Oct 24, 2024</td>
+<td class="px-8 py-6 text-on-surface-variant">16:15 – 17:00</td>
+<td class="px-8 py-6 text-on-surface">Elena Rossi</td>
+<td class="px-8 py-6 text-on-surface-variant">Dr. Miller</td>
+<td class="px-8 py-6">Whitening</td>
+<td class="px-8 py-6">
+<span class="block mx-auto w-fit px-4 py-1.5 rounded-full text-[12px] font-bold bg-primary-fixed text-on-primary-fixed">CONFIRMED</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:bg-primary-fixed/30 px-4 py-1.5 rounded-lg transition-all font-semibold text-sm">View</button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination -->
+<div class="px-8 py-6 flex justify-end items-center gap-4 bg-surface-container-low/30 border-t border-outline-variant/10">
+<span class="font-label-md text-label-md text-on-surface-variant">Page 1 of 12</span>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-low text-on-surface-variant/50 cursor-not-allowed">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-primary-fixed text-primary hover:shadow-lg transition-all">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Wellness Tip / Secondary Content (Atmospheric) -->
+<div class="mt-8 p-8 rounded-2xl bg-gradient-to-br from-surface-container-low to-surface-container relative overflow-hidden group">
+<div class="relative z-10 max-w-lg">
+<h4 class="font-title-md text-title-md text-primary mb-2">Tranquility in Practice</h4>
+<p class="font-body-md text-on-surface-variant">Sunshine Dental aims to reduce clinical anxiety through thoughtful spacing and atmospheric clarity. Ensure patient transitions are as smooth as the interface.</p>
+</div>
+<div class="absolute right-0 top-0 w-64 h-full opacity-10 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none">
+<span class="material-symbols-outlined text-[120px] absolute -right-8 -top-8 rotate-12">spa</span>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-auto py-8 px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4 border-t border-outline-variant/10 text-on-surface-variant/60 font-label-md">
+<p>© 2024 Sunshine Dental Systems. Designed for Tranquility.</p>
+<div class="flex gap-8">
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateX(4px)';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateX(0px)';
+            });
+            row.style.transition = 'all 0.4s ease-in-out';
+        });
+
+        // Simple theme toggle logic placeholder
+        const themeBtn = document.querySelector('button .material-symbols-outlined:contains("dark_mode")');
+        if(themeBtn) {
+            themeBtn.parentElement.onclick = () => {
+                document.documentElement.classList.toggle('dark');
+            };
+        }
+    </script>
+</body></html>

@@ -226,10 +226,10 @@ export function EventEditorModal({ open, onOpenChange, providerId, slotStart, sl
                     type="button"
                     onClick={() => toggleDay(d)}
                     className={
-                      'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
+                      'rounded-lg border border-transparent px-2.5 py-1 text-xs font-medium transition-colors ' +
                       (byday.includes(d)
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-input bg-background hover:bg-accent')
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground')
                     }
                   >
                     {t(`event.weekdays.${WEEKDAY_CODES[d]}`)}
@@ -278,7 +278,7 @@ export function EventEditorModal({ open, onOpenChange, providerId, slotStart, sl
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {tc('cancel')}
           </Button>
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" variant="gradient" disabled={saving}>
             {saving ? tc('saving') : tc('save')}
           </Button>
         </DialogFooter>

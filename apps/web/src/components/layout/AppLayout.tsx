@@ -10,6 +10,7 @@ import {
   Settings,
   Shield,
   LogOut,
+  Leaf,
 } from 'lucide-react'
 import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
@@ -65,11 +66,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <aside className="flex w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-        <div className="flex h-16 items-center border-b border-sidebar-border px-6">
-          <span className="text-lg font-bold">{t('appName')}</span>
+      <aside className="flex w-64 flex-col bg-sidebar text-sidebar-foreground">
+        <div className="flex h-16 items-center gap-2.5 px-6">
+          <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-container text-primary-foreground">
+            <Leaf className="size-4" strokeWidth={1.75} />
+          </span>
+          <span className="font-display text-lg font-bold tracking-tight text-foreground">
+            {t('appName')}
+          </span>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+        <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto p-3">
           {items.map(({ to, labelKey, icon: Icon }) => {
             const active = to === '/' ? pathname === '/' : pathname.startsWith(to)
             return (
@@ -77,13 +83,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 key={to}
                 to={to}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-300',
                   active
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
+                    : 'text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground',
                 )}
               >
-                <Icon className="size-4" />
+                <Icon className={cn('size-4', active && 'text-primary')} strokeWidth={1.75} />
                 {t(`nav:${labelKey}`)}
               </Link>
             )
@@ -92,7 +98,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between border-b bg-card px-6">
+        <header className="flex h-16 items-center justify-between px-6">
           <div />
           <div className="flex items-center gap-4">
             <ThemeToggle />

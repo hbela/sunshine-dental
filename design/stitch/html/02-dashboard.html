@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sunshine Dental | Clinic Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#2b1614",
+                        "on-surface": "#191c18",
+                        "tertiary-container": "#715761",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#bdcbb1",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#98a68e",
+                        "inverse-surface": "#30302e",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#ceddc2",
+                        "surface-bright": "#fbfdf6",
+                        "background": "#fbf9f5",
+                        "secondary-fixed": "#ffdad6",
+                        "outline-variant": "#c5c8be",
+                        "on-tertiary-fixed-variant": "#58404a",
+                        "inverse-on-surface": "#f3f0ed",
+                        "surface-variant": "#e4e2df",
+                        "on-surface-variant": "#444841",
+                        "primary-fixed": "#d9e7cd",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#eae8e4",
+                        "surface-container-low": "#f6f3f0",
+                        "surface": "#f8faf3",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#dfbec9",
+                        "on-tertiary-container": "#f1cfdb",
+                        "on-secondary-container": "#7a5b58",
+                        "surface-container": "#f0edea",
+                        "tertiary-fixed": "#fcdae5",
+                        "on-tertiary-fixed": "#29161e",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#fed7d2",
+                        "surface-container-highest": "#e4e2df",
+                        "primary-fixed-dim": "#bdcbb1",
+                        "primary": "#3e4a37",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#55624d",
+                        "secondary": "#755754",
+                        "secondary-fixed-dim": "#e4beba",
+                        "surface-dim": "#dcdad6",
+                        "on-secondary-fixed-variant": "#5b403d",
+                        "tertiary": "#584049",
+                        "on-background": "#1b1c1a",
+                        "outline": "#757870",
+                        "on-primary-fixed-variant": "#3e4a37",
+                        "on-primary-fixed": "#131e0e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1.25rem",
+                        "margin-desktop": "5rem",
+                        "gutter": "1.5rem",
+                        "gap-section": "2.75rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Manrope"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "title-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg": ["56px", {"lineHeight": "64px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24; }
+        .ambient-shadow { box-shadow: 0px 4px 40px 0px rgba(85, 98, 77, 0.06); }
+        .active-pill { background-color: #d9e7cd; }
+        .glass-header { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .wellness-ring { transform: rotate(-90deg); }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen overflow-hidden">
+<!-- SIDEBAR -->
+<aside class="w-[280px] bg-surface-container-low h-screen flex flex-col p-8 gap-gap-section z-20">
+<div class="flex items-center gap-3">
+<img alt="Sunshine Dental Logo" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLsRHWb4TB5UfEphEwwz76_hGWNnN6GwHPRpkU0SmfjcFVYOlCv5pGQLIyPvYtnCRQVM31Q7KgbKmR8ZDKoCidf3Ue0HiAa2Ic31GFUNFlA43xMk1NLKVy3x0DdWiXQRstwlN-pfI-zF44j7mGmrNMRckfPdm4lqFQx_QthhVGRiAal8oZdn1mxDhvz8dvpCBKw7m-dHTnZbMm488givGt5NXfeJHxWxbOOBvPt2VE-3Yw3vn-GUmwka78hA"/>
+<span class="font-headline-lg text-headline-lg text-primary tracking-tight">Sunshine Dental</span>
+</div>
+<nav class="flex-1 space-y-1 overflow-y-auto scroll-hide">
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl active-pill text-on-surface font-bold transition-all duration-400" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 400;">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant/40 transition-all duration-400" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Calendar</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant/40 transition-all duration-400" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-label-md text-label-md">Appointments</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant/40 transition-all duration-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Patients</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant/40 transition-all duration-400" href="#">
+<span class="material-symbols-outlined">call</span>
+<span class="font-label-md text-label-md">Call Logs</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant/40 transition-all duration-400" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-variant/40 transition-all duration-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-6">
+<div class="flex items-center gap-4 px-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional and warm studio portrait of a female dentist with a gentle smile, wearing a clean white lab coat, high-end editorial lighting, bright sanctuary background with soft green accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN66Q4N6SXTYR90quE5rg64kFwMmRo68kOV8wiLKBK31_8z2hGX0D2x46ov3R3Uo6uxtdhnJ19txP2_9pStcZ4sJG2X37zYDQTL-74kRvZTJID3bbxrInESTuTTtMRhivcZfkSyQmo9xBr4sKTrYfYpIdN2NfdE3o0Ekh-ZsC9E7C9TzeW_uw6JN52qBWE2TGKyQXsrKqN4WJbSF17exihavy5UfwMITek-D_e1QgYAB6hjAhAGyP_nKnoJCS28AWiD6Xb4okXXRs1"/>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-md font-semibold">Dr. Anna Nguyen</span>
+<span class="text-[11px] text-outline tracking-wider uppercase font-bold">Admin Portal</span>
+</div>
+</div>
+<a class="flex items-center gap-4 px-4 py-2 text-error font-semibold hover:opacity-70 transition-opacity" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- MAIN CONTENT -->
+<main class="flex-1 h-screen overflow-y-auto scroll-hide bg-surface relative flex flex-col">
+<!-- HEADER -->
+<header class="w-full h-20 px-margin-desktop flex items-center justify-end gap-6 sticky top-0 bg-surface/40 glass-header z-10">
+<div class="flex items-center bg-surface-container-low rounded-full px-3 py-1 gap-2">
+<button class="px-3 py-1 rounded-full bg-surface-container-lowest text-primary font-bold text-label-md shadow-sm">EN</button>
+<button class="px-3 py-1 rounded-full text-outline font-medium text-label-md">HU</button>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</header>
+<div class="px-margin-desktop pb-20 space-y-gap-section">
+<!-- HERO WELCOME -->
+<section class="flex items-end justify-between">
+<div class="space-y-1">
+<h1 class="font-display-lg text-display-lg text-primary leading-none tracking-tight">Good morning, Anna</h1>
+<p class="text-on-surface-variant font-body-lg ml-1 opacity-70">Everything is in harmony today.</p>
+</div>
+<div class="text-right">
+<span class="font-label-md text-label-md text-outline uppercase tracking-[0.2em]">Clinic Overview</span>
+<p class="font-headline-lg text-headline-lg text-on-surface">Tuesday, 27 June</p>
+</div>
+</section>
+<!-- STATS ROW -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="bg-surface-container-lowest p-8 rounded-[1.5rem] ambient-shadow flex flex-col justify-between h-48 group hover:-translate-y-1 transition-transform duration-400 cursor-default">
+<span class="text-outline font-label-md tracking-wider uppercase">Appointments Today</span>
+<div class="flex items-baseline gap-2">
+<span class="text-[52px] font-headline-lg leading-none text-primary">18</span>
+<span class="text-primary-container font-bold text-label-md">+4%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-[1.5rem] ambient-shadow flex flex-col justify-between h-48 group hover:-translate-y-1 transition-transform duration-400 cursor-default">
+<span class="text-outline font-label-md tracking-wider uppercase">Pending Callbacks</span>
+<div class="flex items-baseline gap-2">
+<span class="text-[52px] font-headline-lg leading-none text-secondary">3</span>
+<span class="text-secondary-fixed-dim font-bold text-label-md">Urgent</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-[1.5rem] ambient-shadow flex flex-col justify-between h-48 group hover:-translate-y-1 transition-transform duration-400 cursor-default">
+<span class="text-outline font-label-md tracking-wider uppercase">Calls This Week</span>
+<div class="flex items-baseline gap-2">
+<span class="text-[52px] font-headline-lg leading-none text-on-surface">142</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-[1.5rem] ambient-shadow flex flex-col justify-between h-48 group hover:-translate-y-1 transition-transform duration-400 cursor-default relative overflow-hidden">
+<div class="relative z-10 flex flex-col h-full justify-between">
+<span class="text-outline font-label-md tracking-wider uppercase">Sentiment Score</span>
+<div class="flex items-center gap-4">
+<span class="text-[52px] font-headline-lg leading-none text-primary">86%</span>
+</div>
+</div>
+<!-- Wellness Ring Visualization -->
+<div class="absolute right-[-10px] top-1/2 -translate-y-1/2 w-32 h-32">
+<svg class="wellness-ring w-full h-full opacity-20" viewbox="0 0 100 100">
+<circle class="text-surface-container-highest" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="12"></circle>
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="url(#primaryGradient)" stroke-dasharray="251.2" stroke-dashoffset="35" stroke-linecap="round" stroke-width="12"></circle>
+<defs>
+<lineargradient id="primaryGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#55624d;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#98a68e;stop-opacity:1"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+</section>
+<!-- ASYMMETRICAL CONTENT GRID -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gap-section items-start">
+<!-- TODAY'S SCHEDULE -->
+<div class="lg:col-span-8 space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-lg text-headline-lg">Today's Schedule</h2>
+<button class="text-primary font-bold font-label-md flex items-center gap-2 hover:opacity-70 transition-opacity">
+                            View All <span class="material-symbols-outlined text-body-lg">arrow_forward</span>
+</button>
+</div>
+<div class="bg-surface-container-low/50 rounded-3xl p-4 space-y-2">
+<!-- Table-like row -->
+<div class="flex items-center bg-surface-container-lowest p-6 rounded-2xl ambient-shadow gap-6 group hover:bg-primary-fixed/10 transition-colors duration-400">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary">EK</div>
+<div class="flex-1">
+<h4 class="font-title-md text-on-surface">Eleanor Kaczmarek</h4>
+<p class="text-on-surface-variant text-label-md">Check-up &amp; Polishing</p>
+</div>
+<div class="text-right">
+<span class="font-title-md block text-on-surface">09:00 AM</span>
+<span class="text-outline text-label-md">Dr. James Miller</span>
+</div>
+<div class="px-4 py-1.5 rounded-full bg-primary-container/20 text-primary font-bold text-label-md uppercase tracking-wide">CONFIRMED</div>
+</div>
+<div class="flex items-center bg-surface-container-lowest p-6 rounded-2xl ambient-shadow gap-6 group hover:bg-primary-fixed/10 transition-colors duration-400">
+<div class="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center font-bold text-secondary">TH</div>
+<div class="flex-1">
+<h4 class="font-title-md text-on-surface">Tobias Henderson</h4>
+<p class="text-on-surface-variant text-label-md">Implant Consultation</p>
+</div>
+<div class="text-right">
+<span class="font-title-md block text-on-surface">10:30 AM</span>
+<span class="text-outline text-label-md">Dr. Anna Nguyen</span>
+</div>
+<div class="px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-bold text-label-md uppercase tracking-wide">COMPLETED</div>
+</div>
+<div class="flex items-center bg-surface-container-lowest p-6 rounded-2xl ambient-shadow gap-6 group hover:bg-primary-fixed/10 transition-colors duration-400">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-primary">MS</div>
+<div class="flex-1">
+<h4 class="font-title-md text-on-surface">Maya Sterling</h4>
+<p class="text-on-surface-variant text-label-md">Root Canal Treatment</p>
+</div>
+<div class="text-right">
+<span class="font-title-md block text-on-surface">01:15 PM</span>
+<span class="text-outline text-label-md">Dr. James Miller</span>
+</div>
+<div class="px-4 py-1.5 rounded-full bg-primary-container/20 text-primary font-bold text-label-md uppercase tracking-wide">CONFIRMED</div>
+</div>
+</div>
+</div>
+<!-- RECENT CALLS -->
+<div class="lg:col-span-4 space-y-6">
+<h2 class="font-headline-lg text-headline-lg">Recent Calls</h2>
+<div class="space-y-4">
+<div class="p-6 bg-surface-container-lowest rounded-[1.5rem] ambient-shadow flex items-center justify-between border-l-4 border-primary/20">
+<div class="flex flex-col gap-1">
+<span class="font-title-md text-on-surface">Julian Rossi</span>
+<span class="text-outline text-label-md">4 min 12 sec</span>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="px-3 py-1 rounded-full bg-primary-fixed text-primary font-bold text-[10px] tracking-widest uppercase">Positive</span>
+<span class="text-outline-variant text-[11px]">10 mins ago</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container-lowest rounded-[1.5rem] ambient-shadow flex items-center justify-between border-l-4 border-secondary/20">
+<div class="flex flex-col gap-1">
+<span class="font-title-md text-on-surface">Sarah Bloom</span>
+<span class="text-outline text-label-md">1 min 45 sec</span>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-bold text-[10px] tracking-widest uppercase">Neutral</span>
+<span class="text-outline-variant text-[11px]">42 mins ago</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container-lowest rounded-[1.5rem] ambient-shadow flex items-center justify-between border-l-4 border-error/20">
+<div class="flex flex-col gap-1">
+<span class="font-title-md text-on-surface">Marcus Thorne</span>
+<span class="text-outline text-label-md">8 min 30 sec</span>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="px-3 py-1 rounded-full bg-error-container text-on-error-container font-bold text-[10px] tracking-widest uppercase">Frustrated</span>
+<span class="text-outline-variant text-[11px]">1 hour ago</span>
+</div>
+</div>
+<div class="pt-4">
+<div class="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-on-surface leading-tight">AI summary: High volume of inquiries regarding new Invisalign packages.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- FOOTER - SUBTLE DENTAL SYSTEMS -->
+<footer class="mt-auto px-margin-desktop py-12 flex flex-col md:flex-row justify-between items-center gap-gutter border-t border-outline-variant/15 text-outline text-label-md">
+<span>© 2024 Sunshine Dental Systems. Designed for Tranquility.</span>
+<div class="flex gap-8">
+<a class="hover:text-primary transition-colors duration-400" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors duration-400" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors duration-400" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+</main>
+<!-- FLOATING ACTION BUTTON - CONTEXTUAL (Suppressed based on logic for details, but kept for main dashboard as 'New Appointment' cta) -->
+<button class="fixed bottom-10 right-10 w-16 h-16 bg-gradient-to-br from-[#55624d] to-[#98a68e] text-white rounded-full shadow-2xl flex items-center justify-center group hover:scale-110 transition-all duration-400 z-30">
+<span class="material-symbols-outlined text-3xl">add</span>
+<div class="absolute right-20 whitespace-nowrap bg-on-surface text-surface px-4 py-2 rounded-xl text-label-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">New Appointment</div>
+</button>
+<script>
+        // Micro-interactions and subtle effects
+        document.querySelectorAll('.ambient-shadow').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+        
+        // Theme toggle logic (simulation)
+        document.querySelector('header button span:contains("dark_mode")')?.parentElement.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+    </script>
+</body></html>

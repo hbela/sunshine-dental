@@ -1,5 +1,12 @@
 {
   "title": "Übersicht",
+  "greeting": {
+    "morning": "Guten Morgen",
+    "afternoon": "Guten Tag",
+    "evening": "Guten Abend"
+  },
+  "overview": "Klinik-Übersicht",
+  "providerOverview": "Ihr Terminplan",
   "stats": {
     "appointmentsToday": "Termine heute",
     "pendingCallbacks": "Ausstehende Rückrufe",
@@ -7,5 +14,15 @@
     "sentimentScore": "Stimmungswert",
     "confirmedToday": "Heute bestätigt",
     "completedToday": "Heute abgeschlossen"
+  },
+  "schedule": {
+    "title": "Heutiger Terminplan",
+    "empty": "Heute sind keine Termine geplant.",
+    "viewAll": "Alle ansehen"
+  },
+  "recentCalls": {
+    "title": "Letzte Anrufe",
+    "empty": "Keine aktuellen Anrufe.",
+    "viewAll": "Alle ansehen"
   }
 }

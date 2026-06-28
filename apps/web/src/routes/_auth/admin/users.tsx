@@ -50,7 +50,7 @@ function UsersPage() {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
-        <Button onClick={() => setCreating(true)}>
+        <Button variant="gradient" onClick={() => setCreating(true)}>
           <Plus className="size-4" />
           {t('createUser')}
         </Button>
@@ -72,9 +72,9 @@ function UsersPage() {
         </Select>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+          <thead className="bg-muted/40 text-left text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">{t('columns.name')}</th>
               <th className="px-4 py-3 font-medium">{t('columns.email')}</th>
@@ -106,7 +106,7 @@ function UsersPage() {
               </tr>
             )}
             {rows.map((u) => (
-              <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30">
+              <tr key={u.id} className="transition-colors even:bg-muted/20 hover:bg-primary-fixed/30">
                 <td className="px-4 py-3 font-medium text-foreground">{u.name}</td>
                 <td className="px-4 py-3">{u.email}</td>
                 <td className="px-4 py-3">
@@ -270,7 +270,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {role === 'PROVIDER' && (
-          <div className="space-y-4 rounded-md border bg-muted/30 p-3">
+          <div className="space-y-4 rounded-2xl bg-muted/50 p-4">
             <div className="space-y-2">
               <Label htmlFor="u-specialty">{t('provider.specialty')}</Label>
               <Input id="u-specialty" {...register('specialty')} />
@@ -292,7 +292,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
           <Button type="button" variant="outline" onClick={onClose}>
             {tc('cancel')}
           </Button>
-          <Button type="submit" disabled={create.isPending}>
+          <Button type="submit" variant="gradient" disabled={create.isPending}>
             {create.isPending ? t('creating') : t('createUser')}
           </Button>
         </DialogFooter>

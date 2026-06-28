@@ -89,7 +89,7 @@ function AppointmentsPage() {
       <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 rounded-2xl bg-muted/50 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1">
           <Label htmlFor="f-provider">{t('filters.provider')}</Label>
           <Select
@@ -153,9 +153,9 @@ function AppointmentsPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+          <thead className="bg-muted/40 text-left text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">{t('columns.date')}</th>
               <th className="px-4 py-3 font-medium">{t('columns.time')}</th>
@@ -189,7 +189,7 @@ function AppointmentsPage() {
               </tr>
             )}
             {rows.map((a) => (
-              <tr key={a.id} className="border-b last:border-0 hover:bg-muted/30">
+              <tr key={a.id} className="transition-colors even:bg-muted/20 hover:bg-primary-fixed/30">
                 <td className="px-4 py-3">{formatDate(parseDate(a.date), 'PP')}</td>
                 <td className="px-4 py-3">
                   {a.startTime}–{a.endTime}
@@ -277,7 +277,7 @@ function AppointmentDetail({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
+    <Dialog open variant="sheet" onOpenChange={(o) => !o && onClose()}>
       <DialogHeader>
         <DialogTitle>{appointment.patientName}</DialogTitle>
         <DialogDescription>

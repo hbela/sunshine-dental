@@ -91,7 +91,7 @@ function CallLogsPage() {
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 rounded-2xl bg-muted/50 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1">
           <Label htmlFor="f-from">{t('filters.from')}</Label>
           <Input
@@ -152,9 +152,9 @@ function CallLogsPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40 text-left text-muted-foreground">
+          <thead className="bg-muted/40 text-left text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">{t('columns.time')}</th>
               <th className="px-4 py-3 font-medium">{t('columns.from')}</th>
@@ -187,7 +187,7 @@ function CallLogsPage() {
               </tr>
             )}
             {rows.map((c) => (
-              <tr key={c.id} className="border-b last:border-0 hover:bg-muted/30">
+              <tr key={c.id} className="transition-colors even:bg-muted/20 hover:bg-primary-fixed/30">
                 <td className="px-4 py-3">{formatDateTime(new Date(c.createdAt))}</td>
                 <td className="px-4 py-3">{c.fromNumber ?? '—'}</td>
                 <td className="px-4 py-3">{formatDuration(c.durationSeconds)}</td>
@@ -247,9 +247,9 @@ function CallLogsPage() {
 
 function Stat({ label, value }: { label: string; value: number | string | null | undefined }) {
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm">
+    <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
       <h3 className="text-xs font-medium text-muted-foreground">{label}</h3>
-      <p className="mt-1 text-xl font-bold text-foreground">{value ?? '—'}</p>
+      <p className="mt-1 font-display text-2xl font-bold text-primary">{value ?? '—'}</p>
     </div>
   )
 }
@@ -261,7 +261,7 @@ function CallLogDetail({ callId, onClose }: { callId: string; onClose: () => voi
   const { data: log, isLoading } = useCallLog(callId)
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
+    <Dialog open variant="sheet" onOpenChange={(o) => !o && onClose()}>
       <DialogHeader>
         <DialogTitle>{t('detailTitle')}</DialogTitle>
         <DialogDescription>{log ? formatDateTime(new Date(log.createdAt)) : ''}</DialogDescription>
