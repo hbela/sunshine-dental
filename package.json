@@ -9,10 +9,17 @@
     "check-types": "turbo run check-types",
     "n8n:patch-ngrok": "node workflows/patch-ngrok-url.mjs",
     "retell:audition": "node workflows/scripts/retell-voice-audition.mjs",
-    "retell:save-transcript": "node workflows/scripts/retell-save-transcript.mjs"
+    "retell:save-transcript": "node workflows/scripts/retell-save-transcript.mjs",
+    "guide:shots": "tsx scripts/screenshot-app.mts",
+    "guide:publish": "tsx scripts/publish-user-guide.mts",
+    "guide:publish:en": "tsx scripts/publish-user-guide.mts --lang en",
+    "guide:publish:hu": "tsx scripts/publish-user-guide.mts --lang hu",
+    "guide:publish:de": "tsx scripts/publish-user-guide.mts --lang de"
   },
   "devDependencies": {
+    "playwright": "^1.61.1",
     "prettier": "^3.7.4",
+    "tsx": "^4.22.4",
     "turbo": "^2.8.12",
     "typescript": "5.9.2"
   },
