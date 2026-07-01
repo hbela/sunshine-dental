@@ -12,6 +12,14 @@ Képzelje el úgy, mintha felvenne egy fáradhatatlan recepcióst, aki soha nem 
 
 ---
 
+## 🎧 Hallgasson bele egy valódi hívásba
+
+Ne csak a szavunkra hagyatkozzon — íme egy **valódi hívás**, amelyet az MI recepciós elejétől a végéig lebonyolított, a köszönéstől a megerősített időpontig. Nyomja meg a lejátszást, és hallgasson bele.
+
+<audio controls preload="none" src="assets/screenshots/latest-call.mp3"></audio>
+
+---
+
 ## Az alkalmazás két fele
 
 ### 1. Az MI telefonos recepciós 🤖📞

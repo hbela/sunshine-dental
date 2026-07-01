@@ -12,6 +12,14 @@ Stellen Sie es sich vor wie eine unermüdliche Empfangskraft, die nie schläft, 
 
 ---
 
+## 🎧 Hören Sie einen echten Anruf
+
+Verlassen Sie sich nicht nur auf unser Wort — hier ist ein **echter Anruf**, den die KI-Rezeption von Anfang bis Ende abgewickelt hat, von der Begrüßung bis zum bestätigten Termin. Drücken Sie auf Play und hören Sie rein.
+
+<audio controls preload="none" src="assets/screenshots/latest-call.mp3"></audio>
+
+---
+
 ## Die zwei Hälften der App
 
 ### 1. Die KI-Telefonrezeption 🤖📞

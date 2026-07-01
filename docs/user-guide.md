@@ -12,6 +12,14 @@ Think of it as hiring a tireless front-desk assistant who never sleeps, never ta
 
 ---
 
+## 🎧 Hear a real call
+
+Don't take our word for it — here's a **real call** the AI receptionist handled end-to-end, from greeting to a confirmed appointment. Press play and listen in.
+
+<audio controls preload="none" src="assets/screenshots/latest-call.mp3"></audio>
+
+---
+
 ## The two halves of the app
 
 ### 1. The AI Phone Receptionist 🤖📞

@@ -99,8 +99,13 @@ const manifest = {
   slug: SLUG,
   title,
   excerpt,
-  image: `/${SLUG}/02-dashboard.png`, // cover — must be one of the copied screens
+  image: `/${SLUG}/00-cover.png`, // localized promo cover — copied below (see COVER_ASSET)
 }
+
+// Cover image shown on the portfolio project card. It lives per-language in the
+// screenshot folder but isn't referenced in the guide body, so it's copied
+// explicitly (in addition to the markdown-referenced assets).
+const COVER_ASSET = "00-cover.png"
 
 const API_URL = process.env.PORTFOLIO_API_URL || "http://localhost:3000"
 const SECRET = process.env.PORTFOLIO_IMPORT_SECRET
@@ -123,33 +128,46 @@ async function main() {
   const publicDir = isAbsolute(PUBLIC_DIR) ? PUBLIC_DIR : resolve(repoRoot, PUBLIC_DIR)
   const destDir = join(publicDir, SLUG)
 
-  // 1. Copy each referenced screenshot from this language's folder into public/<slug>/.
+  // 1. Copy each referenced asset (screenshots + call-recording audio) from this
+  //    language's folder into public/<slug>/. Filenames carry their extension so
+  //    png and mp3 are handled the same way.
   const referenced = new Set<string>()
-  const re = /assets\/screenshots\/([\w-]+)\.png/g
+  const re = /assets\/screenshots\/([\w-]+\.(?:png|mp3))/g
   let m: RegExpExecArray | null
   while ((m = re.exec(content)) !== null) referenced.add(m[1])
 
   if (referenced.size === 0) {
-    console.warn("⚠️  No assets/screenshots/*.png references found in the guide.")
+    console.warn("⚠️  No assets/screenshots/* references found in the guide.")
   } else {
     mkdirSync(destDir, { recursive: true })
     const shotsDir = join(repoRoot, "docs", "assets", "screenshots", LANG)
     const missing: string[] = []
     for (const name of referenced) {
-      const src = join(shotsDir, `${name}.png`)
+      const src = join(shotsDir, name)
       if (!existsSync(src)) {
         missing.push(name)
         continue
       }
-      copyFileSync(src, join(destDir, `${name}.png`))
+      copyFileSync(src, join(destDir, name))
     }
     if (missing.length) {
       throw new Error(
-        `Missing screenshots for: ${missing.join(", ")} (expected docs/assets/screenshots/${LANG}/<name>.png — run \`pnpm guide:shots\`)`,
+        `Missing assets for: ${missing.join(", ")} (expected docs/assets/screenshots/${LANG}/<name> — run \`pnpm guide:shots\` / \`pnpm guide:audio\`)`,
       )
     }
-    console.log(`✅ Copied ${referenced.size} image(s) → ${destDir}`)
+    console.log(`✅ Copied ${referenced.size} asset(s) → ${destDir}`)
   }
+
+  // Copy the localized cover image (referenced by the manifest's `image`, not the body).
+  const coverSrc = join(repoRoot, "docs", "assets", "screenshots", LANG, COVER_ASSET)
+  if (!existsSync(coverSrc)) {
+    throw new Error(
+      `Missing cover image ${coverSrc} — add the ${LANG} ${COVER_ASSET} (project-card cover).`,
+    )
+  }
+  mkdirSync(destDir, { recursive: true })
+  copyFileSync(coverSrc, join(destDir, COVER_ASSET))
+  console.log(`✅ Copied cover ${COVER_ASSET} → ${destDir}`)
 
   // 2. POST to the import API.
   const endpoint = `${API_URL.replace(/\/$/, "")}/api/projects/import`
