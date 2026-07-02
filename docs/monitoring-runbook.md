@@ -104,8 +104,27 @@ with no provider → real slots. **Takeaway:** a voice agent saying "backend unr
 - **Coolify → Settings → Notifications**: enable email/Discord/Slack/Telegram for **deployment
   failures** and **container-healthcheck failures**.
 
+### n8n execution-failure email alert (implemented)
+
+Workflow **`Error Handler — Email Alert`** (`0tdA3t7At1mY7MTh`, n8nprod): Error Trigger → Gmail
+(`Send Alert Email`, cred `SSHDHAefkBUth5jw`) → emails **hajzerbela@gmail.com** with the failed
+workflow name, execution id/URL, last node, and error message. It is wired as the **Error Workflow**
+in the settings of the prod workflows: router `kJ4QDaoEWRjdjkhj`, post-call `FBfZ65vr9r6MmTQc`,
+dynamic-vars `jUh6a3wia5turKAw`, daily-date `BxgJLziofW7fEME1`.
+
+- **Gotchas:**
+  - The error-handler workflow **must stay ACTIVE** on this instance — if inactive it does NOT fire
+    (verified). Do not deactivate it.
+  - It fires only on *genuine* execution failures. Business 4xx handled via `continueErrorOutput`
+    (e.g. provider-not-found) do **not** fail the workflow, so they won't alert — by design.
+  - Shares the Gmail OAuth credential with the confirmation-email node; that OAuth app is in
+    "Testing" and the token can expire ~weekly. If alerts (or confirmation emails) stop, re-auth the
+    Gmail credential in n8n.
+- Verified 2026-07-02 with a throwaway failing workflow → handler executed (mode `error`, success),
+  email sent; test workflow deleted.
+
 ## Next (deferred, not yet implemented)
 
 - Sentry error tracking in the Fastify API (capture 5xx + unhandled exceptions).
 - Structured request logging (Pino) with retained logs / log shipping.
-- n8n execution-failure alerts (Error Trigger workflow → email/Slack).
+- Escalate n8n alerts to Slack/Telegram (currently email-only).
