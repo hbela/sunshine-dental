@@ -182,3 +182,64 @@ ngrok `127.0.0.1:3000` used in development).
 | Prisma `P1001` can't reach DB | Check `DATABASE_URL` and that `?sslmode=require` is present. |
 | Prisma engine / OpenSSL error | The image is Debian-based with `openssl` installed; rebuild without cache if you changed Prisma versions. |
 | 502 right after deploy | api still starting; healthcheck `start_period` is 20s — give it a moment. |
+
+---
+
+## 11. Dev environment (`sunshinedev.appointer.hu`)
+
+A second, **isolated** backend so the voice agent's dev lane (Retell DEV agent →
+`n8ndev.appointer.hu` → this API → **dev** Postgres) never touches production data.
+It reuses the same repo, `docker-compose.yml`, and Dockerfiles — only the domain,
+database, and secrets differ. See [`retell-dev-prod-split-plan.md`](retell-dev-prod-split-plan.md)
+for the full split.
+
+### 11a. DNS
+Add an **A record**: `sunshinedev.appointer.hu` → **`116.203.205.166`** (same VPS as prod).
+
+### 11b. Dev database (separate from prod)
+Provision a **separate** Postgres — do **not** reuse the prod `DATABASE_URL`. Either:
+- **A. Prisma Postgres branch (used here)** — create a **branch** off the `sunshine-dental`
+  project in the Prisma dashboard; its connection string is a
+  `prisma+postgres://accelerate.prisma-data.net/?api_key=…` URL (Accelerate protocol — the
+  Fastify Prisma client 6.19 connects to it natively, verified). Use this as `DATABASE_URL`
+  for the dev API; or
+- **B. Postgres in Coolify** — *+ New → Database → PostgreSQL* on the same project, and
+  use its internal connection URL.
+
+> **Schema + seed already done for the current dev branch.** Because a Prisma Postgres branch
+> is reachable from anywhere, `prisma db push` + `prisma/seed.ts` were run against it from a dev
+> machine (4 users, 2 providers, 3 patients, 4 appointments, 43 calendar events). If you re-create
+> the branch, re-run §11e. **Never run the seed against prod — it wipes all tables first.**
+
+### 11c. Coolify application
+1. **+ New → Resource → Docker Compose**, same GitHub repo + branch `main`, compose file
+   `docker-compose.yml` (Coolify namespaces the `api`/`web` services per resource, so there's
+   no clash with prod).
+2. **Domain:** assign `https://sunshinedev.appointer.hu` to the **`web`** service, port 80;
+   Generate SSL. Leave `api` internal.
+
+### 11d. Environment variables (mark secrets)
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | the **dev** DB URL from 11b (`?sslmode=require`) |
+| `WEB_ORIGIN` | `https://sunshinedev.appointer.hu` |
+| `BETTER_AUTH_URL` | `https://sunshinedev.appointer.hu` |
+| `BETTER_AUTH_SECRET` | a fresh `openssl rand -base64 32` (distinct from prod) |
+| `FASTIFY_API_KEY` | a fresh `openssl rand -hex 24` (distinct from prod; this is what **n8ndev** will send) |
+
+### 11e. Deploy + seed (first time)
+Deploy, then in the **api** container terminal (same as §6a):
+```bash
+cd apps/api
+pnpm exec prisma db push       # sync schema into the dev DB
+pnpm exec tsx prisma/seed.ts   # seed admin + providers (Dr. Ibolya Nagy, Dr. István) — first time only
+```
+
+### 11f. Verify
+```bash
+curl https://sunshinedev.appointer.hu/api/health   # -> 200 {"status":"ok","db":"ok",...}
+curl https://sunshinedev.appointer.hu/api/ping     # -> {"status":"ok"}
+```
+Add the dev `/api/health` URL to the uptime monitor. Once green, repoint **n8ndev**'s HTTP
+nodes at `https://sunshinedev.appointer.hu/api` with the dev `FASTIFY_API_KEY` (Part 4 of the
+split plan) — that is the step that actually isolates dev data.

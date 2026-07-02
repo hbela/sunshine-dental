@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import { authRoutes } from './routes/auth.routes.js'
 import openapiPlugin from './plugins/openapi.plugin.js'
 import { calendarRoutes } from './routes/calendar.routes.js'
+import { healthRoutes } from './routes/health.routes.js'
 import { providersRoutes } from './routes/providers.routes.js'
 import { appointmentsRoutes } from './routes/appointments.routes.js'
 import { patientsRoutes } from './routes/patients.routes.js'
@@ -41,6 +42,7 @@ export async function app(fastify: FastifyInstance) {
   await fastify.register(authRoutes, { prefix: '/api/auth' })
 
   // Register App API routes
+  await fastify.register(healthRoutes, { prefix: '/api' })
   await fastify.register(calendarRoutes, { prefix: '/api/calendar' })
   await fastify.register(providersRoutes, { prefix: '/api/providers' })
   await fastify.register(appointmentsRoutes, { prefix: '/api/appointments' })
