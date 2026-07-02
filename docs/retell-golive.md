@@ -15,10 +15,10 @@ binding a real phone number so patients can actually call.
 |-------|-------|--------|
 | Agent | `Dental Clinic` — `agent_0c73886e96f6cf2ad878def30e` | exists |
 | LLM | `llm_9144fb5e818b3d841e18ab084b99` — `gpt-4.1-mini`, persona "Sarah" | ✅ |
-| Voice | `openai-Chloe` | ✅ |
+| Voice | `custom_voice_7b088e19c082ed8f759ffd49f4` ("sunshine", ElevenLabs BYOK) + fallback `openai-Chloe` | ✅ |
 | Languages | `en-US`, `hu-HU`, `de-DE` | ✅ |
-| 6 custom tools | all POST → `https://n8ndev.appointer.hu/webhook/retell-custom-functions` | ✅ |
-| Post-call webhook | `https://n8ndev.appointer.hu/webhook/retell-post-call` | ✅ |
+| 6 custom tools | all POST → `https://n8nprod.appointer.hu/webhook/retell-custom-functions` | ✅ |
+| Post-call webhook | `https://n8nprod.appointer.hu/webhook/retell-post-call` | ✅ |
 | **Agent published** | `is_published: false` | ❌ **do this** |
 | **Phone number** | none provisioned | ❌ **do this** |
 
@@ -30,18 +30,18 @@ These match [`retell-custom-functions.md`](./retell-custom-functions.md).
 
 ## Step 1 — Confirm the tool/webhook host is production
 
-All 7 endpoints point at **`n8ndev.appointer.hu`**. The "dev" in the name is the only
-concern. Before publishing:
+**Done (2026-07):** all 7 endpoints now point at the dedicated prod instance
+**`n8nprod.appointer.hu`** (repointed from the old shared `n8ndev` with
+`pnpm retell:set-webhooks`). `n8ndev` is now the **testing** instance (→ local API via ngrok).
 
-- If that n8n instance **is** your production automation host → nothing to change.
-- If you stand up a separate prod n8n → update **all 6 tool URLs** and the **post-call
-  webhook** in the agent, then re-publish. The repo can regenerate the agent tools via
-  `workflows/scripts/retell-add-language.mjs` (SDK round-trip).
+If you ever need to move the host again, repoint with `pnpm retell:set-webhooks`
+(`--base <url>`), which patches all 6 tool URLs + the post-call webhook in one SDK round-trip,
+then **re-publish** the agent.
 
-Either way, confirm the chain closes end-to-end:
+The live chain closes end-to-end (verified via webhook health probes):
 
 ```
-Phone call → Retell → n8n (n8ndev.appointer.hu) → your API (https://your-domain.com/api/...) → Postgres
+Phone call → Retell → n8n (n8nprod.appointer.hu) → API (https://sunshine.appointer.hu/api/...) → Postgres
 ```
 
 The n8n → API hop must send the `FASTIFY_API_KEY` header (deploy.md §9). Without a
@@ -111,7 +111,7 @@ Retell does **not** sell EU/HU numbers. Buy the local number from a carrier (Twi
 
 ## Quick reference — shortest path to "I can call it"
 
-1. (Step 1) Confirm `n8ndev.appointer.hu` is the host you want live.
+1. (Step 1) Host is `n8nprod.appointer.hu` (already repointed) — confirm it's live.
 2. (Step 2) Publish the **Dental Clinic** agent.
 3. (Step 3A) Buy a US number → inbound agent = Dental Clinic.
 4. (Step 4) Add a payment method.

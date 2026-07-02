@@ -2,15 +2,40 @@
 
 This directory contains n8n workflow JSON files for the **Sunshine Dental** voice agent integration with [Retell AI](https://www.retellai.com/).
 
+## Environments (dev / prod split)
+
+Two separate n8n instances since the Coolify deployment:
+
+| | Host | API it calls | Purpose |
+|---|---|---|---|
+| **Prod** | `n8nprod.appointer.hu` | `https://sunshine.appointer.hu/api` (VPS) | The **live** Retell agent's webhooks point here. |
+| **Test** | `n8ndev.appointer.hu` | local Fastify via **ngrok** (`127.0.0.1:3000`) | Dev/testing loop — never touches prod data. |
+
+The live agent (`agent_0c73886e96f6cf2ad878def30e`) is repointed prod↔test with
+`pnpm retell:set-webhooks` (patches `webhook_url` + the 6 custom-tool URLs; `--dry-run` to
+preview, `--base <url>` to override). **Re-publish the agent** in the Retell dashboard after
+repointing — published versions pin webhook/tool config.
+
+Four Retell workflows run on the prod instance: the **Router** (`retell-custom-functions`),
+**Post-Call** (`retell-post-call`), **Dynamic Variables** (`retell-dynamic-vars`), and the
+**Update LLM Date Daily** cron. The cron should be **active on prod only** (deactivate the dev
+copy) so the LLM date isn't PATCHed twice. See `docs/n8n-dev-prod-split-plan.md`.
+
+> The `.json` files here are **placeholder templates** (base URL = `YOUR-API-BASE-URL`). The
+> source of truth is the live workflows in each n8n instance — export/import between instances
+> rather than editing these files.
+
 ## Agent voice & model (cost choice)
 
 The prod agent (`agent_0c73886e96f6cf2ad878def30e`, LLM `llm_9144fb5e818b3d841e18ab084b99`) runs:
 
-- **Voice: `openai-Chloe`** (~$0.015/min) — chosen over the original `11labs-Marissa` (ElevenLabs, ~$0.08/min) after a 3-way A/B audition confirmed OpenAI/Cartesia hold up in **Hungarian** over the phone. Saves ~$100/mo.
+- **Voice: `custom_voice_7b088e19c082ed8f759ffd49f4`** ("sunshine") — a custom ElevenLabs voice clone imported via BYOK (paste the ElevenLabs API key into Retell settings → *Import Professional Voices*; the *Community Voices* tab does NOT work for private clones). ElevenLabs runs ~$0.08/min, so voice cost is ~5× the previous `openai-Chloe` — a deliberate brand/quality choice over cost.
+  - **Fallback: `fallback_voice_ids: ["openai-Chloe"]`** — a BYOK voice reaches ElevenLabs live per utterance and can fail mid-call (quota/API); the fallback keeps the (cheap, multilingual) previous voice as a safety net.
+  - *History:* started on `11labs-Marissa`, then a 3-way A/B audition (`pnpm retell:audition`) picked `openai-Chloe` (~$0.015/min) to save ~$100/mo; superseded by the "sunshine" clone once the client wanted their own voice.
 - **Model: `gpt-4.1-mini`** — the reliability/cost sweet spot for a multilingual, tool-calling booking agent (nano was too weak for function-calling). If it starts dropping the `language` param or fumbling `YYYY-MM-DD` dates, step back up.
-- All-in ≈ **$0.036/min** (voice + LLM + telephony) ≈ ~$65/mo at ~1,800 min.
+- All-in ≈ **$0.10/min** (ElevenLabs voice + LLM + telephony), up from ~$0.036/min on `openai-Chloe`.
 
-Re-run the voice A/B anytime with `pnpm retell:audition` (script: `workflows/scripts/retell-voice-audition.mjs`); change the voice with the same Retell SDK pattern as `retell-add-language.mjs`.
+Change the voice idempotently with `pnpm retell:set-voice` (script: `workflows/scripts/retell-set-voice.mjs`) — it patches `voice_id` + `fallback_voice_ids` via the Retell SDK (`--dry-run` to preview). Re-run the engine A/B anytime with `pnpm retell:audition` (`workflows/scripts/retell-voice-audition.mjs`).
 
 ## Workflows
 
@@ -21,16 +46,20 @@ Re-run the voice A/B anytime with `pnpm retell:audition` (script: `workflows/scr
 
 ## How to Import
 
-1. Open your n8n instance at `https://n8ndev.appointer.hu`
+1. Open the target n8n instance (prod `https://n8nprod.appointer.hu` or test `https://n8ndev.appointer.hu`)
 2. Go to **Workflows → Import from file**
 3. Select the JSON file and confirm
-4. Update any credential references (see below) before activating
+4. Re-select the Gmail credential (see below) and, for the test instance, repoint the HTTP nodes at ngrok, before activating
 
 ## Credentials Required
 
-- **PostgreSQL** — for appointment/patient data operations
-- **Gmail OAuth2** — for sending confirmation and summary emails (use `Gmail account 2`)
-- **HTTP Request / API** — for the `Log Call to API` node (configure base URL in the workflow settings or via a sticky note)
+- **Gmail OAuth2** — the **only** n8n credential needed (both `Send Confirmation Email` and
+  `Email Manager Summary` use `Gmail account 2`). It must be **recreated per instance** —
+  credentials don't travel with an exported workflow. NB `Gmail account 2` is a Testing-mode
+  OAuth app whose token expires ~weekly.
+- **No PostgreSQL credential** — despite the "(v2 - PostgreSQL)" names, the webhooks reach the
+  DB **over HTTP** through `…/api/...`, authenticated by the `FASTIFY_API_KEY` bearer header on
+  the HTTP nodes (must match the API's env). There are no direct Postgres nodes.
 
 Never hardcode credentials — reference them by name in the n8n UI.
 
@@ -41,7 +70,10 @@ Never hardcode credentials — reference them by name in the n8n UI.
 - Each workflow includes a **Configuration Notes** sticky node with setup instructions
 - Workflow settings use `executionOrder: "v1"`
 
-## Re-pointing the router at the current ngrok tunnel
+## Re-pointing the router at the current ngrok tunnel (TEST instance / n8ndev only)
+
+> Prod (`n8nprod`) calls `https://sunshine.appointer.hu/api` directly — no ngrok. This section
+> applies **only** to the `n8ndev` testing instance driving a local API.
 
 The router's 5 HTTP nodes (Get Available Slots, Book Appointment, Cancel Appointment, Create
 Patient, Get Available Providers) call the local Fastify API through an **ngrok tunnel**, whose
