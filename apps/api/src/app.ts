@@ -11,6 +11,7 @@ import { callLogsRoutes } from './routes/call-logs.routes.js'
 import { adminRoutes } from './routes/admin.routes.js'
 import { delegationsRoutes } from './routes/delegations.routes.js'
 import { usersRoutes } from './routes/users.routes.js'
+import { chatRoutes } from './routes/chat.routes.js'
 
 export async function app(fastify: FastifyInstance) {
   fastify.setErrorHandler((error: any, request, reply) => {
@@ -51,4 +52,5 @@ export async function app(fastify: FastifyInstance) {
   await fastify.register(adminRoutes, { prefix: '/api/admin' })
   await fastify.register(delegationsRoutes, { prefix: '/api/delegations' })
   await fastify.register(usersRoutes, { prefix: '/api/users' })
+  await fastify.register(chatRoutes, { prefix: '/api/chat' })
 }

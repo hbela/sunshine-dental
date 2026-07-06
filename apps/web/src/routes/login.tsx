@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChatWidget } from '@/components/chat/ChatWidget'
 
 type FormValues = { email: string; password: string }
 
@@ -93,6 +94,8 @@ function LoginPage() {
           </form>
         </CardContent>
       </Card>
+      {/* Patients arriving at the app can reach the virtual receptionist by chat. */}
+      <ChatWidget />
     </div>
   )
 }

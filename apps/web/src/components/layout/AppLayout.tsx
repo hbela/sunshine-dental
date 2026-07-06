@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Users,
   Phone,
+  MessageSquare,
   Settings,
   Shield,
   LogOut,
@@ -27,6 +28,7 @@ type NavKey =
   | 'appointments'
   | 'patients'
   | 'callLogs'
+  | 'chatLogs'
   | 'users'
   | 'settings'
 
@@ -43,6 +45,7 @@ const NAV: NavItem[] = [
   { to: '/appointments', labelKey: 'appointments', icon: ClipboardList, roles: ALL },
   { to: '/patients', labelKey: 'patients', icon: Users, roles: ['ASSISTANT', 'ADMIN'] },
   { to: '/call-logs', labelKey: 'callLogs', icon: Phone, roles: ['ASSISTANT', 'ADMIN'] },
+  { to: '/chat-logs', labelKey: 'chatLogs', icon: MessageSquare, roles: ['ASSISTANT', 'ADMIN'] },
   { to: '/admin/users', labelKey: 'users', icon: Shield, roles: ['ADMIN'] },
   { to: '/settings', labelKey: 'settings', icon: Settings, roles: ALL },
 ]

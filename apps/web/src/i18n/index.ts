@@ -14,6 +14,8 @@ import enSettings from '@/locales/en/settings.json'
 import enAdmin from '@/locales/en/admin.json'
 import enDelegations from '@/locales/en/delegations.json'
 import enEnums from '@/locales/en/enums.json'
+import enChat from '@/locales/en/chat.json'
+import enChatLogs from '@/locales/en/chatLogs.json'
 
 import huCommon from '@/locales/hu/common.json'
 import huNav from '@/locales/hu/nav.json'
@@ -27,6 +29,8 @@ import huSettings from '@/locales/hu/settings.json'
 import huAdmin from '@/locales/hu/admin.json'
 import huDelegations from '@/locales/hu/delegations.json'
 import huEnums from '@/locales/hu/enums.json'
+import huChat from '@/locales/hu/chat.json'
+import huChatLogs from '@/locales/hu/chatLogs.json'
 
 import deCommon from '@/locales/de/common.json'
 import deNav from '@/locales/de/nav.json'
@@ -40,6 +44,8 @@ import deSettings from '@/locales/de/settings.json'
 import deAdmin from '@/locales/de/admin.json'
 import deDelegations from '@/locales/de/delegations.json'
 import deEnums from '@/locales/de/enums.json'
+import deChat from '@/locales/de/chat.json'
+import deChatLogs from '@/locales/de/chatLogs.json'
 
 export const supportedLngs = ['en', 'hu', 'de'] as const
 export type AppLanguage = (typeof supportedLngs)[number]
@@ -59,6 +65,8 @@ export const namespaces = [
   'admin',
   'delegations',
   'enums',
+  'chat',
+  'chatLogs',
 ] as const
 
 /** `en` is the source-of-truth key set; `hu`/`de` mirror it. */
@@ -76,6 +84,8 @@ export const resources = {
     admin: enAdmin,
     delegations: enDelegations,
     enums: enEnums,
+    chat: enChat,
+    chatLogs: enChatLogs,
   },
   hu: {
     common: huCommon,
@@ -90,6 +100,8 @@ export const resources = {
     admin: huAdmin,
     delegations: huDelegations,
     enums: huEnums,
+    chat: huChat,
+    chatLogs: huChatLogs,
   },
   de: {
     common: deCommon,
@@ -104,6 +116,8 @@ export const resources = {
     admin: deAdmin,
     delegations: deDelegations,
     enums: deEnums,
+    chat: deChat,
+    chatLogs: deChatLogs,
   },
 } as const
 

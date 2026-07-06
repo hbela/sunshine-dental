@@ -196,20 +196,25 @@ for the full split.
 ### 11a. DNS
 Add an **A record**: `sunshinedev.appointer.hu` → **`116.203.205.166`** (same VPS as prod).
 
-### 11b. Dev database (separate from prod)
-Provision a **separate** Postgres — do **not** reuse the prod `DATABASE_URL`. Either:
-- **A. Prisma Postgres branch (used here)** — create a **branch** off the `sunshine-dental`
-  project in the Prisma dashboard; its connection string is a
-  `prisma+postgres://accelerate.prisma-data.net/?api_key=…` URL (Accelerate protocol — the
-  Fastify Prisma client 6.19 connects to it natively, verified). Use this as `DATABASE_URL`
-  for the dev API; or
-- **B. Postgres in Coolify** — *+ New → Database → PostgreSQL* on the same project, and
-  use its internal connection URL.
+### 11b. Dev database (separate from prod — and PERSISTENT)
+Provision a **separate, long-lived** Postgres — do **not** reuse the prod `DATABASE_URL`.
 
-> **Schema + seed already done for the current dev branch.** Because a Prisma Postgres branch
-> is reachable from anywhere, `prisma db push` + `prisma/seed.ts` were run against it from a dev
-> machine (4 users, 2 providers, 3 patients, 4 appointments, 43 calendar events). If you re-create
-> the branch, re-run §11e. **Never run the seed against prod — it wipes all tables first.**
+> ⚠️ **Do NOT use a GitHub-branch-scoped Prisma preview database.** Prisma Postgres's GitHub
+> integration creates an **ephemeral** database per git branch; when that branch is merged and
+> deleted, Prisma **auto-deletes the database** (learned the hard way — a seeded dev DB vanished
+> when its PR branch was deleted). The dev DB must be independent of git-branch lifecycle.
+
+Pick one:
+- **A. Standalone Prisma Postgres database** — create a **dedicated** database/project for dev
+  (not a PR preview branch), copy its `prisma+postgres://accelerate.prisma-data.net/?api_key=…`
+  URL. Accelerate protocol — the Fastify Prisma client 6.19 connects to it natively (verified).
+  Reachable from anywhere, so schema+seed can be run externally.
+- **B. Postgres container in Coolify** — *+ New → Database → PostgreSQL* on the same project,
+  use its internal connection URL. Fully persistent + isolated on the VPS; seed via the api
+  container terminal (§11e) since it's internal-only.
+
+Use the chosen URL as **`DATABASE_URL`** in the dev app's Coolify env (not the local
+`localhost:5432` value from `.env`).
 
 ### 11c. Coolify application
 1. **+ New → Resource → Docker Compose**, same GitHub repo + branch `main`, compose file

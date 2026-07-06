@@ -1,0 +1,20 @@
+{
+  "title": "Sunshine Dental",
+  "subtitle": "Chatten Sie mit unserer virtuellen Rezeption",
+  "greeting": "Hallo! Ich bin Sarah, die virtuelle Rezeptionistin von Sunshine Dental. Ich helfe Ihnen gerne beim Buchen, Verschieben oder Stornieren eines Termins oder beantworte Fragen zur Praxis. Wie kann ich Ihnen helfen?",
+  "placeholder": "Schreiben Sie Ihre Nachricht…",
+  "send": "Senden",
+  "reset": "Neu beginnen",
+  "close": "Schließen",
+  "launcher": "Chatten Sie mit uns",
+  "disclaimer": "KI-Assistent · Bei einem medizinischen Notfall wählen Sie 112.",
+  "error": "Entschuldigung, etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+  "tools": {
+    "working": "Einen Moment…",
+    "check_availability": "Verfügbarkeit wird geprüft…",
+    "list_available_providers": "Verfügbare Ärzte werden gesucht…",
+    "book_appointment": "Ihr Termin wird gebucht…",
+    "cancel_appointment": "Ihr Termin wird gesucht…",
+    "capture_patient_info": "Ihre Daten werden gespeichert…"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "empty": "No chats found.",
+  "view": "View",
+  "page": "Page {{page}}",
+  "prev": "Previous",
+  "next": "Next",
+  "detailTitle": "Chat detail",
+  "summary": "Summary",
+  "transcript": "Transcript",
+  "noSummary": "No summary available.",
+  "active": "In progress",
+  "stats": {
+    "total": "Total chats",
+    "successful": "Successful",
+    "today": "Today",
+    "sentimentScore": "Positive sentiment"
+  },
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "language": "Language",
+    "allLanguages": "All languages",
+    "outcome": "Outcome",
+    "allOutcomes": "All outcomes",
+    "successOnly": "Successful",
+    "failedOnly": "Unsuccessful"
+  },
+  "columns": {
+    "time": "Time",
+    "language": "Language",
+    "messages": "Messages",
+    "sentiment": "Sentiment",
+    "outcome": "Outcome"
+  },
+  "roles": {
+    "USER": "Patient",
+    "ASSISTANT": "Sarah",
+    "TOOL": "System"
+  },
+  "sentiment": {
+    "Positive": "Positive",
+    "Neutral": "Neutral",
+    "Negative": "Negative"
+  },
+  "outcome": {
+    "success": "Successful",
+    "failed": "Unsuccessful"
+  }
+}

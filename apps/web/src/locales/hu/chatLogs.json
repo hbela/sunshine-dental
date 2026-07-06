@@ -1,0 +1,49 @@
+{
+  "empty": "Nincs találat.",
+  "view": "Megtekintés",
+  "page": "{{page}}. oldal",
+  "prev": "Előző",
+  "next": "Következő",
+  "detailTitle": "Csevegés részletei",
+  "summary": "Összefoglaló",
+  "transcript": "Átirat",
+  "noSummary": "Nincs elérhető összefoglaló.",
+  "active": "Folyamatban",
+  "stats": {
+    "total": "Összes csevegés",
+    "successful": "Sikeres",
+    "today": "Ma",
+    "sentimentScore": "Pozitív hangulat"
+  },
+  "filters": {
+    "from": "Kezdő dátum",
+    "to": "Záró dátum",
+    "language": "Nyelv",
+    "allLanguages": "Minden nyelv",
+    "outcome": "Eredmény",
+    "allOutcomes": "Minden eredmény",
+    "successOnly": "Sikeres",
+    "failedOnly": "Sikertelen"
+  },
+  "columns": {
+    "time": "Időpont",
+    "language": "Nyelv",
+    "messages": "Üzenetek",
+    "sentiment": "Hangulat",
+    "outcome": "Eredmény"
+  },
+  "roles": {
+    "USER": "Páciens",
+    "ASSISTANT": "Sarah",
+    "TOOL": "Rendszer"
+  },
+  "sentiment": {
+    "Positive": "Pozitív",
+    "Neutral": "Semleges",
+    "Negative": "Negatív"
+  },
+  "outcome": {
+    "success": "Sikeres",
+    "failed": "Sikertelen"
+  }
+}

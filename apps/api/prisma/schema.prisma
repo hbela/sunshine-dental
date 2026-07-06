@@ -111,8 +111,9 @@ model Patient {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  appointments Appointment[]
-  callLogs     CallLog[]
+  appointments      Appointment[]
+  callLogs          CallLog[]
+  chatConversations ChatConversation[]
 }
 
 // Appointments
@@ -176,6 +177,51 @@ model CallLog {
   startTime           DateTime?
   endTime             DateTime?
   createdAt           DateTime @default(now())
+}
+
+// Chat conversations — patient-facing text chat with the virtual receptionist.
+// The public (unauthenticated) patient endpoints resume a conversation using the
+// unguessable `token`; it is NEVER returned to staff via the dashboard endpoints.
+model ChatConversation {
+  id            String    @id @default(cuid())
+  token         String    @unique // secret held by the patient's browser to resume/post
+  patientId     String? // linked once the patient is captured/booked
+  patient       Patient?  @relation(fields: [patientId], references: [id])
+  appointmentId String? // set if the chat resulted in a booking
+  language      String    @default("en") // 'en' | 'hu' | 'de'
+  status        ChatStatus @default(ACTIVE)
+  summary       String?   @db.Text
+  sentiment     String? // 'Positive' | 'Neutral' | 'Negative'
+  successful    Boolean?
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  messages ChatMessage[]
+}
+
+enum ChatStatus {
+  ACTIVE
+  ENDED
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           ChatRole
+  content        String           @db.Text
+  toolName       String? // set on TOOL rows, for the staff transcript
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId])
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  TOOL
 }
 
 // Explicit calendar events — created/managed by Provider or delegated Assistant

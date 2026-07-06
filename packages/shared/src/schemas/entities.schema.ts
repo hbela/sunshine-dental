@@ -45,6 +45,35 @@ export const CallLogSchema = z.object({
   createdAt: z.string(),
 });
 
+export const ChatMessageSchema = z.object({
+  id: z.string(),
+  role: z.enum(['USER', 'ASSISTANT', 'TOOL']),
+  content: z.string(),
+  toolName: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+/** List row for the staff Chat Logs view (no `token`, no messages). */
+export const ChatConversationSchema = z.object({
+  id: z.string(),
+  patientId: z.string().nullable(),
+  appointmentId: z.string().nullable(),
+  language: z.string(),
+  status: z.enum(['ACTIVE', 'ENDED']),
+  summary: z.string().nullable(),
+  sentiment: z.string().nullable(),
+  successful: z.boolean().nullable(),
+  messageCount: z.number(),
+  startedAt: z.string(),
+  endedAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+/** Detail payload: a conversation plus its full transcript. */
+export const ChatConversationDetailSchema = ChatConversationSchema.extend({
+  messages: z.array(ChatMessageSchema),
+});
+
 export const CalendarEventTypeSchema = z.enum([
   'AVAILABLE',
   'BLOCKED',
