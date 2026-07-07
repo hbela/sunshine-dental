@@ -7,6 +7,10 @@
   "reset": "Új beszélgetés",
   "close": "Bezárás",
   "launcher": "Csevegjen velünk",
+  "install": "Telepítés",
+  "installPrompt": "Adja a Sunshine Dentalt a kezdőképernyőjéhez",
+  "installHintIos": "Koppintson a Megosztás ikonra, majd a „Főképernyőhöz adás” lehetőségre",
+  "dismiss": "Elvetés",
   "disclaimer": "AI asszisztens · Sürgős esetben hívja a 112-t.",
   "error": "Sajnáljuk, hiba történt. Kérjük, próbálja újra.",
   "tools": {

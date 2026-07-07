@@ -7,6 +7,10 @@
   "reset": "Neu beginnen",
   "close": "Schließen",
   "launcher": "Chatten Sie mit uns",
+  "install": "Installieren",
+  "installPrompt": "Sunshine Dental zum Startbildschirm hinzufügen",
+  "installHintIos": "Tippen Sie auf das Teilen-Symbol und dann auf „Zum Home-Bildschirm“",
+  "dismiss": "Ausblenden",
   "disclaimer": "KI-Assistent · Bei einem medizinischen Notfall wählen Sie 112.",
   "error": "Entschuldigung, etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
   "tools": {

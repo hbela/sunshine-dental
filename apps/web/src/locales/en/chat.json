@@ -7,6 +7,10 @@
   "reset": "Start over",
   "close": "Close",
   "launcher": "Chat with us",
+  "install": "Install",
+  "installPrompt": "Add Sunshine Dental to your home screen",
+  "installHintIos": "Tap the Share icon, then \"Add to Home Screen\"",
+  "dismiss": "Dismiss",
   "disclaimer": "AI assistant · For a medical emergency, call 112.",
   "error": "Sorry, something went wrong. Please try again.",
   "tools": {

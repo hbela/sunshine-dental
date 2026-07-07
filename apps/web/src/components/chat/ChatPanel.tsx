@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Leaf, Send, RotateCcw, X } from 'lucide-react'
 import { useChat } from '@/hooks/useChat'
+import { InstallBanner } from '@/components/chat/InstallBanner'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -58,6 +59,9 @@ export function ChatPanel({ onClose, className }: { onClose?: () => void; classN
           </Button>
         )}
       </header>
+
+      {/* Install prompt (hidden once installed / unsupported) */}
+      <InstallBanner />
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-background px-4 py-4">
