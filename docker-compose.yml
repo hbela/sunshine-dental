@@ -28,6 +28,8 @@ services:
       FASTIFY_API_KEY: ${FASTIFY_API_KEY}
       # Optional: without it the chat endpoints return 503 "chat not configured".
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Optional: n8n webhook that emails a chat booking confirmation. Empty = off.
+      N8N_BOOKING_WEBHOOK_URL: ${N8N_BOOKING_WEBHOOK_URL:-}
     expose:
       - "3000"
     restart: unless-stopped

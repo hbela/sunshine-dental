@@ -43,6 +43,13 @@ Change the voice idempotently with `pnpm retell:set-voice` (script: `workflows/s
 |------|--------------|---------|
 | `retell-custom-function-router-v2.json` | Retell Custom Function Router (v2 - PostgreSQL) | Handles real-time custom function calls from Retell during a live call (slot availability, booking, cancellation, FAQ, patient capture) |
 | `post-call-processing-v2.json` | Retell Post-Call Processing (v2 - PostgreSQL) | Runs after a call ends — logs the call to the API and emails a summary to the manager |
+| `chat-booking-confirmation.json` | Chat Booking Confirmation Email | Webhook the **chat** API calls after an in-process booking, to email the patient a confirmation (the voice flow emails from its own router node instead). Localized EN/HU/DE; reuses the `Gmail account 2` credential. |
+
+### Chat booking confirmation email (why this exists)
+
+The patient **text chat** (`apps/api` → `chat.service.ts`) books appointments **in-process**, so it never hits the Retell router's `Send Confirmation Email` node — chat bookings would send no email. The `chat-booking-confirmation` workflow closes that gap: the API POSTs the booking to its webhook (`N8N_BOOKING_WEBHOOK_URL`) and it sends the same localized confirmation. Its HU copy uses the corrected chat glossary (`személyi igazolvány` / `TAJ kártya`, `Fogkőeltávolítás`, `Mélytisztítás`), so it's slightly ahead of the voice router's older HU wording.
+
+**Setup after import:** select the `Gmail account 2` credential on the Gmail node → **activate** → copy the Production webhook URL into the API's `N8N_BOOKING_WEBHOOK_URL` env (Coolify) → redeploy. Webhook path: `/webhook/chat-booking-confirmation`.
 
 ## How to Import
 

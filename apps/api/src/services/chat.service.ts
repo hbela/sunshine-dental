@@ -38,6 +38,41 @@ function normalizeType(t?: string): string | undefined {
   return parsed.success ? parsed.data : undefined;
 }
 
+/**
+ * Ask n8n to email the patient a booking confirmation, mirroring the voice
+ * agent's `Send Confirmation Email` node (the chat books in-process and would
+ * otherwise send nothing). Best-effort: a no-op unless `N8N_BOOKING_WEBHOOK_URL`
+ * is configured and the patient gave an email, and it never throws — a failed
+ * email must not fail an already-committed booking.
+ */
+async function sendBookingConfirmationEmail(payload: {
+  patient_name: string;
+  email?: string | null;
+  date: string;
+  time: string;
+  provider_name?: string | null;
+  appointment_type: string;
+  is_new_patient?: boolean;
+  language?: string;
+}): Promise<void> {
+  const url = process.env.N8N_BOOKING_WEBHOOK_URL;
+  if (!url || !payload.email) return;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch {
+    /* best-effort — the booking already succeeded */
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const APPOINTMENT_TYPE_ENUM = [
   'new_patient_exam',
   'cleaning',
@@ -218,6 +253,17 @@ async function runTool(conversationId: string, name: string, input: any): Promis
         await prisma.chatConversation.update({
           where: { id: conversationId },
           data: { appointmentId: appt.id, ...(appt.patientId ? { patientId: appt.patientId } : {}) },
+        });
+        // Mirror the voice flow's confirmation email (best-effort, email-only).
+        await sendBookingConfirmationEmail({
+          patient_name: input.patient_name,
+          email: input.email,
+          date: appt.date,
+          time: appt.startTime,
+          provider_name: appt.providerName,
+          appointment_type: String(input.appointment_type ?? type).toLowerCase(),
+          is_new_patient: input.is_new_patient,
+          language: input.language,
         });
         return JSON.stringify({
           booked: true,

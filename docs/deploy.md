@@ -106,6 +106,7 @@ Mark `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `FASTIFY_API_KEY` as **secret**.
 | `BETTER_AUTH_SECRET` | _(openssl output from step 3)_ | Stable across restarts, or sessions break. |
 | `FASTIFY_API_KEY` | _(openssl output from step 3)_ | Must match what n8n/Retell send. |
 | `ANTHROPIC_API_KEY` | _(Claude API key)_ | Powers the patient chat receptionist. Without it, `/api/chat/*` returns 503 "chat not configured". |
+| `N8N_BOOKING_WEBHOOK_URL` | `https://n8nprod.appointer.hu/webhook/chat-booking-confirmation` | Optional. n8n webhook that emails a **chat** booking confirmation. Empty = no chat email (booking still works). |
 
 `PORT` defaults to `3000` and is set in compose; no need to add it.
 
@@ -233,6 +234,7 @@ Use the chosen URL as **`DATABASE_URL`** in the dev app's Coolify env (not the l
 | `BETTER_AUTH_SECRET` | a fresh `openssl rand -base64 32` (distinct from prod) |
 | `FASTIFY_API_KEY` | a fresh `openssl rand -hex 24` (distinct from prod; this is what **n8ndev** will send) |
 | `ANTHROPIC_API_KEY` | Claude API key for the patient chat (may reuse the prod key). Omit to leave chat disabled on dev. |
+| `N8N_BOOKING_WEBHOOK_URL` | `https://n8ndev.appointer.hu/webhook/chat-booking-confirmation` — emails a chat booking confirmation. Omit to disable. |
 
 ### 11e. Deploy + seed (first time)
 Deploy, then in the **api** container terminal (same as §6a):

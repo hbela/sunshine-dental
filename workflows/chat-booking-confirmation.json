@@ -1,0 +1,92 @@
+{
+  "name": "Chat Booking Confirmation Email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-booking-confirmation",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "b1a7c0e2-0001-4a10-9c01-000000000001",
+      "name": "Chat Booking Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "chat-booking-confirmation"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the localized patient confirmation email for a CHAT booking.\n// Payload is posted by the Fastify API (chat.service.ts) as JSON:\n//   { patient_name, email, date, time, provider_name, appointment_type,\n//     is_new_patient, language }\nconst a = $json.body || {};\nconst lang = ((a.language) || 'en').toString().toLowerCase();\n\n// Localized appointment-type names (matches the chat Hungarian glossary).\nconst TYPE_NAMES = {\n  en: { new_patient_exam: 'New Patient Exam', cleaning: 'Regular Cleaning', deep_cleaning: 'Deep Cleaning', filling: 'Filling', crown_prep: 'Crown Prep', consultation: 'Consultation', emergency: 'Emergency Visit' },\n  hu: { new_patient_exam: 'Új páciens vizsgálat', cleaning: 'Fogkőeltávolítás', deep_cleaning: 'Mélytisztítás', filling: 'Tömés', crown_prep: 'Korona előkészítése', consultation: 'Konzultáció', emergency: 'Sürgősségi ellátás' },\n  de: { new_patient_exam: 'Neupatienten-Untersuchung', cleaning: 'Zahnreinigung', deep_cleaning: 'Tiefenreinigung', filling: 'Füllung', crown_prep: 'Kronenpräparation', consultation: 'Beratung', emergency: 'Notfallbehandlung' }\n};\nconst typeMap = TYPE_NAMES[lang] || TYPE_NAMES.en;\nconst type = typeMap[a.appointment_type] || (a.appointment_type || '').replace(/_/g, ' ');\n\nconst T = {\n  en: { subject: 'Appointment Confirmation - Sunshine Dental Clinic', h: 'Appointment Confirmed!', dear: 'Dear', intro: 'Your appointment has been confirmed with the following details:', date: 'Date', time: 'Time', type: 'Type', doctor: 'Doctor', tbc: 'Will be confirmed', np: '<strong>New Patient Reminder:</strong> Please arrive 15 minutes early and bring your photo ID, insurance card, and a list of current medications.', cancel: 'If you need to cancel or reschedule, please call us at least 24 hours in advance at +36 20 2576701. Cancellations made less than 24 hours in advance may incur a fee of 10,000 HUF.', see: 'We look forward to seeing you!', regards: 'Best regards,', clinic: 'Sunshine Dental Clinic' },\n  hu: { subject: 'Időpont-visszaigazolás – Sunshine Dental Clinic', h: 'Időpontja megerősítve!', dear: 'Kedves', intro: 'Időpontját az alábbi adatokkal megerősítettük:', date: 'Dátum', time: 'Időpont', type: 'Típus', doctor: 'Orvos', tbc: 'Később egyeztetjük', np: '<strong>Emlékeztető új pácienseknek:</strong> Kérjük, érkezzen 15 perccel korábban, és hozza magával a személyi igazolványát, a TAJ-kártyáját, valamint a jelenleg szedett gyógyszerei listáját.', cancel: 'Ha le szeretné mondani vagy módosítani szeretné az időpontját, kérjük, hívjon minket legalább 24 órával korábban a +36 20 2576701 telefonszámon. A 24 órán belüli lemondás esetén 10 000 forint díjat számíthatunk fel.', see: 'Várjuk Önt szeretettel!', regards: 'Üdvözlettel:', clinic: 'Sunshine Dental Klinika' },\n  de: { subject: 'Terminbestätigung – Sunshine Dental Clinic', h: 'Ihr Termin ist bestätigt!', dear: 'Liebe/r', intro: 'Ihr Termin wurde mit den folgenden Angaben bestätigt:', date: 'Datum', time: 'Uhrzeit', type: 'Art', doctor: 'Arzt/Ärztin', tbc: 'Wird noch bestätigt', np: '<strong>Hinweis für neue Patienten:</strong> Bitte kommen Sie 15 Minuten früher und bringen Sie einen Lichtbildausweis, Ihre Versicherungskarte sowie eine Liste Ihrer aktuellen Medikamente mit.', cancel: 'Wenn Sie Ihren Termin absagen oder verschieben möchten, rufen Sie uns bitte mindestens 24 Stunden im Voraus unter +36 20 2576701 an. Bei Absagen weniger als 24 Stunden vorher kann eine Gebühr von 10.000 HUF anfallen.', see: 'Wir freuen uns auf Ihren Besuch!', regards: 'Mit freundlichen Grüßen,', clinic: 'Sunshine Dental Klinik' }\n};\nconst t = T[lang] || T.en;\n\nlet html = '<h2>' + t.h + '</h2>';\nhtml += '<p>' + t.dear + ' ' + (a.patient_name || '') + ',</p>';\nhtml += '<p>' + t.intro + '</p>';\nhtml += '<ul>';\nhtml += '<li><strong>' + t.date + ':</strong> ' + a.date + '</li>';\nhtml += '<li><strong>' + t.time + ':</strong> ' + a.time + '</li>';\nhtml += '<li><strong>' + t.type + ':</strong> ' + type + '</li>';\nhtml += '<li><strong>' + t.doctor + ':</strong> ' + (a.provider_name || t.tbc) + '</li>';\nhtml += '</ul>';\nif (a.is_new_patient) { html += '<p>' + t.np + '</p>'; }\nhtml += '<p>' + t.cancel + '</p>';\nhtml += '<p>' + t.see + '</p>';\nhtml += '<p>' + t.regards + '<br>' + t.clinic + '</p>';\n\nreturn [{ json: { sendTo: a.email || '', subject: t.subject, html, hasEmail: !!a.email } }];"
+      },
+      "id": "b1a7c0e2-0002-4a10-9c01-000000000002",
+      "name": "Localize Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 2, "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.hasEmail }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1a7c0e2-0003-4a10-9c01-000000000003",
+      "name": "Has Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.sendTo }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {},
+        "resource": "message",
+        "operation": "send"
+      },
+      "id": "b1a7c0e2-0004-4a10-9c01-000000000004",
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [960, 220],
+      "webhookId": "chat-booking-gmail",
+      "notesInFlow": true,
+      "notes": "Select the 'Gmail account 2' OAuth2 credential in this instance before activating."
+    },
+    {
+      "parameters": {
+        "content": "## Chat Booking Confirmation Email\n\nEmails the patient a booking confirmation after a **chat** booking (the voice flow emails from its own router node).\n\n**Setup**\n1. Open **Send Confirmation Email** → select the `Gmail account 2` OAuth2 credential (credentials are per-instance; recreate if missing).\n2. **Activate** the workflow.\n3. Copy the **Production** webhook URL from **Chat Booking Webhook** and set it as `N8N_BOOKING_WEBHOOK_URL` in the API's Coolify env (e.g. `https://n8ndev.appointer.hu/webhook/chat-booking-confirmation`), then redeploy.\n\nPayload (POSTed by `apps/api/src/services/chat.service.ts`):\n`{ patient_name, email, date, time, provider_name, appointment_type, is_new_patient, language }`",
+        "height": 320,
+        "width": 380
+      },
+      "id": "b1a7c0e2-0005-4a10-9c01-000000000005",
+      "name": "Configuration Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [240, 460]
+    }
+  ],
+  "connections": {
+    "Chat Booking Webhook": {
+      "main": [[{ "node": "Localize Email", "type": "main", "index": 0 }]]
+    },
+    "Localize Email": {
+      "main": [[{ "node": "Has Email?", "type": "main", "index": 0 }]]
+    },
+    "Has Email?": {
+      "main": [[{ "node": "Send Confirmation Email", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}
