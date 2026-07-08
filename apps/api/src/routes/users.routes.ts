@@ -22,6 +22,9 @@ export async function usersRoutes(fastify: FastifyInstance) {
           z.object({
             id: z.string(),
             name: z.string(),
+            title: z.string().nullable(),
+            givenName: z.string(),
+            familyName: z.string(),
             role: z.string(),
           }),
         ),
@@ -33,8 +36,8 @@ export async function usersRoutes(fastify: FastifyInstance) {
       const where = role ? { role: role as any } : {};
       return prisma.user.findMany({
         where,
-        select: { id: true, name: true, role: true },
-        orderBy: { name: 'asc' },
+        select: { id: true, name: true, title: true, givenName: true, familyName: true, role: true },
+        orderBy: [{ familyName: 'asc' }, { givenName: 'asc' }],
       });
     },
   });

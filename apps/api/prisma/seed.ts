@@ -1,5 +1,6 @@
 import { PrismaClient } from '../src/generated/prisma-client/index.js';
 import { auth } from '../src/lib/auth.js';
+import { canonicalName } from '../src/lib/name.js';
 
 const prisma = new PrismaClient();
 
@@ -37,11 +38,14 @@ async function main() {
   // ── 2. Users & hashed passwords ───────────────────────────────────────────
   type SeedRole = 'ADMIN' | 'PROVIDER' | 'ASSISTANT';
 
-  const usersData: Array<{ name: string; email: string; password: string; role: SeedRole }> = [
-    { name: 'Dr. Admin',        email: 'admin@sunshine.dental', password: 'Admin1234!',     role: 'ADMIN'     },
-    { name: 'Dr. Ibolya Nagy',  email: 'alice@sunshine.dental', password: 'Provider1234!',  role: 'PROVIDER'  },
-    { name: 'Dr. Kis István',   email: 'bob@sunshine.dental',   password: 'Provider1234!',  role: 'PROVIDER'  },
-    { name: 'Sara Johnson',     email: 'sara@sunshine.dental',  password: 'Assistant1234!', role: 'ASSISTANT' },
+  // Names use structured title/givenName/familyName. "Kis István" is Hungarian
+  // family-first (family = Kis, given = István); the canonical `name` is Western
+  // order but matching is order-independent.
+  const usersData: Array<{ title?: string; givenName: string; familyName: string; email: string; password: string; role: SeedRole }> = [
+    { title: 'Dr.', givenName: 'Admin',  familyName: '',        email: 'admin@sunshine.dental', password: 'Admin1234!',     role: 'ADMIN'     },
+    { title: 'Dr.', givenName: 'Ibolya', familyName: 'Nagy',    email: 'alice@sunshine.dental', password: 'Provider1234!',  role: 'PROVIDER'  },
+    { title: 'Dr.', givenName: 'István', familyName: 'Kis',     email: 'bob@sunshine.dental',   password: 'Provider1234!',  role: 'PROVIDER'  },
+    {                givenName: 'Sara',   familyName: 'Johnson', email: 'sara@sunshine.dental',  password: 'Assistant1234!', role: 'ASSISTANT' },
   ];
 
   const createdUsers: Record<string, any> = {};
@@ -50,12 +54,18 @@ async function main() {
     // Create the user + credential account through better-auth so the password
     // is hashed with better-auth's own algorithm (manual bcrypt is incompatible).
     const signUp = await auth.api.signUpEmail({
-      body: { name: u.name, email: u.email, password: u.password },
+      body: { name: canonicalName(u), email: u.email, password: u.password },
     });
 
     const user = await prisma.user.update({
       where: { id: signUp.user.id },
-      data: { role: u.role as any, emailVerified: true },
+      data: {
+        role: u.role as any,
+        emailVerified: true,
+        title: u.title ?? null,
+        givenName: u.givenName,
+        familyName: u.familyName,
+      },
     });
 
     createdUsers[u.email] = user;

@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { AppointmentDurations } from '@repo/shared';
 import { dateToStr, timeToStr } from '../lib/datetime.js';
 import { expandRecurrence } from '../lib/recurrence.js';
+import { providerNameWhere } from '../lib/name.js';
 
 type CalendarEventRow = Awaited<ReturnType<typeof prisma.calendarEvent.findMany>>[number];
 
@@ -83,8 +84,10 @@ export class CalendarService {
     if (providerId) {
       provider = await prisma.provider.findUnique({ where: { id: providerId }, include: { user: true } });
     } else if (providerName) {
+      // Token-aware, order-independent match so "Nagy Ibolya" and
+      // "Ibolya Nagy" resolve to the same doctor.
       provider = await prisma.provider.findFirst({
-        where: { user: { name: { contains: providerName, mode: 'insensitive' } } },
+        where: providerNameWhere(providerName),
         include: { user: true },
       });
     } else {

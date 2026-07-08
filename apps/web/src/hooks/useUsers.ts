@@ -5,6 +5,9 @@ import type { Role } from './useRole'
 export interface DirectoryUser {
   id: string
   name: string
+  title: string | null
+  givenName: string
+  familyName: string
   role: Role
 }
 

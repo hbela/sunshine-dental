@@ -13,6 +13,7 @@ import {
   type Delegation,
 } from '@/hooks/useDelegations'
 import { useFormat } from '@/i18n/useFormat'
+import { useDisplayName } from '@/lib/name'
 import { apiErrorMessage } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +26,7 @@ export function DelegationsSection() {
   const { t: tc } = useTranslation('common')
   const { isAdmin } = useRole()
   const { formatDate } = useFormat()
+  const displayName = useDisplayName()
 
   const { data, isLoading } = useMyDelegations()
   const { data: providers } = useProviders()
@@ -33,10 +35,14 @@ export function DelegationsSection() {
   const del = useDeleteDelegation()
   const [showGrant, setShowGrant] = useState(false)
 
-  const providerName = (providerId: string) =>
-    providers?.find((p) => p.id === providerId)?.name ?? providerId
-  const assistantName = (userId: string) =>
-    assistants?.find((a) => a.id === userId)?.name ?? userId
+  const providerName = (providerId: string) => {
+    const p = providers?.find((p) => p.id === providerId)
+    return p ? displayName(p) : providerId
+  }
+  const assistantName = (userId: string) => {
+    const a = assistants?.find((a) => a.id === userId)
+    return a ? displayName(a) : userId
+  }
 
   const owned = data?.owned ?? []
   const received = data?.received ?? []
@@ -177,6 +183,7 @@ function GrantForm({
   const { data: providers } = useProviders()
   const { data: assistants } = useUsersDirectory('ASSISTANT')
   const create = useCreateDelegation()
+  const displayName = useDisplayName()
 
   const [ownerId, setOwnerId] = useState(ownProviderId ?? '')
   const [delegateId, setDelegateId] = useState('')
@@ -222,7 +229,7 @@ function GrantForm({
             <option value="">{t('selectProvider')}</option>
             {(providers ?? []).map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {displayName(p)}
               </option>
             ))}
           </Select>
@@ -234,7 +241,7 @@ function GrantForm({
           <option value="">{t('selectAssistant')}</option>
           {(assistants ?? []).map((a) => (
             <option key={a.id} value={a.id}>
-              {a.name}
+              {displayName(a)}
             </option>
           ))}
         </Select>

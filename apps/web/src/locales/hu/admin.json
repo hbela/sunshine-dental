@@ -16,6 +16,9 @@
   "deleteConfirm": "Törli a következőt: {{name}}? Ez véglegesen eltávolítja a fiókot, és nem vonható vissza.",
   "columns": {
     "name": "Név",
+    "title": "Megszólítás",
+    "givenName": "Keresztnév",
+    "familyName": "Vezetéknév",
     "email": "E-mail",
     "role": "Szerepkör",
     "created": "Létrehozva"
@@ -26,7 +29,8 @@
     "bio": "Bemutatkozás"
   },
   "validation": {
-    "nameRequired": "A név megadása kötelező",
+    "givenNameRequired": "A keresztnév megadása kötelező",
+    "familyNameRequired": "A vezetéknév megadása kötelező",
     "invalidEmail": "Érvénytelen e-mail",
     "passwordMin": "A jelszónak legalább 8 karakteresnek kell lennie"
   }

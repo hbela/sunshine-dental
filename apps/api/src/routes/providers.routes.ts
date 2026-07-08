@@ -8,6 +8,9 @@ const ProviderListItemSchema = z.object({
   id: z.string(),
   userId: z.string(),
   name: z.string(),
+  title: z.string().nullable(),
+  givenName: z.string(),
+  familyName: z.string(),
   specialty: z.string().nullable(),
   phone: z.string().nullable(),
 });
@@ -39,13 +42,16 @@ export async function providersRoutes(fastify: FastifyInstance) {
     handler: async () => {
       const providers = await prisma.provider.findMany({
         where: { isActive: true },
-        include: { user: { select: { name: true } } },
+        include: { user: { select: { name: true, title: true, givenName: true, familyName: true } } },
         orderBy: { createdAt: 'asc' },
       });
       return providers.map((p) => ({
         id: p.id,
         userId: p.userId,
         name: p.user.name,
+        title: p.user.title,
+        givenName: p.user.givenName,
+        familyName: p.user.familyName,
         specialty: p.specialty,
         phone: p.phone,
       }));

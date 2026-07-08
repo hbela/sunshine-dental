@@ -11,7 +11,10 @@ datasource db {
 // Required by better-auth — do not rename
 model User {
   id            String    @id @default(cuid())
-  name          String
+  name          String                        // better-auth-owned canonical fallback; derived from the fields below
+  title         String?                       // honorific, e.g. "Dr."
+  givenName     String    @default("")        // Keresztnév
+  familyName    String    @default("")        // Vezetéknév
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?

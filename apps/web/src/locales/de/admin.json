@@ -16,6 +16,9 @@
   "deleteConfirm": "{{name}} löschen? Dies entfernt das Konto dauerhaft und kann nicht rückgängig gemacht werden.",
   "columns": {
     "name": "Name",
+    "title": "Titel",
+    "givenName": "Vorname",
+    "familyName": "Nachname",
     "email": "E-Mail",
     "role": "Rolle",
     "created": "Erstellt"
@@ -26,7 +29,8 @@
     "bio": "Biografie"
   },
   "validation": {
-    "nameRequired": "Name ist erforderlich",
+    "givenNameRequired": "Vorname ist erforderlich",
+    "familyNameRequired": "Nachname ist erforderlich",
     "invalidEmail": "Ungültige E-Mail",
     "passwordMin": "Das Passwort muss mindestens 8 Zeichen lang sein"
   }

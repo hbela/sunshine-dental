@@ -5,13 +5,18 @@ import type { Role } from './useRole'
 export interface AdminUser {
   id: string
   name: string
+  title: string | null
+  givenName: string
+  familyName: string
   email: string
   role: Role
   createdAt: string
 }
 
 export interface CreateUserInput {
-  name: string
+  title?: string
+  givenName: string
+  familyName: string
   email: string
   password: string
   role: 'PROVIDER' | 'ASSISTANT'
@@ -23,6 +28,9 @@ export interface CreateUserInput {
 export interface CreateUserResult {
   id: string
   name: string
+  title: string | null
+  givenName: string
+  familyName: string
   email: string
   role: string
   temporaryPassword: string

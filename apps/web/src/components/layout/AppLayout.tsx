@@ -17,6 +17,7 @@ import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useDisplayName } from '@/lib/name'
 import { cn } from '@/lib/utils'
 
 type Role = 'PROVIDER' | 'ASSISTANT' | 'ADMIN'
@@ -54,6 +55,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { data: session } = authClient.useSession()
+  const displayName = useDisplayName()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   const user = session?.user
@@ -112,7 +114,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <LanguageSwitcher />
             {user && (
               <div className="text-right leading-tight">
-                <div className="text-sm font-medium text-foreground">{user.name}</div>
+                <div className="text-sm font-medium text-foreground">{displayName(user)}</div>
               </div>
             )}
             <Button variant="outline" size="sm" onClick={handleLogout}>

@@ -3,6 +3,7 @@ import { HttpError } from '../lib/errors.js';
 import { dateToStr, timeToStr, strToDate, strToTime, addMinutes } from '../lib/datetime.js';
 import { AppointmentDurations } from '@repo/shared';
 import { CalendarService } from './calendar.service.js';
+import { providerNameWhere } from '../lib/name.js';
 
 const ACTIVE_STATUSES = ['CONFIRMED', 'COMPLETED'] as const;
 
@@ -105,7 +106,7 @@ export class AppointmentService {
       });
     } else if (input.provider_name) {
       provider = await prisma.provider.findFirst({
-        where: { user: { name: { contains: input.provider_name, mode: 'insensitive' } } },
+        where: providerNameWhere(input.provider_name),
         include: { user: true },
       });
     } else {
