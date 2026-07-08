@@ -8,6 +8,9 @@
  *        +36 20 257 6701 chunked format up front; read-back + 9-digit check).
  *   B6 — fix the medical-emergency number: this is a Budapest clinic, so the
  *        escalation line says 112 (EU emergency number), not 911.
+ *   B7 — insert a "### Hungarian Terminology" glossary so the agent uses correct
+ *        dental Hungarian (fogorvos not fogász, tisztítás not takarítás,
+ *        személyi igazolvány/TAJ kártya), matching the chat receptionist.
  *
  * It fetches the current LLM, edits in place (preserving every other field), and
  * PATCHes it back. Re-running is a no-op once both edits are present.
@@ -56,6 +59,17 @@ Phone numbers are the hardest thing to hear correctly over the phone, so capture
 
 `
 
+const HU_GLOSSARY_SECTION = `### Hungarian Terminology
+
+When you speak Hungarian, use natural, professional dental vocabulary in the formal register (address the caller as "Ön"). Do not translate English terms literally.
+
+- **Appointment types:** New Patient Exam → "fogorvosi vizsgálat" (új páciens vizsgálat); Regular Cleaning → "fogkőeltávolítás"; Deep Cleaning → "mélytisztítás"; Filling → "tömés"; Crown Prep → "korona előkészítése"; Consultation → "konzultáció"; Emergency Visit → "sürgősségi ellátás".
+- Say **"tisztítás"** for cleaning teeth, never "takarítás" (that means household cleaning).
+- The dentist is **always "fogorvos"** — **never say "fogász"** (it sounds low-register for a clinic).
+- New-patient documents in Hungary are the **"személyi igazolvány"** and the **"TAJ-kártya"**, plus the list of current medications. Never say "biztosítási kártya" or "fénykép azonosítvány".
+
+`
+
 const LANGUAGE_PARAM = {
   type: 'string',
   description:
@@ -81,6 +95,21 @@ if (prompt.includes('### Language Handling')) {
   prompt = prompt.replace(anchor, `${LANG_SECTION}${anchor}`)
   promptChanged = true
   console.log('B1: inserted Language Handling section before "### Core Responsibilities".')
+}
+
+// ---- B7: Hungarian terminology glossary --------------------------------
+let glossaryChanged = false
+if (prompt.includes('### Hungarian Terminology')) {
+  console.log('B7: Hungarian Terminology section already present — skipping.')
+} else {
+  const glossaryAnchor = '### Core Responsibilities'
+  if (!prompt.includes(glossaryAnchor)) {
+    console.error(`B7: anchor "${glossaryAnchor}" not found; aborting to avoid a bad edit.`)
+    process.exit(1)
+  }
+  prompt = prompt.replace(glossaryAnchor, `${HU_GLOSSARY_SECTION}${glossaryAnchor}`)
+  glossaryChanged = true
+  console.log('B7: inserted Hungarian Terminology section before "### Core Responsibilities".')
 }
 
 // ---- B5: phone-number capture section ----------------------------------
@@ -125,15 +154,14 @@ let emergencyChanged = false
 if (prompt.includes(EMERGENCY_NEW)) {
   console.log('B6: emergency number already 112 — skipping.')
 } else if (!prompt.includes(EMERGENCY_OLD)) {
-  console.error('B6: expected "911" escalation line not found; aborting to avoid a bad edit.')
-  process.exit(1)
+  console.warn('B6: neither the "911" nor the expected "112" line found — skipping (emergency wording has drifted; not re-editing it here).')
 } else {
   prompt = prompt.replace(EMERGENCY_OLD, EMERGENCY_NEW)
   emergencyChanged = true
   console.log('B6: changed medical-emergency number from 911 to 112.')
 }
 
-if (!promptChanged && !phoneChanged && !emergencyChanged && !toolsChanged) {
+if (!promptChanged && !glossaryChanged && !phoneChanged && !emergencyChanged && !toolsChanged) {
   console.log('\nNothing to do — agent already multilingual.')
   process.exit(0)
 }
@@ -144,7 +172,7 @@ if (DRY_RUN) {
 }
 
 const payload = {}
-if (promptChanged || phoneChanged || emergencyChanged) payload.general_prompt = prompt
+if (promptChanged || glossaryChanged || phoneChanged || emergencyChanged) payload.general_prompt = prompt
 if (toolsChanged) payload.general_tools = tools
 
 await client.llm.update(LLM_ID, payload)
