@@ -443,11 +443,15 @@ export class ChatService {
       });
       if (msgs.length && process.env.ANTHROPIC_API_KEY) {
         const transcript = msgs.map((m) => `${m.role}: ${m.content}`).join('\n');
+        // Write the summary in the patient's language (sentiment stays an English enum).
+        const langName =
+          ({ en: 'English', hu: 'Hungarian', de: 'German' } as Record<string, string>)[
+            convo.language
+          ] ?? 'English';
         const res = await client().messages.create({
           model: MODEL,
           max_tokens: 300,
-          system:
-            'You analyze a dental clinic chat transcript between a patient (USER) and the receptionist (ASSISTANT). Respond ONLY with compact JSON: {"summary": string (1-2 sentences), "sentiment": "Positive"|"Neutral"|"Negative", "successful": boolean (did the patient accomplish their goal, e.g. booked or got their answer)}.',
+          system: `You analyze a dental clinic chat transcript between a patient (USER) and the receptionist (ASSISTANT). Write the "summary" in ${langName} (the patient's language). Respond ONLY with compact JSON: {"summary": string (1-2 sentences, in ${langName}), "sentiment": "Positive"|"Neutral"|"Negative", "successful": boolean (did the patient accomplish their goal, e.g. booked or got their answer)}. Keep "sentiment" exactly one of those three English words.`,
           messages: [{ role: 'user', content: transcript }],
         });
         const text = res.content
