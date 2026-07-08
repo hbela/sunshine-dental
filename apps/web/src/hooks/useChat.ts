@@ -38,6 +38,7 @@ export function useChat() {
   const [toolActivity, setToolActivity] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const sessionRef = useRef<{ id: string; token: string } | null>(null)
+  const endedRef = useRef(false)
 
   useEffect(() => {
     const stored = loadStored()
@@ -146,25 +147,52 @@ export function useChat() {
     [ensureSession, isStreaming, persist],
   )
 
-  /** Best-effort end (fires the summary/sentiment analysis); survives unload. */
+  /**
+   * Best-effort end (fires the summary/sentiment analysis for the staff Chat
+   * Logs view). Idempotent per session and survives page unload via
+   * `sendBeacon` (falls back to a keepalive fetch). The server also no-ops if
+   * the conversation is already ENDED.
+   */
   const end = useCallback(() => {
     const s = sessionRef.current
-    if (!s) return
+    if (!s || endedRef.current) return
+    endedRef.current = true
+    const url = `${API_BASE_URL}/api/chat/conversations/${s.id}/end`
+    const body = JSON.stringify({ token: s.token })
     try {
-      void fetch(`${API_BASE_URL}/api/chat/conversations/${s.id}/end`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: s.token }),
-        keepalive: true,
-      })
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
+      } else {
+        void fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          keepalive: true,
+        })
+      }
     } catch {
       /* ignore */
     }
   }, [])
 
+  // Auto-end when the patient leaves the page (closes/navigates away), so a
+  // summary is generated without them having to press "Start over". We use
+  // pagehide/beforeunload rather than visibilitychange so merely backgrounding
+  // the PWA (e.g. to check a date) does not prematurely end an active chat.
+  useEffect(() => {
+    const handler = () => end()
+    window.addEventListener('pagehide', handler)
+    window.addEventListener('beforeunload', handler)
+    return () => {
+      window.removeEventListener('pagehide', handler)
+      window.removeEventListener('beforeunload', handler)
+    }
+  }, [end])
+
   const reset = useCallback(() => {
     end()
     sessionRef.current = null
+    endedRef.current = false
     try {
       localStorage.removeItem(LS_KEY)
     } catch {
