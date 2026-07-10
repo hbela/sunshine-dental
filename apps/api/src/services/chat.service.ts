@@ -7,7 +7,9 @@ import { CalendarService } from './calendar.service.js';
 import { AppointmentService } from './appointment.service.js';
 import { buildChatSystemPrompt } from '../prompts/chat-receptionist.js';
 
-const MODEL = 'claude-haiku-4-5-20251001';
+// Sonnet for stronger Hungarian/German (Haiku produced register drift and
+// calques); prompt caching below keeps the cost near the old Haiku setup.
+const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 1024;
 const MAX_TOOL_ITERATIONS = 6; // safety cap on tool round-trips within one turn
 const LANGS = ['en', 'hu', 'de'] as const;
@@ -385,7 +387,10 @@ export class ChatService {
       const stream = client().messages.stream({
         model: MODEL,
         max_tokens: MAX_TOKENS,
-        system,
+        // Cache breakpoint on the system block caches the whole fixed prefix
+        // (tools + system, ~3.3k tokens): every call after the first within the
+        // cache TTL pays the 90%-discounted cache-read rate instead of full input.
+        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
         tools,
         messages,
       });
