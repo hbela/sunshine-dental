@@ -29,11 +29,11 @@ copy) so the LLM date isn't PATCHed twice. See `docs/n8n-dev-prod-split-plan.md`
 
 The prod agent (`agent_0c73886e96f6cf2ad878def30e`, LLM `llm_9144fb5e818b3d841e18ab084b99`) runs:
 
-- **Voice: `custom_voice_7b088e19c082ed8f759ffd49f4`** ("sunshine") — a custom ElevenLabs voice clone imported via BYOK (paste the ElevenLabs API key into Retell settings → *Import Professional Voices*; the *Community Voices* tab does NOT work for private clones). ElevenLabs runs ~$0.08/min, so voice cost is ~5× the previous `openai-Chloe` — a deliberate brand/quality choice over cost.
-  - **Fallback: `fallback_voice_ids: ["openai-Chloe"]`** — a BYOK voice reaches ElevenLabs live per utterance and can fail mid-call (quota/API); the fallback keeps the (cheap, multilingual) previous voice as a safety net.
-  - *History:* started on `11labs-Marissa`, then a 3-way A/B audition (`pnpm retell:audition`) picked `openai-Chloe` (~$0.015/min) to save ~$100/mo; superseded by the "sunshine" clone once the client wanted their own voice.
-- **Model: `gpt-4.1-mini`** — the reliability/cost sweet spot for a multilingual, tool-calling booking agent (nano was too weak for function-calling). If it starts dropping the `language` param or fumbling `YYYY-MM-DD` dates, step back up.
-- All-in ≈ **$0.10/min** (ElevenLabs voice + LLM + telephony), up from ~$0.036/min on `openai-Chloe`.
+- **Voice: `cartesia-Chloe`** — a predefined Cartesia voice, billed inside Retell's standard per-minute bundle (no external ElevenLabs account/bill). In use since agent v2 (verified against the live agent 2026-07-10).
+  - **Fallback: `fallback_voice_ids: ["openai-Chloe"]`** — keeps the previous (cheap, multilingual) voice as a safety net if the primary TTS fails mid-call.
+  - *History:* started on `11labs-Marissa` → 3-way A/B audition (`pnpm retell:audition`) picked `openai-Chloe` (~$0.015/min, saved ~$100/mo) → briefly an ElevenLabs BYOK custom clone "sunshine" (`custom_voice_…`, ~$0.08/min, agent v0–v1 only; imported via Retell settings → *Import Professional Voices*) → **`cartesia-Chloe`** (current).
+- **Model: `gpt-4.1`** (the live LLM; earlier notes said `gpt-4.1-mini`) — a multilingual, tool-calling booking agent needs the reliability (nano/mini were too weak for consistent function-calling). Post-call analysis runs on `gpt-4.1-mini`.
+- All-in per minute = Retell bundle (Cartesia voice + telephony) + GPT-4.1 LLM — cheaper than the old ElevenLabs-clone setup (~$0.10/min); check the Retell dashboard for the current exact rate.
 
 Change the voice idempotently with `pnpm retell:set-voice` (script: `workflows/scripts/retell-set-voice.mjs`) — it patches `voice_id` + `fallback_voice_ids` via the Retell SDK (`--dry-run` to preview). Re-run the engine A/B anytime with `pnpm retell:audition` (`workflows/scripts/retell-voice-audition.mjs`).
 
