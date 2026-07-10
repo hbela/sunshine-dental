@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>Sunshine Dental — Megrendelőlap</title>
+<style>
+  :root{
+    --ink:#1a2b3c; --muted:#5b6b7b; --brand:#0ea5a4; --brand-dark:#0b7e7d;
+    --accent:#f5b301; --line:#d8e0e7; --bg-soft:#f4f9f9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    font-size:10.5px;line-height:1.4}
+  .page{max-width:800px;margin:0 auto;padding:24px 32px}
+  h1{font-size:20px;margin:0 0 1px;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:10px;margin:0 0 12px}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--brand-dark);
+    margin:14px 0 6px;border-bottom:1.5px solid var(--line);padding-bottom:3px}
+  p{margin:0 0 6px}
+  .brandbar{display:flex;align-items:center;justify-content:space-between;
+    border-bottom:3px solid var(--brand);padding-bottom:8px}
+  .tagline{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+  .providerline{background:var(--bg-soft);border:1px solid var(--line);border-radius:6px;
+    padding:6px 10px;font-size:10px;margin:10px 0}
+  .providerline b{color:var(--brand-dark)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 8px}
+  th,td{text-align:left;padding:5px 8px;border:1px solid var(--line);vertical-align:middle}
+  th{background:var(--brand);color:#fff;font-weight:600;font-size:9.5px}
+  .fill{color:var(--muted)}
+  .twocol{display:flex;gap:16px}
+  .twocol>div{flex:1}
+  .rates td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+  .rates td.unit{font-weight:400;color:var(--muted);text-align:left}
+  .opts{font-size:10px;line-height:1.7}
+  .box{display:inline-block;width:11px;height:11px;border:1.5px solid var(--brand);
+    border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .compliance{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+  .compliance ol{margin:4px 0 0;padding-left:4px;list-style:none}
+  .compliance li{margin-bottom:5px;padding-left:20px;text-indent:-20px}
+  .note{font-size:9px;color:var(--muted);font-style:italic;margin-top:6px}
+  .example{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:10px}
+  .example table{margin:4px 0 2px}
+  .example td{border:none;padding:2px 6px}
+  .example td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+  .example tr.total td{border-top:1.5px solid var(--brand);font-weight:700;color:var(--brand-dark)}
+  .costcard{border:1px dashed var(--brand);border-radius:8px;padding:8px 12px;font-size:9.5px;margin:8px 0}
+  .costcard b{color:var(--brand-dark)}
+  .sig{margin-top:14px}
+  .sigrow{display:flex;gap:24px;margin-top:18px}
+  .sigrow>div{flex:1}
+  .sigline{border-bottom:1px solid var(--ink);height:22px;margin-bottom:3px}
+  .siglabel{font-size:9px;color:var(--muted)}
+  .foot{text-align:center;color:var(--muted);font-size:9px;margin-top:14px;font-style:italic}
+  .logosvg{display:block}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brandbar">
+    <svg class="logosvg" width="190" height="40" viewBox="0 0 190 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sunshine Dental">
+      <g stroke="#f5b301" stroke-width="2.4" stroke-linecap="round">
+        <line x1="20" y1="3" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="37"/>
+        <line x1="3" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="37" y2="20"/>
+        <line x1="8" y1="8" x2="12" y2="12"/><line x1="28" y1="28" x2="32" y2="32"/>
+        <line x1="32" y1="8" x2="28" y2="12"/><line x1="12" y1="28" x2="8" y2="32"/>
+      </g>
+      <circle cx="20" cy="20" r="9.5" fill="#f5b301"/>
+      <path d="M16.4 16.2c0-1.7 1.4-2.8 3.6-2.8s3.6 1.1 3.6 2.8c0 2-1 3-1.5 5.1-.3 1.3-.4 3.6-1 3.6-.7 0-.6-2.2-1.1-2.2s-.4 2.2-1.1 2.2c-.6 0-.7-2.3-1-3.6-.5-2.1-1.5-3.1-1.5-5.1z" fill="#ffffff"/>
+      <text x="46" y="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" letter-spacing="-0.5" fill="#0ea5a4">Sunshine<tspan fill="#f5b301"> Dental</tspan></text>
+    </svg>
+    <div class="tagline">Megrendelőlap</div>
+  </div>
+
+  <h1>Szolgáltatási megrendelőlap</h1>
+  <p class="sub">Ez a megrendelőlap a SaaS-előfizetési szerződés 1. számú melléklete, és magában foglalja a szerződés, valamint az adatfeldolgozási megállapodás rendelkezéseit. Az árak az áfát nem tartalmazzák.</p>
+
+  <div class="providerline">
+    <b>Szolgáltató:</b> [Cégnév] &nbsp;·&nbsp; [e-mail] &nbsp;·&nbsp; [telefon] &nbsp;·&nbsp; [weboldal]
+  </div>
+
+  <h2>Megrendelő (Rendelő)</h2>
+  <table>
+    <tr><td style="width:34%">A rendelő hivatalos neve</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Kereskedelmi név (ha eltér)</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Cím</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Cégjegyzékszám / adószám</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Kapcsolattartó (név és beosztás)</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>E-mail</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Telefon</td><td class="fill">&nbsp;</td></tr>
+  </table>
+
+  <h2>Előfizetés és használati díjak</h2>
+  <p>Az árazás két részből áll: egy fix <b>platformdíjból</b>, amely magát a szolgáltatást fedezi, és <b>mért használati díjból</b>, amely azzal arányos, amennyit az AI-recepciós ténylegesen dolgozik Önnek. AI-használati díjat csak a ténylegesen igénybe vett percek és beszélgetések után fizet.</p>
+
+  <table class="rates">
+    <tr><th style="width:34%">Tétel</th><th>Mit tartalmaz</th><th style="width:16%">Díj</th></tr>
+    <tr><td><b>Platformdíj</b> — helyszínenként</td><td>0–24 órás AI-recepciós (telefon + webes/mobilos csevegés), munkatársi irányítópult és naptár, időpontfoglalás/lemondás/módosítás, páciensnyilvántartás, hívás- és csevegésnaplók, e-mailes visszaigazolások, 3 nyelv (EN/HU/DE), biztonságos EU-s üzemeltetés, monitorozás, biztonsági mentések, frissítések és támogatás</td><td>249 € / hó</td></tr>
+    <tr><td>További helyszín</td><td class="unit">Ugyanazok a funkciók, közös használati díjszabással</td><td>149 € / hó</td></tr>
+    <tr><td><b>Telefonos AI-használat</b></td><td class="unit">Az AI által kezelt telefonbeszélgetés percenként (másodperc alapú elszámolás)</td><td>0,35 € / perc</td></tr>
+    <tr><td><b>Csevegő AI-használat</b></td><td class="unit">Lezárt csevegésenként (hossztól függetlenül)</td><td>0,25 € / beszélgetés</td></tr>
+    <tr><td>Telefonszám</td><td class="unit">Helyi telefonszám bérlése (továbbszámlázva)</td><td>5 € / hó</td></tr>
+    <tr><td>Beállítás (egyszeri)</td><td class="unit">Bevezetés, az ügynök és a hang finomhangolása, telefonszám beállítása/átirányítása, munkatársak betanítása — <span class="box"></span>éves számlázás esetén elengedve</td><td>490 €</td></tr>
+  </table>
+
+  <div class="twocol">
+    <div class="example">
+      <b>Számítási példa — jellemző hónap, egy helyszín</b>
+      <table>
+        <tr><td>Platformdíj</td><td>249,00 €</td></tr>
+        <tr><td>Telefon: ~300 hívás × ~3 perc = 900 perc × 0,35 €</td><td>315,00 €</td></tr>
+        <tr><td>Csevegés: ~200 beszélgetés × 0,25 €</td><td>50,00 €</td></tr>
+        <tr><td>Telefonszám</td><td>5,00 €</td></tr>
+        <tr class="total"><td>Becsült havi összeg</td><td>619,00 €</td></tr>
+      </table>
+      <span class="note">Egy csendesebb hónap (~450 perc, ~100 csevegés) kb. 436 €. Összehasonlításképp: egy telefonos ügyfélszolgálati asszisztencia 800–1500 €/hó — és csak munkaidőben elérhető.</span>
+    </div>
+    <div class="costcard">
+      <b>Miért mért a használat — mire megy a pénz?</b> Minden AI-percnek valós költsége van, amelyet hívásonként fizetünk az Ön nevében: beszédfelismerés és beszédszintézis, a pácienseit megértő és nekik válaszoló nyelvi modell, telefónia, valamint az irányítópultját működtető biztonságos EU-s infrastruktúra (üzemeltetés, adatbázis, monitorozás, biztonsági mentések). A mért elszámolás azt jelenti, hogy egy csendes hónap kevesebbe kerül, egy forgalmas hónap pedig a foglalásokban térül meg — és Ön soha nem finanszírozza más rendelők hívásforgalmát.<br><br>
+      <b>Díjstabilitás:</b> a használati díjak a kezdeti szerződéses időszakban rögzítettek; ezt követően kizárólag a mögöttes AI-szolgáltatói árak jelentős változása esetén módosulhatnak, 30 napos írásbeli értesítéssel.
+    </div>
+  </div>
+
+  <h2>Számlázási beállítások</h2>
+  <div class="twocol">
+    <div class="opts">
+      <span class="box"></span>Számlázás: havi &nbsp;&nbsp; <span class="box"></span>éves (2 havi platformdíj ingyen + beállítási díj elengedve)<br>
+      <span class="box"></span>Kezdeti időszak: 1 hónap &nbsp;&nbsp; <span class="box"></span>12 hónap<br>
+      Felmondási határidő: <b>30 nap</b> &nbsp;·&nbsp; A platformdíj előre, a használat havonta utólag kerül számlázásra, tételes kimutatással (percek és beszélgetések).
+    </div>
+    <div class="opts">
+      Helyszínek: <b>____</b> &nbsp;·&nbsp; Telefonszámok: <b>____</b><br>
+      Havi használati értesítési küszöb (e fölött értesítjük): <b>________ €</b><br>
+      <span class="box"></span>Alapító ügyfél pilot: platformdíj <b>99 €/hó</b> az első <b>3</b> hónapban (használat normál díjszabással), visszajelzésért és referenciaajánlásért cserébe.
+    </div>
+  </div>
+
+  <h2>A bevezetéshez szükséges adatok (az induláshoz)</h2>
+  <div class="twocol">
+    <div class="opts">
+      <span class="box"></span>A rendelő nyitvatartása napokra bontva<br>
+      <span class="box"></span>Orvosok (név, szakterület, rendelési idő)<br>
+      <span class="box"></span>Időponttípusok és időtartamok<br>
+      <span class="box"></span>Leggyakoribb kérdések (megközelítés, parkolás, biztosítás)
+    </div>
+    <div class="opts">
+      <span class="box"></span>Preferált AI-hang és nyelv(ek)<br>
+      <span class="box"></span>Átirányítandó / hordozandó telefonszám<br>
+      <span class="box"></span>Munkatársi fiókok (név, e-mail, szerepkör)<br>
+      Tervezett indulási dátum: <b>____________</b>
+    </div>
+  </div>
+
+  <h2>Megfelelőségi nyilatkozat (kötelező)</h2>
+  <div class="compliance">
+    <p style="margin:0 0 4px">Aláírásával a Megrendelő megerősíti, hogy megértette és elfogadja az alábbiakat:</p>
+    <ol>
+      <li><span class="box"></span>A Megrendelő az <b>Adatkezelő</b>; a Szolgáltató az <b>Adatfeldolgozó</b>. A megrendelőlappal együtt <b>Adatfeldolgozási megállapodás</b> kerül aláírásra.</li>
+      <li><span class="box"></span>A Megrendelő <b>páciens-adatvédelmi tájékoztatót</b> tesz közzé arról, hogy a hívásokat <b>AI-asszisztens</b> kezelheti, és azok <b>rögzítésre</b> kerülhetnek.</li>
+      <li><span class="box"></span>A <b>hívás közbeni AI-tájékoztatás bekapcsolva marad</b> (az ügynök megnevezi a rendelőt, a hívás célját és AI-mivoltát), és nem kerül kikapcsolásra.</li>
+      <li><span class="box"></span>A Megrendelő beszerzi a GDPR, illetve a helyi egészségügyi adatvédelmi jog szerint szükséges <b>pácienshozzájárulásokat</b>.</li>
+      <li><span class="box"></span>Az AI <b>működéstámogató eszköz</b>, alkalmanként hibázhat; a munkatársak a foglalásokat és a hívásnaplókat a szokásos módon ellenőrzik.</li>
+      <li><span class="box"></span>Az al-adatfeldolgozók (pl. [Retell AI, Anthropic, OpenAI és Cartesia a Retellen keresztül, Hetzner, telefónia, e-mail]) az adatfeldolgozási megállapodásban szerepelnek; használatukhoz a Megrendelő hozzájárul.</li>
+    </ol>
+    <p class="note">Ha a rendelő vagy bármely hívott páciens az USA-ban található, további szabályok (pl. TCPA, esetleg HIPAA) vonatkozhatnak — kérjük, jelezze, hogy a Szolgáltató módosíthassa a beállítást.</p>
+  </div>
+
+  <div class="sig">
+    <h2>Aláírások</h2>
+    <div class="sigrow">
+      <div>
+        <div class="sigline"></div><div class="siglabel">Szolgáltató — Név és beosztás</div>
+        <div class="sigline" style="margin-top:14px"></div><div class="siglabel">Aláírás és dátum</div>
+      </div>
+      <div>
+        <div class="sigline"></div><div class="siglabel">Megrendelő — Név és beosztás</div>
+        <div class="sigline" style="margin-top:14px"></div><div class="siglabel">Aláírás és dátum</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">Kérdése van? Írjon nekünk: [e-mail / telefon]. Köszönjük, hogy a Sunshine Dentalt választotta!</p>
+
+</div>
+</body>
+</html>

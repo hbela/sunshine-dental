@@ -30,9 +30,8 @@
   .fill{color:var(--muted)}
   .twocol{display:flex;gap:16px}
   .twocol>div{flex:1}
-  .plans th,.plans td{text-align:center}
-  .plans td:first-child,.plans th:first-child{text-align:left}
-  .plans .sel{font-size:15px;color:var(--brand)}
+  .rates td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+  .rates td.unit{font-weight:400;color:var(--muted);text-align:left}
   .opts{font-size:10px;line-height:1.7}
   .box{display:inline-block;width:11px;height:11px;border:1.5px solid var(--brand);
     border-radius:3px;margin-right:5px;vertical-align:-1px}
@@ -40,6 +39,13 @@
   .compliance ol{margin:4px 0 0;padding-left:4px;list-style:none}
   .compliance li{margin-bottom:5px;padding-left:20px;text-indent:-20px}
   .note{font-size:9px;color:var(--muted);font-style:italic;margin-top:6px}
+  .example{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:10px}
+  .example table{margin:4px 0 2px}
+  .example td{border:none;padding:2px 6px}
+  .example td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+  .example tr.total td{border-top:1.5px solid var(--brand);font-weight:700;color:var(--brand-dark)}
+  .costcard{border:1px dashed var(--brand);border-radius:8px;padding:8px 12px;font-size:9.5px;margin:8px 0}
+  .costcard b{color:var(--brand-dark)}
   .sig{margin-top:14px}
   .sigrow{display:flex;gap:24px;margin-top:18px}
   .sigrow>div{flex:1}
@@ -68,7 +74,7 @@
   </div>
 
   <h1>Service Order Form</h1>
-  <p class="sub">This Order Form is Schedule 1 to, and incorporates, the SaaS Subscription Agreement and its Data Processing Agreement.</p>
+  <p class="sub">This Order Form is Schedule 1 to, and incorporates, the SaaS Subscription Agreement and its Data Processing Agreement. All prices exclude VAT.</p>
 
   <div class="providerline">
     <b>Provider:</b> [Your Company Name] &nbsp;·&nbsp; [email] &nbsp;·&nbsp; [phone] &nbsp;·&nbsp; [website]
@@ -85,27 +91,48 @@
     <tr><td>Phone</td><td class="fill">&nbsp;</td></tr>
   </table>
 
-  <h2>Selected Plan</h2>
-  <table class="plans">
-    <tr><th></th><th>Starter</th><th>Professional</th><th>Multi-Location</th></tr>
-    <tr><td>Select</td><td class="sel">☐</td><td class="sel">☐</td><td class="sel">☐</td></tr>
-    <tr><td>Monthly fee</td><td>€____</td><td>€____</td><td>€____</td></tr>
-    <tr><td>Call answering</td><td>After-hours/overflow</td><td>24/7</td><td>24/7</td></tr>
-    <tr><td>Included minutes / mo</td><td>____</td><td>____</td><td>Pooled ____</td></tr>
-    <tr><td>Locations / providers</td><td>____</td><td>____</td><td>____</td></tr>
-    <tr><td>Languages</td><td>____</td><td>____</td><td>____</td></tr>
+  <h2>Subscription &amp; Usage Rates</h2>
+  <p>Pricing has two parts: a fixed <b>platform fee</b> for the service itself, and <b>metered usage</b> that scales with how much the AI receptionist actually works for you. You only pay AI usage for the minutes and chats you use.</p>
+
+  <table class="rates">
+    <tr><th style="width:34%">Component</th><th>What it covers</th><th style="width:16%">Rate</th></tr>
+    <tr><td><b>Platform fee</b> — per location</td><td>24/7 AI receptionist (voice + web/mobile chat), staff dashboard &amp; calendar, appointment booking/cancel/reschedule, patient records, call &amp; chat logs, email confirmations, 3 languages (EN/HU/DE), secure EU hosting, monitoring, backups, updates &amp; support</td><td>€249 / month</td></tr>
+    <tr><td>Additional location</td><td class="unit">Same features, pooled usage rates</td><td>€149 / month</td></tr>
+    <tr><td><b>Voice AI usage</b></td><td class="unit">Per minute of AI-handled phone conversation (billed per second)</td><td>€0.35 / minute</td></tr>
+    <tr><td><b>Chat AI usage</b></td><td class="unit">Per completed chat conversation (any length)</td><td>€0.25 / conversation</td></tr>
+    <tr><td>Phone number</td><td class="unit">Local number rental (pass-through)</td><td>€5 / month</td></tr>
+    <tr><td>Setup (one-time)</td><td class="unit">Onboarding, agent &amp; voice tuning, number setup/forwarding, staff training — <span class="box"></span>waived with annual billing</td><td>€490</td></tr>
   </table>
 
   <div class="twocol">
+    <div class="example">
+      <b>Worked example — typical single-location month</b>
+      <table>
+        <tr><td>Platform fee</td><td>€249.00</td></tr>
+        <tr><td>Voice: ~300 calls × ~3 min = 900 min × €0.35</td><td>€315.00</td></tr>
+        <tr><td>Chat: ~200 conversations × €0.25</td><td>€50.00</td></tr>
+        <tr><td>Phone number</td><td>€5.00</td></tr>
+        <tr class="total"><td>Estimated monthly total</td><td>€619.00</td></tr>
+      </table>
+      <span class="note">A quieter month (~450 min, ~100 chats) lands around €436. Compare: a human answering service runs €800–1,500/month for business hours only.</span>
+    </div>
+    <div class="costcard">
+      <b>Why usage is metered — where the money goes.</b> Every AI minute has a real cost we pay per call on your behalf: speech recognition &amp; voice synthesis, the language model that understands and answers your patients, telephony, and the secure EU infrastructure (hosting, database, monitoring, backups) that runs your dashboard. Metered billing means a quiet month costs you less, a busy month pays for itself in bookings — and you never subsidise another clinic's call volume.<br><br>
+      <b>Rate stability:</b> usage rates are fixed for your initial term; thereafter they may only change to reflect material changes in underlying AI-provider pricing, with 30 days' written notice.
+    </div>
+  </div>
+
+  <h2>Billing Selections</h2>
+  <div class="twocol">
     <div class="opts">
-      <span class="box"></span>Billing: Monthly &nbsp;&nbsp; <span class="box"></span>Annual (~2 months free)<br>
+      <span class="box"></span>Billing: Monthly &nbsp;&nbsp; <span class="box"></span>Annual (2 platform-fee months free + setup waived)<br>
       <span class="box"></span>Initial term: 1 month &nbsp;&nbsp; <span class="box"></span>12 months<br>
-      Renewal notice: <b>30 days</b>
+      Renewal notice: <b>30 days</b> &nbsp;·&nbsp; Platform fee billed in advance; usage billed monthly in arrears with an itemised statement (minutes &amp; conversations).
     </div>
     <div class="opts">
-      Setup fee (one-time): <b>€________</b> &nbsp; <span class="box"></span>Waived (annual)<br>
-      Overage rate: <b>€______ / minute</b> beyond bundle<br>
-      Pilot rate (if any): <b>€______/mo</b> for ____ months (for feedback + testimonial)
+      Locations: <b>____</b> &nbsp;·&nbsp; Phone numbers: <b>____</b><br>
+      Monthly usage alert threshold (we notify you above): <b>€________</b><br>
+      <span class="box"></span>Founding-customer pilot: platform fee <b>€99/mo</b> for the first <b>3</b> months (usage at standard rates), in exchange for feedback + a reference testimonial.
     </div>
   </div>
 
@@ -134,7 +161,7 @@
       <li><span class="box"></span>The <b>in-call AI disclosure stays enabled</b> (the agent identifies the clinic, purpose, and its AI nature) and will not be disabled.</li>
       <li><span class="box"></span>The Customer obtains any <b>patient consents</b> required under GDPR / local healthcare-privacy law.</li>
       <li><span class="box"></span>The AI is an <b>operational support tool</b>, may occasionally err, and staff review bookings &amp; call records as normal.</li>
-      <li><span class="box"></span>Subprocessors (e.g. [Retell AI, Hetzner, telephony, email]) are listed in the DPA; the Customer consents to their use.</li>
+      <li><span class="box"></span>Subprocessors (e.g. [Retell AI, Anthropic, OpenAI &amp; Cartesia via Retell, Hetzner, telephony, email]) are listed in the DPA; the Customer consents to their use.</li>
     </ol>
     <p class="note">If the clinic or any called patients are in the US, additional rules (e.g. TCPA, possibly HIPAA) apply — flag this so the Provider can adjust the setup.</p>
   </div>
