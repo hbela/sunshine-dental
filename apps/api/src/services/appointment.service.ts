@@ -4,8 +4,25 @@ import { dateToStr, timeToStr, strToDate, strToTime, addMinutes } from '../lib/d
 import { AppointmentDurations, isValidPhoneNumber } from '@repo/shared';
 import { CalendarService } from './calendar.service.js';
 import { providerNameWhere } from '../lib/name.js';
+import { assertUnlocked, decryptString, encryptString } from '../lib/crypto.js';
+import { decryptRow, decryptRows, encryptRow, phoneIndexOf } from '../lib/crypto-fields.js';
 
 const ACTIVE_STATUSES = ['CONFIRMED', 'COMPLETED'] as const;
+
+// patientName is ciphertext, so name filtering happens in memory; cap the scan
+// when no date/provider/status prunes the query (see PatientService).
+const SEARCH_SCAN_CAP = 2000;
+
+/**
+ * Append a cancellation reason to existing notes. Accepts notes in either
+ * state (ciphertext from a raw row, plaintext from a decrypted one) and always
+ * returns ciphertext — encryptString is a no-op on already-encrypted values.
+ */
+function cancelledNotes(existingNotes: string | null, reason?: string): string | null {
+  if (!reason) return existingNotes === null ? null : encryptString(existingNotes);
+  const plain = existingNotes ? decryptString(existingNotes) + '\n' : '';
+  return encryptString(`${plain}Cancelled: ${reason}`);
+}
 
 function serialize(a: any) {
   return {
@@ -58,42 +75,58 @@ export class AppointmentService {
     page?: number;
     limit?: number;
   }) {
+    assertUnlocked();
     const page = filters.page && filters.page > 0 ? filters.page : 1;
     const limit = filters.limit && filters.limit > 0 ? filters.limit : 50;
 
+    // Structured filters stay in SQL — they prune hard. The name filter moves
+    // in memory because patientName is ciphertext.
     const where: any = {};
     if (filters.date) where.date = strToDate(filters.date);
     if (filters.providerId) where.providerId = filters.providerId;
     if (filters.status) where.status = filters.status;
-    if (filters.patientName) {
-      where.patientName = { contains: filters.patientName, mode: 'insensitive' };
+
+    if (!filters.patientName) {
+      const appointments = await prisma.appointment.findMany({
+        where,
+        orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      return decryptRows('appointment', appointments).map(serialize);
     }
 
-    const appointments = await prisma.appointment.findMany({
+    const candidates = await prisma.appointment.findMany({
       where,
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
-      skip: (page - 1) * limit,
-      take: limit,
+      // Only cap when nothing else prunes the query.
+      ...(Object.keys(where).length === 0 ? { take: SEARCH_SCAN_CAP } : {}),
     });
-
-    return appointments.map(serialize);
+    const q = filters.patientName.toLowerCase();
+    const hits = decryptRows('appointment', candidates).filter((a) =>
+      a.patientName.toLowerCase().includes(q),
+    );
+    return hits.slice((page - 1) * limit, page * limit).map(serialize);
   }
 
   static async findById(id: string) {
+    assertUnlocked();
     const appointment = await prisma.appointment.findUnique({ where: { id } });
     if (!appointment) throw new HttpError(404, 'Appointment not found');
-    return serialize(appointment);
+    return serialize(decryptRow('appointment', appointment));
   }
 
   static async patientHistory(patientId: string) {
+    assertUnlocked();
     const appointments = await prisma.appointment.findMany({
       where: { patientId },
       orderBy: [{ date: 'desc' }, { startTime: 'desc' }],
     });
-    return appointments.map(serialize);
+    return decryptRows('appointment', appointments).map(serialize);
   }
 
   static async book(input: BookInput) {
+    assertUnlocked();
     if (input.phone && !isValidPhoneNumber(input.phone)) {
       throw new HttpError(400, `Phone number "${input.phone}" is not a valid format`);
     }
@@ -133,26 +166,29 @@ export class AppointmentService {
       throw new HttpError(409, `Slot ${input.time} is not available for the selected provider`);
     }
 
-    // 3. Find or create the patient record
+    // 3. Find or create the patient record (dedupe by phone blind index —
+    //    phone itself is ciphertext, so equality runs on the HMAC column)
     let patient = null;
-    if (input.phone) {
-      patient = await prisma.patient.findFirst({ where: { phone: input.phone } });
+    const phoneIndex = phoneIndexOf(input.phone);
+    if (phoneIndex) {
+      patient = await prisma.patient.findFirst({ where: { phoneIndex } });
     }
     if (!patient) {
       patient = await prisma.patient.create({
-        data: {
+        data: encryptRow('patient', {
           name: input.patient_name,
           phone: input.phone ?? null,
+          phoneIndex,
           email: input.email ?? null,
           isNewPatient: input.is_new_patient ?? false,
-        },
+        }),
       });
     }
 
     // 4. Create the appointment
     const endTime = addMinutes(input.time, duration);
     const appointment = await prisma.appointment.create({
-      data: {
+      data: encryptRow('appointment', {
         patientId: patient.id,
         patientName: input.patient_name,
         patientPhone: input.phone ?? null,
@@ -168,13 +204,14 @@ export class AppointmentService {
         isNewPatient: input.is_new_patient ?? false,
         notes: input.notes ?? null,
         callId: input.call_id ?? null,
-      },
+      }),
     });
 
-    return serialize(appointment);
+    return serialize(decryptRow('appointment', appointment));
   }
 
   static async cancelById(id: string, reason?: string) {
+    assertUnlocked();
     const existing = await prisma.appointment.findUnique({ where: { id } });
     if (!existing) throw new HttpError(404, 'Appointment not found');
 
@@ -182,25 +219,31 @@ export class AppointmentService {
       where: { id },
       data: {
         status: 'CANCELLED',
-        notes: reason ? `${existing.notes ? existing.notes + '\n' : ''}Cancelled: ${reason}` : existing.notes,
+        notes: cancelledNotes(existing.notes, reason),
       },
     });
-    return serialize(appointment);
+    return serialize(decryptRow('appointment', appointment));
   }
 
   /** n8n cancel flow: look up by patient name + date (+ optional time). */
   static async cancelBySearch(search: CancelSearch) {
+    assertUnlocked();
+    // date + status prune to a handful of rows; the name match runs in memory
+    // because patientName is ciphertext.
     const where: any = {
-      patientName: { contains: search.patient_name, mode: 'insensitive' },
       date: strToDate(search.date),
       status: 'CONFIRMED',
     };
     if (search.time) where.startTime = strToTime(search.time);
 
-    const match = await prisma.appointment.findFirst({
+    const candidates = await prisma.appointment.findMany({
       where,
       orderBy: { startTime: 'asc' },
     });
+    const q = search.patient_name.toLowerCase();
+    const match = decryptRows('appointment', candidates).find((a) =>
+      a.patientName.toLowerCase().includes(q),
+    );
 
     if (!match) return { found: false as const };
 
@@ -208,16 +251,17 @@ export class AppointmentService {
       where: { id: match.id },
       data: {
         status: 'CANCELLED',
-        notes: search.reason
-          ? `${match.notes ? match.notes + '\n' : ''}Cancelled: ${search.reason}`
-          : match.notes,
+        // match.notes is plaintext here (row was decrypted for the name match);
+        // cancelledNotes always returns ciphertext.
+        notes: cancelledNotes(match.notes, search.reason),
       },
     });
 
-    return { found: true as const, appointment: serialize(appointment) };
+    return { found: true as const, appointment: serialize(decryptRow('appointment', appointment)) };
   }
 
   static async complete(id: string) {
+    assertUnlocked();
     const existing = await prisma.appointment.findUnique({ where: { id } });
     if (!existing) throw new HttpError(404, 'Appointment not found');
 
@@ -225,7 +269,7 @@ export class AppointmentService {
       where: { id },
       data: { status: 'COMPLETED' },
     });
-    return serialize(appointment);
+    return serialize(decryptRow('appointment', appointment));
   }
 }
 

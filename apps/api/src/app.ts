@@ -23,6 +23,11 @@ export async function app(fastify: FastifyInstance) {
         details: error.validation,
       })
     }
+    // HttpErrors carrying a machine-readable code (e.g. ENCRYPTION_LOCKED)
+    // keep it in the payload so the web app and n8n can branch on it.
+    if (typeof error?.statusCode === 'number' && typeof error?.code === 'string') {
+      return reply.status(error.statusCode).send({ error: error.message, code: error.code })
+    }
     reply.send(error)
   })
 

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
+import { EncryptionUnlockBanner } from '@/components/EncryptionUnlockBanner'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useDisplayName } from '@/lib/name'
@@ -123,6 +124,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </header>
+        <EncryptionUnlockBanner />
         <main className="flex-1 overflow-auto bg-background p-6">{children}</main>
       </div>
     </div>

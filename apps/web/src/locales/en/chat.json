@@ -13,6 +13,7 @@
   "dismiss": "Dismiss",
   "disclaimer": "AI assistant · For a medical emergency, call 112.",
   "error": "Sorry, something went wrong. Please try again.",
+  "unavailable": "The assistant is temporarily unavailable. Please try again later or call the clinic.",
   "tools": {
     "working": "Working on it…",
     "check_availability": "Checking availability…",

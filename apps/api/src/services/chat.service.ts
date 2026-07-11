@@ -6,6 +6,8 @@ import { AppointmentTypeSchema, isValidPhoneNumber } from '@repo/shared';
 import { CalendarService } from './calendar.service.js';
 import { AppointmentService } from './appointment.service.js';
 import { buildChatSystemPrompt } from '../prompts/chat-receptionist.js';
+import { assertUnlocked, decryptString, encryptString } from '../lib/crypto.js';
+import { decryptRow, decryptRows, encryptRow, phoneIndexOf } from '../lib/crypto-fields.js';
 
 // Sonnet for stronger Hungarian/German (Haiku produced register drift and
 // calques); prompt caching below keeps the cost near the old Haiku setup.
@@ -183,32 +185,37 @@ const tools: Anthropic.Tool[] = [
 ];
 
 async function capturePatient(input: any) {
-  const existing = input.phone
-    ? await prisma.patient.findFirst({ where: { phone: input.phone } })
+  // Phone is ciphertext in the DB — dedupe by the HMAC blind index instead.
+  const phoneIndex = phoneIndexOf(input.phone);
+  const existing = phoneIndex
+    ? await prisma.patient.findFirst({ where: { phoneIndex } })
     : null;
   if (existing) {
+    // Fallbacks may be the existing row's ciphertext values — encryptRow
+    // leaves already-encrypted values untouched.
     return prisma.patient.update({
       where: { id: existing.id },
-      data: {
+      data: encryptRow('patient', {
         name: input.patient_name ?? existing.name,
         email: input.email ?? existing.email,
         reason: input.reason ?? existing.reason,
         ...(typeof input.is_new_patient === 'boolean' ? { isNewPatient: input.is_new_patient } : {}),
         ...(typeof input.callback_requested === 'boolean' ? { callbackRequested: input.callback_requested } : {}),
         ...(input.preferred_time ? { preferredTime: input.preferred_time } : {}),
-      },
+      }),
     });
   }
   return prisma.patient.create({
-    data: {
+    data: encryptRow('patient', {
       name: input.patient_name,
       phone: input.phone ?? null,
+      phoneIndex,
       email: input.email ?? null,
       reason: input.reason ?? null,
       isNewPatient: input.is_new_patient ?? true,
       callbackRequested: input.callback_requested ?? false,
       preferredTime: input.preferred_time ?? null,
-    },
+    }),
   });
 }
 
@@ -353,6 +360,9 @@ export interface StreamCallbacks {
 export class ChatService {
   /** Create a new conversation; returns the id + the secret resume token. */
   static async createConversation(language?: string) {
+    // No PII is written here, but a locked keyring would fail the very first
+    // message anyway — fail fast so the widget shows its "unavailable" state.
+    assertUnlocked();
     const lang = LANGS.includes(language as any) ? (language as string) : 'en';
     const token = randomBytes(24).toString('hex');
     const convo = await prisma.chatConversation.create({ data: { token, language: lang } });
@@ -373,15 +383,20 @@ export class ChatService {
    * loop. Callbacks fire as text/tool events occur; returns the full reply text.
    */
   static async streamReply(conversationId: string, userText: string, cb: StreamCallbacks): Promise<string> {
+    assertUnlocked();
     await prisma.chatMessage.create({
-      data: { conversationId, role: 'USER', content: userText },
+      data: { conversationId, role: 'USER', content: encryptString(userText) },
     });
 
-    // Rebuild conversation context from prior visible turns (tool blocks are not replayed).
-    const history = await prisma.chatMessage.findMany({
-      where: { conversationId, role: { in: ['USER', 'ASSISTANT'] } },
-      orderBy: { createdAt: 'asc' },
-    });
+    // Rebuild conversation context from prior visible turns (tool blocks are
+    // not replayed). Rows are decrypted here: the model needs plaintext.
+    const history = decryptRows(
+      'chatMessage',
+      await prisma.chatMessage.findMany({
+        where: { conversationId, role: { in: ['USER', 'ASSISTANT'] } },
+        orderBy: { createdAt: 'asc' },
+      }),
+    );
     // Coalesce consecutive same-role turns so the Messages API always sees a
     // valid user/assistant alternation (a prior failed turn can leave an
     // assistant-less user message otherwise).
@@ -422,7 +437,7 @@ export class ChatService {
         .join('');
       if (turnText.trim()) {
         await prisma.chatMessage.create({
-          data: { conversationId, role: 'ASSISTANT', content: turnText },
+          data: { conversationId, role: 'ASSISTANT', content: encryptString(turnText) },
         });
       }
 
@@ -435,7 +450,7 @@ export class ChatService {
         cb.onTool(block.name);
         const result = await runTool(conversationId, block.name, block.input);
         await prisma.chatMessage.create({
-          data: { conversationId, role: 'TOOL', content: result, toolName: block.name },
+          data: { conversationId, role: 'TOOL', content: encryptString(result), toolName: block.name },
         });
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: result });
       }
@@ -458,10 +473,13 @@ export class ChatService {
     let successful: boolean | null = null;
 
     try {
-      const msgs = await prisma.chatMessage.findMany({
-        where: { conversationId: id, role: { in: ['USER', 'ASSISTANT'] } },
-        orderBy: { createdAt: 'asc' },
-      });
+      const msgs = decryptRows(
+        'chatMessage',
+        await prisma.chatMessage.findMany({
+          where: { conversationId: id, role: { in: ['USER', 'ASSISTANT'] } },
+          orderBy: { createdAt: 'asc' },
+        }),
+      );
       if (msgs.length && process.env.ANTHROPIC_API_KEY) {
         const transcript = msgs.map((m) => `${m.role}: ${m.content}`).join('\n');
         // Write the summary in the patient's language (sentiment stays an English enum).
@@ -490,7 +508,13 @@ export class ChatService {
 
     await prisma.chatConversation.update({
       where: { id },
-      data: { status: 'ENDED', endedAt: new Date(), summary, sentiment, successful },
+      data: {
+        status: 'ENDED',
+        endedAt: new Date(),
+        summary: summary === null ? null : encryptString(summary),
+        sentiment,
+        successful,
+      },
     });
   }
 
@@ -516,6 +540,7 @@ export class ChatService {
     if (filters.language) where.language = filters.language;
     if (filters.successful !== undefined) where.successful = filters.successful;
 
+    assertUnlocked();
     const rows = await prisma.chatConversation.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -523,10 +548,11 @@ export class ChatService {
       take: limit,
       include: { _count: { select: { messages: true } } },
     });
-    return rows.map(serializeConversation);
+    return decryptRows('chatConversation', rows).map(serializeConversation);
   }
 
   static async detail(id: string) {
+    assertUnlocked();
     const convo = await prisma.chatConversation.findUnique({
       where: { id },
       include: {
@@ -536,8 +562,8 @@ export class ChatService {
     });
     if (!convo) throw new HttpError(404, 'Conversation not found');
     return {
-      ...serializeConversation(convo),
-      messages: convo.messages.map((m) => ({
+      ...serializeConversation(decryptRow('chatConversation', convo)),
+      messages: decryptRows('chatMessage', convo.messages).map((m) => ({
         id: m.id,
         role: m.role,
         content: m.content,

@@ -84,7 +84,11 @@ export function ChatPanel({ onClose, className }: { onClose?: () => void; classN
             {t(`tools.${toolActivity}`, { defaultValue: t('tools.working') })}
           </p>
         )}
-        {error && <p className="pl-1 text-xs text-destructive">{t('error')}</p>}
+        {error && (
+          <p className="pl-1 text-xs text-destructive">
+            {t(error === 'chat_locked' ? 'unavailable' : 'error')}
+          </p>
+        )}
       </div>
 
       {/* Composer */}

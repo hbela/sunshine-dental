@@ -110,6 +110,10 @@ Mark `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `FASTIFY_API_KEY` as **secret**.
 
 `PORT` defaults to `3000` and is set in compose; no need to add it.
 
+> **Do NOT set `ENCRYPTION_KEY` (or `ALLOW_ENV_KEY`) in production.** Patient
+> PII is encrypted at rest and the master key must never be stored on the
+> server — a clinic ADMIN unlocks the API after every start (see §8a).
+
 ---
 
 ## 6. First deploy
@@ -158,6 +162,61 @@ Then in a browser:
 
 Push to `main` → Coolify auto-deploys (if "Auto Deploy" is on), or click **Deploy**.
 Only re-run `prisma db push` when `schema.prisma` changed. The seed is never re-run.
+
+---
+
+## 8a. Patient-data encryption (unlock after every deploy/restart)
+
+Patient PII (names, phones, emails, notes, call/chat transcripts) is stored as
+AES-256-GCM ciphertext. The 32-byte master key is **never stored on the
+server**: the API boots **locked** and a clinic ADMIN must unlock it after every
+deploy or restart. While locked, staff login and calendar availability keep
+working, but patient/appointment/chat/call-log endpoints return
+`503 { code: "ENCRYPTION_LOCKED" }` and the public chat widget shows
+"temporarily unavailable".
+
+### One-time setup (key + existing data)
+
+1. **Generate the key** on the clinic admin's machine (never on the VPS):
+   ```bash
+   openssl rand -hex 32
+   ```
+2. **Escrow it immediately** — key loss = permanent loss of all patient data.
+   Print it twice, sealed envelopes in two locations (clinic safe + owner), plus
+   optionally the owner's password manager. Test-read one envelope once.
+3. **Backup**: `pg_dump` the prod DB (this final plaintext dump is itself PII —
+   keep it offline and destroy it after verifying the migration).
+4. `pnpm exec prisma db push` (adds `Patient.phoneIndex` + `AppSetting`).
+5. Deploy the encryption-enabled build. The API boots locked
+   (`GET /api/health` → `"encryption": "locked"`).
+6. In the **api** container terminal, encrypt the existing rows (idempotent —
+   safe to re-run after a crash). It verifies/writes the key-check canary
+   *before* touching data, so a wrong key aborts cleanly:
+   ```bash
+   cd apps/api
+   pnpm exec tsx scripts/encrypt-existing-data.ts   # prompts for the key
+   ```
+7. Admin logs into the dashboard (login works while locked), pastes the key
+   into the amber unlock banner. Health flips to `"unlocked"`.
+8. Verify with a raw query (`SELECT name, phone, "phoneIndex" FROM "Patient"
+   LIMIT 5;`) — values must start with `enc:v1:` — and by searching a patient
+   in the dashboard.
+
+### After every deploy/restart
+
+The keyring is in-memory only, so **every** api restart returns to `locked`.
+The admin opens the dashboard and unlocks via the banner (or
+`POST /api/admin/unlock`, ADMIN session required). Point uptime monitoring at
+`/api/health` and alert when `encryption` stays `locked` for more than ~15
+minutes — voice/chat bookings fail while locked (n8n should retry the
+`POST /api/call-logs` and booking nodes so calls landing in a locked window
+are not lost).
+
+### Dev
+
+Locally you may set `ENCRYPTION_KEY` in `apps/api/.env` (see `.env.example`) —
+the server auto-unlocks at boot outside production. The seed requires it and
+writes a matching key-check canary.
 
 ---
 

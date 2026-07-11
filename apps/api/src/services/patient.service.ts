@@ -1,7 +1,14 @@
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { dateToStr, timeToStr } from '../lib/datetime.js';
-import { isValidPhoneNumber } from '@repo/shared';
+import { isValidPhoneNumber, normalizePhoneNumber } from '@repo/shared';
+import { assertUnlocked } from '../lib/crypto.js';
+import { decryptRow, decryptRows, encryptRow, phoneIndexOf } from '../lib/crypto-fields.js';
+
+// PII fields are ciphertext in the DB, so substring search runs in memory over
+// decrypted rows. Cap how many rows one search scans; at single-clinic volume
+// (a few thousand patients) this covers everything for years.
+const SEARCH_SCAN_CAP = 2000;
 
 /** Reject a malformed phone number (mirrors the voice agent's shape check). */
 function assertValidPhone(phone?: string | null) {
@@ -71,29 +78,39 @@ export interface UpdatePatientInput {
 
 export class PatientService {
   static async list(filters: { search?: string; page?: number; limit?: number }) {
+    assertUnlocked();
     const page = filters.page && filters.page > 0 ? filters.page : 1;
     const limit = filters.limit && filters.limit > 0 ? filters.limit : 50;
 
-    const where = filters.search
-      ? {
-          OR: [
-            { name: { contains: filters.search, mode: 'insensitive' as const } },
-            { phone: { contains: filters.search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {};
+    if (!filters.search) {
+      const patients = await prisma.patient.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      return decryptRows('patient', patients).map(serialize);
+    }
 
-    const patients = await prisma.patient.findMany({
-      where,
+    // name/phone are ciphertext: fetch capped candidates, decrypt, filter in
+    // memory, then paginate. Phone matches both as-typed and normalized so
+    // "06 20 257" finds a patient stored as "+36202576701".
+    const candidates = await prisma.patient.findMany({
       orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: SEARCH_SCAN_CAP,
+    });
+    const q = filters.search.toLowerCase();
+    const qPhone = normalizePhoneNumber(filters.search);
+    const hits = decryptRows('patient', candidates).filter((p) => {
+      if (p.name?.toLowerCase().includes(q)) return true;
+      if (!p.phone) return false;
+      return p.phone.toLowerCase().includes(q) || (qPhone.length >= 4 && normalizePhoneNumber(p.phone).includes(qPhone));
     });
 
-    return patients.map(serialize);
+    return hits.slice((page - 1) * limit, page * limit).map(serialize);
   }
 
   static async findByIdWithHistory(id: string) {
+    assertUnlocked();
     const patient = await prisma.patient.findUnique({
       where: { id },
       include: { appointments: { orderBy: [{ date: 'desc' }, { startTime: 'desc' }] } },
@@ -101,28 +118,31 @@ export class PatientService {
     if (!patient) throw new HttpError(404, 'Patient not found');
 
     return {
-      ...serialize(patient),
-      appointments: patient.appointments.map(serializeAppointment),
+      ...serialize(decryptRow('patient', patient)),
+      appointments: decryptRows('appointment', patient.appointments).map(serializeAppointment),
     };
   }
 
   static async create(input: CreatePatientInput) {
+    assertUnlocked();
     assertValidPhone(input.phone);
     const patient = await prisma.patient.create({
-      data: {
+      data: encryptRow('patient', {
         name: input.name,
         phone: input.phone ?? null,
+        phoneIndex: phoneIndexOf(input.phone),
         email: input.email ?? null,
         reason: input.reason ?? null,
         isNewPatient: input.is_new_patient ?? true,
         callbackRequested: input.callback_requested ?? false,
         preferredTime: input.preferred_time ?? null,
-      },
+      }),
     });
-    return serialize(patient);
+    return serialize(decryptRow('patient', patient));
   }
 
   static async update(id: string, input: UpdatePatientInput) {
+    assertUnlocked();
     const existing = await prisma.patient.findUnique({ where: { id } });
     if (!existing) throw new HttpError(404, 'Patient not found');
 
@@ -130,7 +150,10 @@ export class PatientService {
 
     const data: any = {};
     if (input.name !== undefined) data.name = input.name;
-    if (input.phone !== undefined) data.phone = input.phone;
+    if (input.phone !== undefined) {
+      data.phone = input.phone;
+      data.phoneIndex = phoneIndexOf(input.phone);
+    }
     if (input.email !== undefined) data.email = input.email;
     if (input.reason !== undefined) data.reason = input.reason;
     if (input.is_new_patient !== undefined) data.isNewPatient = input.is_new_patient;
@@ -138,7 +161,7 @@ export class PatientService {
     if (input.preferred_time !== undefined) data.preferredTime = input.preferred_time;
     if (input.notes !== undefined) data.notes = input.notes;
 
-    const patient = await prisma.patient.update({ where: { id }, data });
-    return serialize(patient);
+    const patient = await prisma.patient.update({ where: { id }, data: encryptRow('patient', data) });
+    return serialize(decryptRow('patient', patient));
   }
 }

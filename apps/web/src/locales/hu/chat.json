@@ -13,6 +13,7 @@
   "dismiss": "Elvetés",
   "disclaimer": "AI asszisztens · Sürgős esetben hívja a 112-t.",
   "error": "Sajnáljuk, hiba történt. Kérjük, próbálja újra.",
+  "unavailable": "Az asszisztens átmenetileg nem elérhető. Kérjük, próbálja meg később, vagy hívja a rendelőt.",
   "tools": {
     "working": "Dolgozom rajta…",
     "check_availability": "Szabad időpontok ellenőrzése…",

@@ -12,5 +12,12 @@
   "error": "Something went wrong",
   "language": "Language",
   "toggleTheme": "Toggle theme",
-  "comingSoon": "Coming soon."
+  "comingSoon": "Coming soon.",
+  "encryption": {
+    "lockedAdmin": "Patient data is locked. Enter the clinic encryption key to unlock it.",
+    "lockedStaff": "Patient data is locked — an administrator must unlock it.",
+    "keyPlaceholder": "Encryption key (64 hex characters)",
+    "unlock": "Unlock",
+    "unlocking": "Unlocking…"
+  }
 }

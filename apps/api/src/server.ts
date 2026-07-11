@@ -1,5 +1,11 @@
 import Fastify from 'fastify'
 import { app } from './app.js'
+import { tryUnlockFromEnv } from './lib/crypto.js'
+
+// Dev convenience only: arm the keyring from ENCRYPTION_KEY (refused in
+// production unless ALLOW_ENV_KEY=true). In prod the server boots locked and
+// an ADMIN unlocks via POST /api/admin/unlock.
+tryUnlockFromEnv()
 
 const server = Fastify({ logger: true })
 

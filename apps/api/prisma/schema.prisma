@@ -100,11 +100,15 @@ model Provider {
   delegationsOwned CalendarDelegation[] @relation("DelegationOwner")
 }
 
-// Patient registry (populated by voice agent capture_patient_info)
+// Patient registry (populated by voice agent capture_patient_info).
+// PII fields (name/phone/email/reason/notes) are AES-256-GCM ciphertext at rest
+// (see src/lib/crypto-fields.ts); phoneIndex is an HMAC blind index over the
+// normalized phone so exact-match dedupe lookups work without plaintext.
 model Patient {
   id                String    @id @default(cuid())
   name              String
   phone             String?
+  phoneIndex        String?   // HMAC-SHA256 blind index of normalized phone (not @unique: legacy dupes possible)
   email             String?
   reason            String?
   isNewPatient      Boolean   @default(true)
@@ -117,6 +121,16 @@ model Patient {
   appointments      Appointment[]
   callLogs          CallLog[]
   chatConversations ChatConversation[]
+
+  @@index([phoneIndex])
+}
+
+// Small key/value store; currently holds the encryption key-check canary
+// ('encryption.keycheck') that guards unlock against a wrong master key.
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 // Appointments

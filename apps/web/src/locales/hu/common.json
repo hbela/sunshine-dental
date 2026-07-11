@@ -12,5 +12,12 @@
   "error": "Valami hiba történt",
   "language": "Nyelv",
   "toggleTheme": "Téma váltása",
-  "comingSoon": "Hamarosan."
+  "comingSoon": "Hamarosan.",
+  "encryption": {
+    "lockedAdmin": "A betegadatok zárolva vannak. A feloldáshoz adja meg a rendelő titkosítási kulcsát.",
+    "lockedStaff": "A betegadatok zárolva vannak — a feloldáshoz adminisztrátor szükséges.",
+    "keyPlaceholder": "Titkosítási kulcs (64 hexadecimális karakter)",
+    "unlock": "Feloldás",
+    "unlocking": "Feloldás…"
+  }
 }

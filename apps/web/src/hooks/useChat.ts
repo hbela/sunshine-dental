@@ -63,7 +63,12 @@ export function useChat() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ language: LANGS.includes(lang) ? lang : 'en' }),
     })
-    if (!res.ok) throw new Error('start_failed')
+    if (!res.ok) {
+      // Encryption is locked until a clinic admin unlocks the API after a
+      // restart — the widget shows a friendlier "temporarily unavailable".
+      const body = (await res.json().catch(() => null)) as { code?: string } | null
+      throw new Error(body?.code === 'ENCRYPTION_LOCKED' ? 'chat_locked' : 'start_failed')
+    }
     const data = (await res.json()) as { id: string; token: string }
     sessionRef.current = { id: data.id, token: data.token }
     return sessionRef.current
@@ -100,7 +105,10 @@ export function useChat() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: session.token, message: trimmed }),
         })
-        if (!res.ok || !res.body) throw new Error('send_failed')
+        if (!res.ok || !res.body) {
+          const body = (await res.json().catch(() => null)) as { code?: string } | null
+          throw new Error(body?.code === 'ENCRYPTION_LOCKED' ? 'chat_locked' : 'send_failed')
+        }
 
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
@@ -136,8 +144,8 @@ export function useChat() {
             }
           }
         }
-      } catch {
-        setError('chat_error')
+      } catch (err) {
+        setError(err instanceof Error && err.message === 'chat_locked' ? 'chat_locked' : 'chat_error')
       } finally {
         setIsStreaming(false)
         setToolActivity(null)

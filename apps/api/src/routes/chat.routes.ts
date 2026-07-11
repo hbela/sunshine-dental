@@ -4,6 +4,7 @@ import { ChatService } from '../services/chat.service.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { ChatConversationSchema, ChatConversationDetailSchema } from '@repo/shared';
 import { sendError } from '../lib/errors.js';
+import { isUnlocked } from '../lib/crypto.js';
 
 /**
  * Patient-facing chat receptionist.
@@ -83,6 +84,13 @@ export async function chatRoutes(fastify: FastifyInstance) {
       if (!convoAllowed(id)) {
         return reply.status(429).send({ error: 'Message limit reached for this conversation.' });
       }
+      // Must be checked BEFORE hijack — after hijack a clean JSON 503 can no
+      // longer be sent (encryption is locked until an admin unlocks it).
+      if (!isUnlocked()) {
+        return reply
+          .status(503)
+          .send({ error: 'Chat is temporarily unavailable', code: 'ENCRYPTION_LOCKED' });
+      }
 
       // Server-Sent Events stream.
       reply.hijack();
@@ -105,7 +113,14 @@ export async function chatRoutes(fastify: FastifyInstance) {
         send('done', {});
       } catch (err: any) {
         request.log.error(err);
-        send('error', { message: err?.statusCode === 503 ? 'chat_unconfigured' : 'chat_error' });
+        send('error', {
+          message:
+            err?.code === 'ENCRYPTION_LOCKED'
+              ? 'chat_locked'
+              : err?.statusCode === 503
+                ? 'chat_unconfigured'
+                : 'chat_error',
+        });
       } finally {
         raw.end();
       }

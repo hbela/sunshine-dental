@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { ProviderSchema } from '@repo/shared';
 import { prisma } from '../lib/prisma.js';
+import { decryptOrPlaceholder } from '../lib/crypto.js';
+import { encryptRow } from '../lib/crypto-fields.js';
 
 const ProviderListItemSchema = z.object({
   id: z.string(),
@@ -15,13 +17,15 @@ const ProviderListItemSchema = z.object({
   phone: z.string().nullable(),
 });
 
+// phone/bio are encrypted at rest; degrade to a placeholder while locked so
+// the provider list (needed by calendar/booking UI) keeps working.
 function serialize(p: any) {
   return {
     id: p.id,
     userId: p.userId,
     specialty: p.specialty,
-    phone: p.phone,
-    bio: p.bio,
+    phone: p.phone === null ? null : decryptOrPlaceholder(p.phone),
+    bio: p.bio === null ? null : decryptOrPlaceholder(p.bio),
     isActive: p.isActive,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
@@ -53,7 +57,7 @@ export async function providersRoutes(fastify: FastifyInstance) {
         givenName: p.user.givenName,
         familyName: p.user.familyName,
         specialty: p.specialty,
-        phone: p.phone,
+        phone: p.phone === null ? null : decryptOrPlaceholder(p.phone),
       }));
     },
   });
@@ -88,7 +92,7 @@ export async function providersRoutes(fastify: FastifyInstance) {
       if (body.phone !== undefined) data.phone = body.phone;
       if (body.bio !== undefined) data.bio = body.bio;
 
-      const updated = await prisma.provider.update({ where: { userId }, data });
+      const updated = await prisma.provider.update({ where: { userId }, data: encryptRow('provider', data) });
       return serialize(updated);
     },
   });
