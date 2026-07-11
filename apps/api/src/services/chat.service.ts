@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { randomBytes } from 'node:crypto';
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
-import { AppointmentTypeSchema } from '@repo/shared';
+import { AppointmentTypeSchema, isValidPhoneNumber } from '@repo/shared';
 import { CalendarService } from './calendar.service.js';
 import { AppointmentService } from './appointment.service.js';
 import { buildChatSystemPrompt } from '../prompts/chat-receptionist.js';
@@ -215,6 +215,17 @@ async function capturePatient(input: any) {
 /** Execute one tool call and return a JSON string result for the model. */
 async function runTool(conversationId: string, name: string, input: any): Promise<string> {
   try {
+    // Reject a malformed phone before booking/saving so the model can ask the
+    // patient to correct it (mirrors the voice agent's phone shape check).
+    if ((name === 'book_appointment' || name === 'capture_patient_info') && input.phone) {
+      if (!isValidPhoneNumber(input.phone)) {
+        return JSON.stringify({
+          error: `The phone number "${input.phone}" doesn't look valid. Ask the patient to repeat it — a Hungarian mobile is +36 followed by 9 digits (e.g. +36 20 257 6701).`,
+          code: 'INVALID_PHONE',
+        });
+      }
+    }
+
     switch (name) {
       case 'check_availability': {
         const type = normalizeType(input.appointment_type) ?? 'CONSULTATION';
@@ -307,7 +318,12 @@ async function runTool(conversationId: string, name: string, input: any): Promis
         return JSON.stringify({ error: `Unknown tool ${name}`, code: 'UNKNOWN_TOOL' });
     }
   } catch (err: any) {
-    const code = err?.statusCode === 409 ? 'SLOT_UNAVAILABLE' : 'SYSTEM_ERROR';
+    const code =
+      err?.statusCode === 409
+        ? 'SLOT_UNAVAILABLE'
+        : err?.statusCode === 400
+          ? 'INVALID_INPUT'
+          : 'SYSTEM_ERROR';
     return JSON.stringify({ error: err?.message ?? 'Something went wrong', code });
   }
 }

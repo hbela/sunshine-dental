@@ -1,7 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { dateToStr, timeToStr, strToDate, strToTime, addMinutes } from '../lib/datetime.js';
-import { AppointmentDurations } from '@repo/shared';
+import { AppointmentDurations, isValidPhoneNumber } from '@repo/shared';
 import { CalendarService } from './calendar.service.js';
 import { providerNameWhere } from '../lib/name.js';
 
@@ -94,6 +94,10 @@ export class AppointmentService {
   }
 
   static async book(input: BookInput) {
+    if (input.phone && !isValidPhoneNumber(input.phone)) {
+      throw new HttpError(400, `Phone number "${input.phone}" is not a valid format`);
+    }
+
     const type = input.appointment_type;
     const duration = AppointmentDurations[type] ?? 30;
 

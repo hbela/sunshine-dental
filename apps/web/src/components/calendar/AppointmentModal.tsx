@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { AppointmentTypeSchema } from '@repo/shared'
+import { AppointmentTypeSchema, isValidPhoneNumber } from '@repo/shared'
 import {
   Dialog,
   DialogHeader,
@@ -164,7 +164,10 @@ function CreateAppointment({
     () =>
       z.object({
         patient_name: z.string().min(1, t('patientNameRequired')),
-        phone: z.string().optional(),
+        phone: z
+          .string()
+          .optional()
+          .refine((v) => !v || isValidPhoneNumber(v), t('invalidPhone')),
         email: z.string().email(t('invalidEmail')).optional().or(z.literal('')),
         appointment_type: z.string().min(1),
         date: z.string().min(1),
@@ -230,6 +233,7 @@ function CreateAppointment({
           <div className="space-y-2">
             <Label htmlFor="phone">{t('phone')}</Label>
             <Input id="phone" {...register('phone')} />
+            {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">{t('email')}</Label>

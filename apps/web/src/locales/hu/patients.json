@@ -17,6 +17,7 @@
   "no": "Nem",
   "nameRequired": "A név megadása kötelező",
   "invalidEmail": "Érvénytelen e-mail",
+  "invalidPhone": "Érvénytelen telefonszám",
   "columns": {
     "name": "Név",
     "phone": "Telefon",

@@ -17,6 +17,7 @@
   "no": "No",
   "nameRequired": "Name is required",
   "invalidEmail": "Invalid email",
+  "invalidPhone": "Invalid phone number",
   "columns": {
     "name": "Name",
     "phone": "Phone",

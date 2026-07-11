@@ -1,6 +1,14 @@
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { dateToStr, timeToStr } from '../lib/datetime.js';
+import { isValidPhoneNumber } from '@repo/shared';
+
+/** Reject a malformed phone number (mirrors the voice agent's shape check). */
+function assertValidPhone(phone?: string | null) {
+  if (phone && !isValidPhoneNumber(phone)) {
+    throw new HttpError(400, `Phone number "${phone}" is not a valid format`);
+  }
+}
 
 function serialize(p: any) {
   return {
@@ -99,6 +107,7 @@ export class PatientService {
   }
 
   static async create(input: CreatePatientInput) {
+    assertValidPhone(input.phone);
     const patient = await prisma.patient.create({
       data: {
         name: input.name,
@@ -116,6 +125,8 @@ export class PatientService {
   static async update(id: string, input: UpdatePatientInput) {
     const existing = await prisma.patient.findUnique({ where: { id } });
     if (!existing) throw new HttpError(404, 'Patient not found');
+
+    assertValidPhone(input.phone);
 
     const data: any = {};
     if (input.name !== undefined) data.name = input.name;
