@@ -11,6 +11,14 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false,
   },
+  user: {
+    additionalFields: {
+      // Structured name fields; `name` stays the better-auth-owned canonical form.
+      title: { type: 'string', required: false },
+      givenName: { type: 'string', required: false },
+      familyName: { type: 'string', required: false },
+    },
+  },
   plugins: [
     // defaultRole must be a valid value of our Prisma `Role` enum (not the
     // plugin's built-in "user"); ADMIN is recognised as the privileged role.

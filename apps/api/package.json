@@ -9,12 +9,14 @@
         "db:generate": "prisma generate",
         "db:push": "prisma db push",
         "db:seed": "tsx prisma/seed.ts",
-        "db:studio": "prisma studio"
+        "db:studio": "prisma studio",
+        "test": "vitest run"
     },
     "prisma": {
         "seed": "tsx prisma/seed.ts"
     },
     "dependencies": {
+        "@anthropic-ai/sdk": "^0.68.0",
         "@better-auth/prisma-adapter": "latest",
         "@fastify/cors": "latest",
         "@fastify/helmet": "latest",
@@ -39,6 +41,7 @@
         "@types/nodemailer": "latest",
         "prisma": "^6.0.0",
         "tsx": "latest",
-        "typescript": "^5.0.0"
+        "typescript": "^5.0.0",
+        "vitest": "^4.1.10"
     }
 }

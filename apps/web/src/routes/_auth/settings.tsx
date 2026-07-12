@@ -6,6 +6,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { useRole } from '@/hooks/useRole'
 import { useOwnProviderId, useProvider, useUpdateMyProvider } from '@/hooks/useProfile'
 import { DelegationsSection } from '@/components/settings/DelegationsSection'
+import { canonicalName } from '@/lib/name'
 import { apiErrorMessage } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -33,21 +34,37 @@ function SettingsCard({
 
 function AccountSection() {
   const { t } = useTranslation('settings')
+  const { t: ta } = useTranslation('admin')
   const { t: tc } = useTranslation('common')
   const { data: session } = authClient.useSession()
-  const [name, setName] = useState('')
+  const user = session?.user as
+    | { title?: string | null; givenName?: string | null; familyName?: string | null; email?: string }
+    | undefined
+  const [title, setTitle] = useState('')
+  const [givenName, setGivenName] = useState('')
+  const [familyName, setFamilyName] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (session?.user?.name) setName(session.user.name)
-  }, [session?.user?.name])
+    if (!user) return
+    setTitle(user.title ?? '')
+    setGivenName(user.givenName ?? '')
+    setFamilyName(user.familyName ?? '')
+  }, [user?.title, user?.givenName, user?.familyName])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setStatus('saving')
-    const { error } = await authClient.updateUser({ name })
+    // Keep the canonical `name` string in sync with the structured fields.
+    const name = canonicalName({ title, givenName, familyName })
+    const { error } = await authClient.updateUser({
+      name,
+      title: title || undefined,
+      givenName,
+      familyName,
+    } as Parameters<typeof authClient.updateUser>[0])
     if (error) {
       setError(error.message ?? tc('error'))
       setStatus('idle')
@@ -58,25 +75,54 @@ function AccountSection() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <div className="grid grid-cols-[6rem_1fr] gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="acc-title">{ta('columns.title')}</Label>
+          <Input
+            id="acc-title"
+            placeholder="Dr."
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value)
+              setStatus('idle')
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="acc-given">{ta('columns.givenName')}</Label>
+          <Input
+            id="acc-given"
+            value={givenName}
+            onChange={(e) => {
+              setGivenName(e.target.value)
+              setStatus('idle')
+            }}
+          />
+        </div>
+      </div>
       <div className="space-y-2">
-        <Label htmlFor="acc-name">{t('account.name')}</Label>
+        <Label htmlFor="acc-family">{ta('columns.familyName')}</Label>
         <Input
-          id="acc-name"
-          value={name}
+          id="acc-family"
+          value={familyName}
           onChange={(e) => {
-            setName(e.target.value)
+            setFamilyName(e.target.value)
             setStatus('idle')
           }}
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor="acc-email">{t('account.email')}</Label>
-        <Input id="acc-email" value={session?.user?.email ?? ''} disabled />
+        <Input id="acc-email" value={user?.email ?? ''} disabled />
         <p className="text-xs text-muted-foreground">{t('account.emailReadonly')}</p>
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex items-center gap-3">
-        <Button type="submit" variant="gradient" disabled={status === 'saving' || !name.trim()}>
+        <Button
+          type="submit"
+          variant="gradient"
+          disabled={status === 'saving' || !givenName.trim() || !familyName.trim()}
+        >
           {status === 'saving' ? tc('saving') : tc('save')}
         </Button>
         {status === 'saved' && <Badge variant="secondary">{t('saved')}</Badge>}

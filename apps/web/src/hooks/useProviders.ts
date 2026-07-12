@@ -5,6 +5,9 @@ export interface ProviderListItem {
   id: string
   userId: string
   name: string
+  title: string | null
+  givenName: string
+  familyName: string
   specialty: string | null
   phone: string | null
 }

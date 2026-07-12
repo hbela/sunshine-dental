@@ -1,0 +1,25 @@
+{
+  "title": "Sunshine Dental",
+  "subtitle": "Csevegjen virtuális recepciósunkkal",
+  "greeting": "Üdvözlöm! Sarah vagyok, a Sunshine Dental virtuális recepciósa. Segíthetek időpontot foglalni, módosítani vagy lemondani, illetve válaszolok a rendelővel kapcsolatos kérdéseire. Miben segíthetek?",
+  "placeholder": "Írja be az üzenetét…",
+  "send": "Küldés",
+  "reset": "Új beszélgetés",
+  "close": "Bezárás",
+  "launcher": "Csevegjen velünk",
+  "install": "Telepítés",
+  "installPrompt": "Adja a Sunshine Dentalt a kezdőképernyőjéhez",
+  "installHintIos": "Koppintson a Megosztás ikonra, majd a „Főképernyőhöz adás” lehetőségre",
+  "dismiss": "Elvetés",
+  "disclaimer": "AI asszisztens · Sürgős esetben hívja a 112-t.",
+  "error": "Sajnáljuk, hiba történt. Kérjük, próbálja újra.",
+  "unavailable": "Az asszisztens átmenetileg nem elérhető. Kérjük, próbálja meg később, vagy hívja a rendelőt.",
+  "tools": {
+    "working": "Dolgozom rajta…",
+    "check_availability": "Szabad időpontok ellenőrzése…",
+    "list_available_providers": "Elérhető orvosok keresése…",
+    "book_appointment": "Időpont foglalása…",
+    "cancel_appointment": "Időpont keresése…",
+    "capture_patient_info": "Adatok mentése…"
+  }
+}

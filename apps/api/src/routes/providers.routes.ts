@@ -3,22 +3,29 @@ import { z } from 'zod';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { ProviderSchema } from '@repo/shared';
 import { prisma } from '../lib/prisma.js';
+import { decryptOrPlaceholder } from '../lib/crypto.js';
+import { encryptRow } from '../lib/crypto-fields.js';
 
 const ProviderListItemSchema = z.object({
   id: z.string(),
   userId: z.string(),
   name: z.string(),
+  title: z.string().nullable(),
+  givenName: z.string(),
+  familyName: z.string(),
   specialty: z.string().nullable(),
   phone: z.string().nullable(),
 });
 
+// phone/bio are encrypted at rest; degrade to a placeholder while locked so
+// the provider list (needed by calendar/booking UI) keeps working.
 function serialize(p: any) {
   return {
     id: p.id,
     userId: p.userId,
     specialty: p.specialty,
-    phone: p.phone,
-    bio: p.bio,
+    phone: p.phone === null ? null : decryptOrPlaceholder(p.phone),
+    bio: p.bio === null ? null : decryptOrPlaceholder(p.bio),
     isActive: p.isActive,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
@@ -39,15 +46,18 @@ export async function providersRoutes(fastify: FastifyInstance) {
     handler: async () => {
       const providers = await prisma.provider.findMany({
         where: { isActive: true },
-        include: { user: { select: { name: true } } },
+        include: { user: { select: { name: true, title: true, givenName: true, familyName: true } } },
         orderBy: { createdAt: 'asc' },
       });
       return providers.map((p) => ({
         id: p.id,
         userId: p.userId,
         name: p.user.name,
+        title: p.user.title,
+        givenName: p.user.givenName,
+        familyName: p.user.familyName,
         specialty: p.specialty,
-        phone: p.phone,
+        phone: p.phone === null ? null : decryptOrPlaceholder(p.phone),
       }));
     },
   });
@@ -82,7 +92,7 @@ export async function providersRoutes(fastify: FastifyInstance) {
       if (body.phone !== undefined) data.phone = body.phone;
       if (body.bio !== undefined) data.bio = body.bio;
 
-      const updated = await prisma.provider.update({ where: { userId }, data });
+      const updated = await prisma.provider.update({ where: { userId }, data: encryptRow('provider', data) });
       return serialize(updated);
     },
   });

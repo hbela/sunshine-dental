@@ -10,6 +10,7 @@
   "phone": "Telefon",
   "email": "E-mail",
   "invalidEmail": "Érvénytelen e-mail",
+  "invalidPhone": "Érvénytelen telefonszám",
   "type": "Típus",
   "date": "Dátum",
   "time": "Idő",

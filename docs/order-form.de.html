@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Sunshine Dental — Bestellformular</title>
+<style>
+  :root{
+    --ink:#1a2b3c; --muted:#5b6b7b; --brand:#0ea5a4; --brand-dark:#0b7e7d;
+    --accent:#f5b301; --line:#d8e0e7; --bg-soft:#f4f9f9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    font-size:10.5px;line-height:1.4}
+  .page{max-width:800px;margin:0 auto;padding:24px 32px}
+  h1{font-size:20px;margin:0 0 1px;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:10px;margin:0 0 12px}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--brand-dark);
+    margin:14px 0 6px;border-bottom:1.5px solid var(--line);padding-bottom:3px}
+  p{margin:0 0 6px}
+  .brandbar{display:flex;align-items:center;justify-content:space-between;
+    border-bottom:3px solid var(--brand);padding-bottom:8px}
+  .tagline{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+  .providerline{background:var(--bg-soft);border:1px solid var(--line);border-radius:6px;
+    padding:6px 10px;font-size:10px;margin:10px 0}
+  .providerline b{color:var(--brand-dark)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 8px}
+  th,td{text-align:left;padding:5px 8px;border:1px solid var(--line);vertical-align:middle}
+  th{background:var(--brand);color:#fff;font-weight:600;font-size:9.5px}
+  .fill{color:var(--muted)}
+  .twocol{display:flex;gap:16px}
+  .twocol>div{flex:1}
+  .rates td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+  .rates td.unit{font-weight:400;color:var(--muted);text-align:left}
+  .opts{font-size:10px;line-height:1.7}
+  .box{display:inline-block;width:11px;height:11px;border:1.5px solid var(--brand);
+    border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .compliance{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+  .compliance ol{margin:4px 0 0;padding-left:4px;list-style:none}
+  .compliance li{margin-bottom:5px;padding-left:20px;text-indent:-20px}
+  .note{font-size:9px;color:var(--muted);font-style:italic;margin-top:6px}
+  .example{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:10px}
+  .example table{margin:4px 0 2px}
+  .example td{border:none;padding:2px 6px}
+  .example td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+  .example tr.total td{border-top:1.5px solid var(--brand);font-weight:700;color:var(--brand-dark)}
+  .costcard{border:1px dashed var(--brand);border-radius:8px;padding:8px 12px;font-size:9.5px;margin:8px 0}
+  .costcard b{color:var(--brand-dark)}
+  .sig{margin-top:14px}
+  .sigrow{display:flex;gap:24px;margin-top:18px}
+  .sigrow>div{flex:1}
+  .sigline{border-bottom:1px solid var(--ink);height:22px;margin-bottom:3px}
+  .siglabel{font-size:9px;color:var(--muted)}
+  .foot{text-align:center;color:var(--muted);font-size:9px;margin-top:14px;font-style:italic}
+  .logosvg{display:block}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brandbar">
+    <svg class="logosvg" width="190" height="40" viewBox="0 0 190 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sunshine Dental">
+      <g stroke="#f5b301" stroke-width="2.4" stroke-linecap="round">
+        <line x1="20" y1="3" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="37"/>
+        <line x1="3" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="37" y2="20"/>
+        <line x1="8" y1="8" x2="12" y2="12"/><line x1="28" y1="28" x2="32" y2="32"/>
+        <line x1="32" y1="8" x2="28" y2="12"/><line x1="12" y1="28" x2="8" y2="32"/>
+      </g>
+      <circle cx="20" cy="20" r="9.5" fill="#f5b301"/>
+      <path d="M16.4 16.2c0-1.7 1.4-2.8 3.6-2.8s3.6 1.1 3.6 2.8c0 2-1 3-1.5 5.1-.3 1.3-.4 3.6-1 3.6-.7 0-.6-2.2-1.1-2.2s-.4 2.2-1.1 2.2c-.6 0-.7-2.3-1-3.6-.5-2.1-1.5-3.1-1.5-5.1z" fill="#ffffff"/>
+      <text x="46" y="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="19" font-weight="800" letter-spacing="-0.5" fill="#0ea5a4">Sunshine<tspan fill="#f5b301"> Dental</tspan></text>
+    </svg>
+    <div class="tagline">Bestellformular</div>
+  </div>
+
+  <h1>Service-Bestellformular</h1>
+  <p class="sub">Dieses Bestellformular ist Anlage 1 des SaaS-Abonnementvertrags und bezieht diesen sowie den zugehörigen Auftragsverarbeitungsvertrag ein. Alle Preise zzgl. MwSt.</p>
+
+  <div class="providerline">
+    <b>Anbieter:</b> [Firmenname] &nbsp;·&nbsp; [E-Mail] &nbsp;·&nbsp; [Telefon] &nbsp;·&nbsp; [Website]
+  </div>
+
+  <h2>Kunde (Praxis)</h2>
+  <table>
+    <tr><td style="width:34%">Offizieller Name der Praxis</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Handelsname (falls abweichend)</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Anschrift</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Handelsregister- / Steuernummer</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Ansprechpartner (Name &amp; Funktion)</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>E-Mail</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Telefon</td><td class="fill">&nbsp;</td></tr>
+  </table>
+
+  <h2>Abonnement &amp; Nutzungstarife</h2>
+  <p>Die Preisgestaltung besteht aus zwei Teilen: einer festen <b>Plattformgebühr</b> für den Dienst selbst und <b>nutzungsabhängigen Gebühren</b>, die davon abhängen, wie viel die KI-Rezeption tatsächlich für Sie arbeitet. KI-Nutzung zahlen Sie nur für tatsächlich genutzte Minuten und Chat-Gespräche.</p>
+
+  <table class="rates">
+    <tr><th style="width:34%">Komponente</th><th>Leistungsumfang</th><th style="width:16%">Tarif</th></tr>
+    <tr><td><b>Plattformgebühr</b> — pro Standort</td><td>24/7-KI-Rezeption (Telefon + Web-/Mobil-Chat), Mitarbeiter-Dashboard &amp; Kalender, Terminbuchung/-absage/-verschiebung, Patientendaten, Anruf- &amp; Chat-Protokolle, E-Mail-Bestätigungen, 3 Sprachen (EN/HU/DE), sicheres EU-Hosting, Monitoring, Backups, Updates &amp; Support</td><td>249 € / Monat</td></tr>
+    <tr><td>Weiterer Standort</td><td class="unit">Gleiche Funktionen, gemeinsame Nutzungstarife</td><td>149 € / Monat</td></tr>
+    <tr><td><b>Sprach-KI-Nutzung</b></td><td class="unit">Pro Minute KI-geführtes Telefongespräch (sekundengenaue Abrechnung)</td><td>0,35 € / Minute</td></tr>
+    <tr><td><b>Chat-KI-Nutzung</b></td><td class="unit">Pro abgeschlossenem Chat-Gespräch (unabhängig von der Länge)</td><td>0,25 € / Gespräch</td></tr>
+    <tr><td>Telefonnummer</td><td class="unit">Miete einer lokalen Rufnummer (Weiterberechnung)</td><td>5 € / Monat</td></tr>
+    <tr><td>Einrichtung (einmalig)</td><td class="unit">Onboarding, Feinabstimmung von Agent &amp; Stimme, Rufnummern-Einrichtung/-Weiterleitung, Mitarbeiterschulung — <span class="box"></span>bei Jahresabrechnung erlassen</td><td>490 €</td></tr>
+  </table>
+
+  <div class="twocol">
+    <div class="example">
+      <b>Rechenbeispiel — typischer Monat, ein Standort</b>
+      <table>
+        <tr><td>Plattformgebühr</td><td>249,00 €</td></tr>
+        <tr><td>Telefon: ~300 Anrufe × ~3 Min. = 900 Min. × 0,35 €</td><td>315,00 €</td></tr>
+        <tr><td>Chat: ~200 Gespräche × 0,25 €</td><td>50,00 €</td></tr>
+        <tr><td>Telefonnummer</td><td>5,00 €</td></tr>
+        <tr class="total"><td>Geschätzte Monatssumme</td><td>619,00 €</td></tr>
+      </table>
+      <span class="note">Ein ruhigerer Monat (~450 Min., ~100 Chats) liegt bei etwa 436 €. Zum Vergleich: Ein menschlicher Telefonservice kostet 800–1.500 €/Monat — und das nur zu Geschäftszeiten.</span>
+    </div>
+    <div class="costcard">
+      <b>Warum die Nutzung gemessen wird — wohin das Geld fließt.</b> Jede KI-Minute verursacht echte Kosten, die wir pro Anruf für Sie tragen: Spracherkennung &amp; Sprachsynthese, das Sprachmodell, das Ihre Patienten versteht und ihnen antwortet, Telefonie sowie die sichere EU-Infrastruktur (Hosting, Datenbank, Monitoring, Backups), auf der Ihr Dashboard läuft. Nutzungsabhängige Abrechnung bedeutet: Ein ruhiger Monat kostet Sie weniger, ein geschäftiger Monat zahlt sich durch Buchungen aus — und Sie subventionieren nie das Anrufvolumen einer anderen Praxis.<br><br>
+      <b>Tarifstabilität:</b> Die Nutzungstarife sind für Ihre Erstlaufzeit festgeschrieben; danach können sie sich nur bei wesentlichen Änderungen der zugrunde liegenden KI-Anbieterpreise ändern — mit schriftlicher Ankündigung 30 Tage im Voraus.
+    </div>
+  </div>
+
+  <h2>Abrechnungsoptionen</h2>
+  <div class="twocol">
+    <div class="opts">
+      <span class="box"></span>Abrechnung: monatlich &nbsp;&nbsp; <span class="box"></span>jährlich (2 Monate Plattformgebühr gratis + Einrichtung erlassen)<br>
+      <span class="box"></span>Erstlaufzeit: 1 Monat &nbsp;&nbsp; <span class="box"></span>12 Monate<br>
+      Kündigungsfrist: <b>30 Tage</b> &nbsp;·&nbsp; Plattformgebühr im Voraus; Nutzung monatlich nachträglich mit detaillierter Aufstellung (Minuten &amp; Gespräche).
+    </div>
+    <div class="opts">
+      Standorte: <b>____</b> &nbsp;·&nbsp; Telefonnummern: <b>____</b><br>
+      Monatliche Nutzungsschwelle (darüber benachrichtigen wir Sie): <b>________ €</b><br>
+      <span class="box"></span>Gründungskunden-Pilot: Plattformgebühr <b>99 €/Monat</b> für die ersten <b>3</b> Monate (Nutzung zu Standardtarifen), im Gegenzug für Feedback + eine Referenzempfehlung.
+    </div>
+  </div>
+
+  <h2>Onboarding-Angaben (für den Start erforderlich)</h2>
+  <div class="twocol">
+    <div class="opts">
+      <span class="box"></span>Öffnungszeiten der Praxis pro Tag<br>
+      <span class="box"></span>Behandler (Namen, Fachgebiete, Arbeitszeiten)<br>
+      <span class="box"></span>Terminarten &amp; Dauer<br>
+      <span class="box"></span>Häufigste Fragen (Anfahrt, Parken, Versicherung)
+    </div>
+    <div class="opts">
+      <span class="box"></span>Bevorzugte KI-Stimme &amp; Sprache(n)<br>
+      <span class="box"></span>Weiterzuleitende / zu portierende Rufnummer<br>
+      <span class="box"></span>Mitarbeiterkonten (Name, E-Mail, Rolle)<br>
+      Geplanter Starttermin: <b>____________</b>
+    </div>
+  </div>
+
+  <h2>Compliance-Erklärung (erforderlich)</h2>
+  <div class="compliance">
+    <p style="margin:0 0 4px">Mit der Unterschrift bestätigt der Kunde, dass er Folgendes verstanden hat und akzeptiert:</p>
+    <ol>
+      <li><span class="box"></span>Der Kunde ist der <b>Verantwortliche</b>; der Anbieter ist der <b>Auftragsverarbeiter</b>. Ein <b>Auftragsverarbeitungsvertrag (AVV)</b> wird zusammen mit diesem Bestellformular unterzeichnet.</li>
+      <li><span class="box"></span>Der Kunde veröffentlicht einen <b>Patienten-Datenschutzhinweis</b>, dass Anrufe von einem <b>KI-Assistenten</b> bearbeitet und <b>aufgezeichnet</b> werden können.</li>
+      <li><span class="box"></span>Die <b>KI-Offenlegung im Anruf bleibt aktiviert</b> (der Agent nennt Praxis, Zweck und seine KI-Natur) und wird nicht deaktiviert.</li>
+      <li><span class="box"></span>Der Kunde holt alle nach DSGVO bzw. lokalem Gesundheitsdatenschutzrecht erforderlichen <b>Patienteneinwilligungen</b> ein.</li>
+      <li><span class="box"></span>Die KI ist ein <b>unterstützendes Betriebswerkzeug</b>, kann gelegentlich Fehler machen; Mitarbeiter prüfen Buchungen &amp; Anrufprotokolle im normalen Betrieb.</li>
+      <li><span class="box"></span>Unterauftragsverarbeiter (z.&nbsp;B. [Retell AI, Anthropic, OpenAI &amp; Cartesia über Retell, Hetzner, Telefonie, E-Mail]) sind im AVV aufgeführt; der Kunde stimmt deren Einsatz zu.</li>
+    </ol>
+    <p class="note">Befinden sich die Praxis oder angerufene Patienten in den USA, gelten zusätzliche Regeln (z.&nbsp;B. TCPA, ggf. HIPAA) — bitte angeben, damit der Anbieter die Einrichtung anpassen kann.</p>
+  </div>
+
+  <div class="sig">
+    <h2>Unterschriften</h2>
+    <div class="sigrow">
+      <div>
+        <div class="sigline"></div><div class="siglabel">Anbieter — Name &amp; Funktion</div>
+        <div class="sigline" style="margin-top:14px"></div><div class="siglabel">Unterschrift &amp; Datum</div>
+      </div>
+      <div>
+        <div class="sigline"></div><div class="siglabel">Kunde — Name &amp; Funktion</div>
+        <div class="sigline" style="margin-top:14px"></div><div class="siglabel">Unterschrift &amp; Datum</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">Fragen? Kontaktieren Sie uns: [E-Mail / Telefon]. Vielen Dank, dass Sie sich für Sunshine Dental entschieden haben!</p>
+
+</div>
+</body>
+</html>

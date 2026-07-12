@@ -11,7 +11,10 @@ datasource db {
 // Required by better-auth — do not rename
 model User {
   id            String    @id @default(cuid())
-  name          String
+  name          String                        // better-auth-owned canonical fallback; derived from the fields below
+  title         String?                       // honorific, e.g. "Dr."
+  givenName     String    @default("")        // Keresztnév
+  familyName    String    @default("")        // Vezetéknév
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
@@ -97,11 +100,15 @@ model Provider {
   delegationsOwned CalendarDelegation[] @relation("DelegationOwner")
 }
 
-// Patient registry (populated by voice agent capture_patient_info)
+// Patient registry (populated by voice agent capture_patient_info).
+// PII fields (name/phone/email/reason/notes) are AES-256-GCM ciphertext at rest
+// (see src/lib/crypto-fields.ts); phoneIndex is an HMAC blind index over the
+// normalized phone so exact-match dedupe lookups work without plaintext.
 model Patient {
   id                String    @id @default(cuid())
   name              String
   phone             String?
+  phoneIndex        String?   // HMAC-SHA256 blind index of normalized phone (not @unique: legacy dupes possible)
   email             String?
   reason            String?
   isNewPatient      Boolean   @default(true)
@@ -111,8 +118,19 @@ model Patient {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  appointments Appointment[]
-  callLogs     CallLog[]
+  appointments      Appointment[]
+  callLogs          CallLog[]
+  chatConversations ChatConversation[]
+
+  @@index([phoneIndex])
+}
+
+// Small key/value store; currently holds the encryption key-check canary
+// ('encryption.keycheck') that guards unlock against a wrong master key.
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 // Appointments
@@ -176,6 +194,51 @@ model CallLog {
   startTime           DateTime?
   endTime             DateTime?
   createdAt           DateTime @default(now())
+}
+
+// Chat conversations — patient-facing text chat with the virtual receptionist.
+// The public (unauthenticated) patient endpoints resume a conversation using the
+// unguessable `token`; it is NEVER returned to staff via the dashboard endpoints.
+model ChatConversation {
+  id            String    @id @default(cuid())
+  token         String    @unique // secret held by the patient's browser to resume/post
+  patientId     String? // linked once the patient is captured/booked
+  patient       Patient?  @relation(fields: [patientId], references: [id])
+  appointmentId String? // set if the chat resulted in a booking
+  language      String    @default("en") // 'en' | 'hu' | 'de'
+  status        ChatStatus @default(ACTIVE)
+  summary       String?   @db.Text
+  sentiment     String? // 'Positive' | 'Neutral' | 'Negative'
+  successful    Boolean?
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  messages ChatMessage[]
+}
+
+enum ChatStatus {
+  ACTIVE
+  ENDED
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           ChatRole
+  content        String           @db.Text
+  toolName       String? // set on TOOL rows, for the staff transcript
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId])
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  TOOL
 }
 
 // Explicit calendar events — created/managed by Provider or delegated Assistant

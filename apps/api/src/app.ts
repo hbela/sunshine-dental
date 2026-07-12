@@ -11,6 +11,7 @@ import { callLogsRoutes } from './routes/call-logs.routes.js'
 import { adminRoutes } from './routes/admin.routes.js'
 import { delegationsRoutes } from './routes/delegations.routes.js'
 import { usersRoutes } from './routes/users.routes.js'
+import { chatRoutes } from './routes/chat.routes.js'
 
 export async function app(fastify: FastifyInstance) {
   fastify.setErrorHandler((error: any, request, reply) => {
@@ -21,6 +22,11 @@ export async function app(fastify: FastifyInstance) {
         message: 'Validation failed',
         details: error.validation,
       })
+    }
+    // HttpErrors carrying a machine-readable code (e.g. ENCRYPTION_LOCKED)
+    // keep it in the payload so the web app and n8n can branch on it.
+    if (typeof error?.statusCode === 'number' && typeof error?.code === 'string') {
+      return reply.status(error.statusCode).send({ error: error.message, code: error.code })
     }
     reply.send(error)
   })
@@ -51,4 +57,5 @@ export async function app(fastify: FastifyInstance) {
   await fastify.register(adminRoutes, { prefix: '/api/admin' })
   await fastify.register(delegationsRoutes, { prefix: '/api/delegations' })
   await fastify.register(usersRoutes, { prefix: '/api/users' })
+  await fastify.register(chatRoutes, { prefix: '/api/chat' })
 }

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { requireRole } from '@/lib/route-guards'
+import { isValidPhoneNumber } from '@repo/shared'
 import { usePatients, usePatient, useUpdatePatient, type Patient } from '@/hooks/usePatients'
 import { useEnum } from '@/i18n/useEnum'
 import { useFormat } from '@/i18n/useFormat'
@@ -243,7 +244,10 @@ function PatientEditForm({
     () =>
       z.object({
         name: z.string().min(1, t('nameRequired')),
-        phone: z.string().optional(),
+        phone: z
+          .string()
+          .optional()
+          .refine((v) => !v || isValidPhoneNumber(v), t('invalidPhone')),
         email: z.string().email(t('invalidEmail')).optional().or(z.literal('')),
         reason: z.string().optional(),
         preferred_time: z.string().optional(),
@@ -303,6 +307,7 @@ function PatientEditForm({
         <div className="space-y-2">
           <Label htmlFor="p-phone">{t('columns.phone')}</Label>
           <Input id="p-phone" {...register('phone')} />
+          {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="p-email">{t('columns.email')}</Label>

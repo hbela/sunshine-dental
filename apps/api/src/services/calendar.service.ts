@@ -1,7 +1,9 @@
 import { prisma } from '../lib/prisma.js';
 import { AppointmentDurations } from '@repo/shared';
+import { decryptOrPlaceholder } from '../lib/crypto.js';
 import { dateToStr, timeToStr } from '../lib/datetime.js';
 import { expandRecurrence } from '../lib/recurrence.js';
+import { providerNameWhere } from '../lib/name.js';
 
 type CalendarEventRow = Awaited<ReturnType<typeof prisma.calendarEvent.findMany>>[number];
 
@@ -83,8 +85,10 @@ export class CalendarService {
     if (providerId) {
       provider = await prisma.provider.findUnique({ where: { id: providerId }, include: { user: true } });
     } else if (providerName) {
+      // Token-aware, order-independent match so "Nagy Ibolya" and
+      // "Ibolya Nagy" resolve to the same doctor.
       provider = await prisma.provider.findFirst({
-        where: { user: { name: { contains: providerName, mode: 'insensitive' } } },
+        where: providerNameWhere(providerName),
         include: { user: true },
       });
     } else {
@@ -235,21 +239,24 @@ export class CalendarService {
       orderBy: { date: 'asc' },
     });
 
+    // PII fields degrade to a placeholder while the keyring is locked so the
+    // staff calendar stays usable (times/types stay visible, names don't).
     const appointmentEvents = appointments.map((a) => {
       const ds = dateToStr(a.date);
+      const patientName = decryptOrPlaceholder(a.patientName);
       return {
         id: `appt_${a.id}`,
         kind: 'appointment' as const,
         appointmentId: a.id,
-        title: `${a.patientName} · ${a.appointmentType}`,
+        title: `${patientName} · ${a.appointmentType}`,
         start: new Date(`${ds}T${timeToStr(a.startTime)}:00.000Z`).toISOString(),
         end: new Date(`${ds}T${timeToStr(a.endTime)}:00.000Z`).toISOString(),
         allDay: false,
         status: a.status,
         appointmentType: a.appointmentType,
-        patientName: a.patientName,
-        patientPhone: a.patientPhone,
-        notes: a.notes,
+        patientName,
+        patientPhone: a.patientPhone === null ? null : decryptOrPlaceholder(a.patientPhone),
+        notes: a.notes === null ? null : decryptOrPlaceholder(a.notes),
       };
     });
 

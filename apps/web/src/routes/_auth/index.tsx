@@ -10,16 +10,10 @@ import { usePatients } from '@/hooks/usePatients'
 import { useCallLogStats, useCallLogs, type CallLog } from '@/hooks/useCallLogs'
 import { useEnum } from '@/i18n/useEnum'
 import { useFormat } from '@/i18n/useFormat'
+import { givenNameOf } from '@/lib/name'
 import { Badge } from '@/components/ui/badge'
 
 const today = () => format(new Date(), 'yyyy-MM-dd')
-
-/** Drop honorific tokens ("Dr.") and return the given name for the greeting. */
-function firstName(name?: string | null) {
-  if (!name) return ''
-  const parts = name.split(/\s+/).filter((p) => !p.endsWith('.'))
-  return parts[0] ?? name
-}
 
 function greetingKey() {
   const h = new Date().getHours()
@@ -61,7 +55,7 @@ function sentimentVariant(s: string | null): BadgeVariant {
 function GreetingHeader({ subtitle }: { subtitle: string }) {
   const { t } = useTranslation('dashboard')
   const { data: session } = authClient.useSession()
-  const name = firstName(session?.user?.name)
+  const name = givenNameOf(session?.user ?? {})
   return (
     <header className="flex flex-wrap items-end justify-between gap-2">
       <h1 className="font-display text-4xl font-bold tracking-tight text-primary">

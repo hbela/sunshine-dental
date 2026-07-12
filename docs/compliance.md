@@ -96,6 +96,32 @@ For a dental application I would strongly recommend:
 * Audit trail for patient record modifications
 * User activity logging
 
+### Encryption at rest — implemented
+
+Sunshine Dental encrypts all patient PII at the application level before it
+reaches PostgreSQL:
+
+* **What**: patient names, phone numbers, emails, visit reasons, notes,
+  appointment PII, full voice-call and chat transcripts, chat summaries,
+  provider phone/bio. Staff login records stay conventional (passwords are
+  hashed by better-auth).
+* **How**: AES-256-GCM per field with a random IV (`enc:v1:` prefixed values);
+  exact phone lookups use a keyed HMAC-SHA256 blind index, so no plaintext is
+  ever queryable in SQL.
+* **Key custody**: a single 32-byte master key is generated and held by the
+  clinic administrator. It is **never stored on the server** — after every
+  restart an ADMIN unlocks the API (`POST /api/admin/unlock`) and the key
+  lives only in process memory. A key-check canary rejects wrong keys before
+  any data could be written.
+* **Consequence**: the hosting operator, the database provider, database dumps,
+  and backups only ever contain ciphertext. The clinic controls who can read
+  patient data.
+* **Honest limits** (state this in the DPA): the running application must
+  decrypt data to serve the dashboard, the AI receptionist (Anthropic), and
+  booking emails (n8n), so those subprocessors receive plaintext by design;
+  and losing the master key makes the encrypted data permanently unreadable —
+  the escrow procedure in `docs/deploy.md` §8a is mandatory.
+
 ---
 
 ### Data Processing Agreement (DPA)

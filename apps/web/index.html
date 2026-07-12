@@ -2,9 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sunshine Dental Clinic</title>
+
+    <!-- PWA / installable mobile chat (see docs/mobile-chat-pwa-plan.md) -->
+    <meta name="theme-color" content="#55624d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SD Chat" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <script>
       try {
         if (localStorage.theme === 'dark') document.documentElement.classList.add('dark')

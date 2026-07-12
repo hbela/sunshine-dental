@@ -16,6 +16,7 @@ import {
 import type { Role } from '@/hooks/useRole'
 import { useEnum } from '@/i18n/useEnum'
 import { useFormat } from '@/i18n/useFormat'
+import { useDisplayName } from '@/lib/name'
 import { apiErrorMessage } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,6 +38,7 @@ function UsersPage() {
   const { t: tc } = useTranslation('common')
   const { tEnum } = useEnum()
   const { formatDate } = useFormat()
+  const displayName = useDisplayName()
 
   const [roleFilter, setRoleFilter] = useState<Role | ''>('')
   const [creating, setCreating] = useState(false)
@@ -106,7 +108,7 @@ function UsersPage() {
             )}
             {rows.map((u) => (
               <tr key={u.id} className="transition-colors even:bg-muted/20 hover:bg-primary-fixed/30">
-                <td className="px-4 py-3 font-medium text-foreground">{u.name}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{displayName(u)}</td>
                 <td className="px-4 py-3">{u.email}</td>
                 <td className="px-4 py-3">
                   <Select
@@ -145,7 +147,9 @@ function UsersPage() {
 }
 
 type CreateValues = {
-  name: string
+  title?: string
+  givenName: string
+  familyName: string
   email: string
   password: string
   role: 'PROVIDER' | 'ASSISTANT'
@@ -165,7 +169,9 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
   const schema = useMemo(
     () =>
       z.object({
-        name: z.string().min(1, t('validation.nameRequired')),
+        title: z.string().optional(),
+        givenName: z.string().min(1, t('validation.givenNameRequired')),
+        familyName: z.string().min(1, t('validation.familyNameRequired')),
         email: z.string().email(t('validation.invalidEmail')),
         password: z.string().min(8, t('validation.passwordMin')),
         role: z.enum(['PROVIDER', 'ASSISTANT']),
@@ -183,7 +189,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
     formState: { errors },
   } = useForm<CreateValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', email: '', password: '', role: 'ASSISTANT' },
+    defaultValues: { title: '', givenName: '', familyName: '', email: '', password: '', role: 'ASSISTANT' },
   })
 
   const role = watch('role')
@@ -192,7 +198,9 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
     setError(null)
     try {
       const result = await create.mutateAsync({
-        name: values.name,
+        title: values.title || undefined,
+        givenName: values.givenName,
+        familyName: values.familyName,
         email: values.email,
         password: values.password,
         role: values.role,
@@ -241,10 +249,25 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
       </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-[6rem_1fr] gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="u-title">{t('columns.title')}</Label>
+            <Input id="u-title" placeholder="Dr." {...register('title')} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="u-given">{t('columns.givenName')}</Label>
+            <Input id="u-given" {...register('givenName')} />
+            {errors.givenName && (
+              <p className="text-sm text-destructive">{errors.givenName.message}</p>
+            )}
+          </div>
+        </div>
         <div className="space-y-2">
-          <Label htmlFor="u-name">{t('columns.name')}</Label>
-          <Input id="u-name" {...register('name')} />
-          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          <Label htmlFor="u-family">{t('columns.familyName')}</Label>
+          <Input id="u-family" {...register('familyName')} />
+          {errors.familyName && (
+            <p className="text-sm text-destructive">{errors.familyName.message}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="u-email">{t('columns.email')}</Label>

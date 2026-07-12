@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from '../lib/prisma.js';
+import { isUnlocked } from '../lib/crypto.js';
 
 // Public, unauthenticated health endpoint for external uptime monitoring.
 // Reachable through nginx as GET /api/health (the root-level /ping is internal-only,
@@ -14,13 +15,17 @@ export async function healthRoutes(fastify: FastifyInstance) {
     },
     // No preHandler on purpose: this must be callable without an API key.
     handler: async (_request, reply) => {
+      // 'locked' after every restart until an ADMIN posts the master key to
+      // /api/admin/unlock; uptime monitoring should alert on a lasting lock.
+      const encryption = isUnlocked() ? 'unlocked' : 'locked';
       try {
         await prisma.$queryRaw`SELECT 1`;
-        return { status: 'ok', db: 'ok', time: new Date().toISOString() };
+        return { status: 'ok', db: 'ok', encryption, time: new Date().toISOString() };
       } catch (err) {
         return reply.status(503).send({
           status: 'error',
           db: 'down',
+          encryption,
           time: new Date().toISOString(),
         });
       }

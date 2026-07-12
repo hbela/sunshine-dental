@@ -14,6 +14,7 @@ import {
 } from '@/hooks/useAppointments'
 import { useEnum } from '@/i18n/useEnum'
 import { useFormat } from '@/i18n/useFormat'
+import { useDisplayName } from '@/lib/name'
 import { apiErrorMessage } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -58,6 +59,7 @@ function AppointmentsPage() {
   const { t: tc } = useTranslation('common')
   const { tEnum } = useEnum()
   const { formatDate } = useFormat()
+  const displayName = useDisplayName()
   const { canManageAppointments } = useRole()
   const { data: providers } = useProviders()
 
@@ -101,7 +103,7 @@ function AppointmentsPage() {
             <option value="">{t('filters.allProviders')}</option>
             {(providers ?? []).map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {displayName(p)}
               </option>
             ))}
           </Select>

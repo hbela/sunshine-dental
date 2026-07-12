@@ -1,5 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
+import { assertUnlocked } from '../lib/crypto.js';
+import { decryptRow, decryptRows, encryptRow } from '../lib/crypto-fields.js';
 
 function serialize(c: any) {
   return {
@@ -44,7 +46,8 @@ export interface CreateCallLogInput {
 export class CallLogService {
   /** Upsert on callId so the post-call webhook is idempotent. */
   static async create(input: CreateCallLogInput) {
-    const data = {
+    assertUnlocked();
+    const data = encryptRow('callLog', {
       agentId: input.agent_id ?? null,
       patientId: input.patient_id ?? null,
       fromNumber: input.from_number ?? null,
@@ -59,7 +62,7 @@ export class CallLogService {
       successful: input.successful ?? null,
       startTime: input.start_time ? new Date(input.start_time) : null,
       endTime: input.end_time ? new Date(input.end_time) : null,
-    };
+    });
 
     const callLog = await prisma.callLog.upsert({
       where: { callId: input.call_id },
@@ -67,7 +70,7 @@ export class CallLogService {
       update: data,
     });
 
-    return serialize(callLog);
+    return serialize(decryptRow('callLog', callLog));
   }
 
   static async list(filters: {
@@ -78,6 +81,7 @@ export class CallLogService {
     page?: number;
     limit?: number;
   }) {
+    assertUnlocked();
     const page = filters.page && filters.page > 0 ? filters.page : 1;
     const limit = filters.limit && filters.limit > 0 ? filters.limit : 50;
 
@@ -97,13 +101,14 @@ export class CallLogService {
       take: limit,
     });
 
-    return callLogs.map(serialize);
+    return decryptRows('callLog', callLogs).map(serialize);
   }
 
   static async findByCallId(callId: string) {
+    assertUnlocked();
     const callLog = await prisma.callLog.findUnique({ where: { callId } });
     if (!callLog) throw new HttpError(404, 'Call log not found');
-    return serialize(callLog);
+    return serialize(decryptRow('callLog', callLog));
   }
 
   static async stats() {

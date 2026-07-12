@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Users,
   Phone,
+  MessageSquare,
   Settings,
   Shield,
   LogOut,
@@ -14,8 +15,10 @@ import {
 } from 'lucide-react'
 import { authClient } from '@/auth-client'
 import { Button } from '@/components/ui/button'
+import { EncryptionUnlockBanner } from '@/components/EncryptionUnlockBanner'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useDisplayName } from '@/lib/name'
 import { cn } from '@/lib/utils'
 
 type Role = 'PROVIDER' | 'ASSISTANT' | 'ADMIN'
@@ -27,6 +30,7 @@ type NavKey =
   | 'appointments'
   | 'patients'
   | 'callLogs'
+  | 'chatLogs'
   | 'users'
   | 'settings'
 
@@ -43,6 +47,7 @@ const NAV: NavItem[] = [
   { to: '/appointments', labelKey: 'appointments', icon: ClipboardList, roles: ALL },
   { to: '/patients', labelKey: 'patients', icon: Users, roles: ['ASSISTANT', 'ADMIN'] },
   { to: '/call-logs', labelKey: 'callLogs', icon: Phone, roles: ['ASSISTANT', 'ADMIN'] },
+  { to: '/chat-logs', labelKey: 'chatLogs', icon: MessageSquare, roles: ['ASSISTANT', 'ADMIN'] },
   { to: '/admin/users', labelKey: 'users', icon: Shield, roles: ['ADMIN'] },
   { to: '/settings', labelKey: 'settings', icon: Settings, roles: ALL },
 ]
@@ -51,6 +56,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { data: session } = authClient.useSession()
+  const displayName = useDisplayName()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   const user = session?.user
@@ -109,7 +115,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <LanguageSwitcher />
             {user && (
               <div className="text-right leading-tight">
-                <div className="text-sm font-medium text-foreground">{user.name}</div>
+                <div className="text-sm font-medium text-foreground">{displayName(user)}</div>
               </div>
             )}
             <Button variant="outline" size="sm" onClick={handleLogout}>
@@ -118,6 +124,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </header>
+        <EncryptionUnlockBanner />
         <main className="flex-1 overflow-auto bg-background p-6">{children}</main>
       </div>
     </div>

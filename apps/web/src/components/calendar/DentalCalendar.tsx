@@ -11,6 +11,7 @@ import { authClient } from '@/auth-client'
 import { useProviders } from '@/hooks/useProviders'
 import { useCalendarEvents, useCalendarEventsMulti, type CalendarItem } from '@/hooks/useCalendar'
 import { isoToWall, rangeForView } from '@/lib/calendar-utils'
+import { useDisplayName } from '@/lib/name'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { AppointmentModal } from './AppointmentModal'
@@ -88,6 +89,7 @@ function toRbc(item: CalendarItem, resourceId?: string): CalEvent {
 
 export function DentalCalendar() {
   const { t, i18n } = useTranslation('calendar')
+  const displayName = useDisplayName()
   const culture = i18n.language?.split('-')[0] ?? 'en'
   const messages: Messages = useMemo(
     () => ({
@@ -145,7 +147,7 @@ export function DentalCalendar() {
   }
 
   const resources =
-    allProviders && providers ? providers.map((p) => ({ id: p.id, title: p.name })) : undefined
+    allProviders && providers ? providers.map((p) => ({ id: p.id, title: displayName(p) })) : undefined
 
   const onSelectEvent = (event: CalEvent) => {
     const it = event.resource
@@ -200,7 +202,7 @@ export function DentalCalendar() {
           >
             {(providers ?? []).map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {displayName(p)}
                 {p.specialty ? ` · ${p.specialty}` : ''}
               </option>
             ))}

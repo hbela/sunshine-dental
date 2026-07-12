@@ -30,9 +30,9 @@ const Retell = require('retell-sdk').default ?? require('retell-sdk').Retell ?? 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DRY_RUN = process.argv.includes('--dry-run')
 
-// ── Target: production Dental Clinic agent + the "sunshine" custom voice ──────
+// ── Target: production Dental Clinic agent + the Cartesia voice ──────────────
 const AGENT_ID = 'agent_0c73886e96f6cf2ad878def30e'
-const VOICE_ID = 'custom_voice_7b088e19c082ed8f759ffd49f4' // ElevenLabs BYOK "sunshine"
+const VOICE_ID = 'cartesia-Chloe' // predefined Cartesia voice (live since agent v2; replaced the ElevenLabs BYOK "sunshine" clone)
 const FALLBACK_VOICE_IDS = ['openai-Chloe'] // previous prod voice — cheap, multilingual
 
 // ── Resolve the Retell API key (env → ../../.mcp.json) ──────────────────────

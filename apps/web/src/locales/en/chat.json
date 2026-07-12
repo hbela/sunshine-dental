@@ -1,0 +1,25 @@
+{
+  "title": "Sunshine Dental",
+  "subtitle": "Chat with our virtual receptionist",
+  "greeting": "Hi! I'm Sarah, the virtual receptionist at Sunshine Dental. I can help you book, reschedule, or cancel an appointment, or answer questions about the clinic. How can I help you today?",
+  "placeholder": "Type your message…",
+  "send": "Send",
+  "reset": "Start over",
+  "close": "Close",
+  "launcher": "Chat with us",
+  "install": "Install",
+  "installPrompt": "Add Sunshine Dental to your home screen",
+  "installHintIos": "Tap the Share icon, then \"Add to Home Screen\"",
+  "dismiss": "Dismiss",
+  "disclaimer": "AI assistant · For a medical emergency, call 112.",
+  "error": "Sorry, something went wrong. Please try again.",
+  "unavailable": "The assistant is temporarily unavailable. Please try again later or call the clinic.",
+  "tools": {
+    "working": "Working on it…",
+    "check_availability": "Checking availability…",
+    "list_available_providers": "Looking up available doctors…",
+    "book_appointment": "Booking your appointment…",
+    "cancel_appointment": "Looking up your appointment…",
+    "capture_patient_info": "Saving your details…"
+  }
+}

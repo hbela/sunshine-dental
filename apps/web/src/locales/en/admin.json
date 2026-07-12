@@ -16,6 +16,9 @@
   "deleteConfirm": "Delete {{name}}? This permanently removes the account and cannot be undone.",
   "columns": {
     "name": "Name",
+    "title": "Title",
+    "givenName": "First name",
+    "familyName": "Last name",
     "email": "Email",
     "role": "Role",
     "created": "Created"
@@ -26,7 +29,8 @@
     "bio": "Bio"
   },
   "validation": {
-    "nameRequired": "Name is required",
+    "givenNameRequired": "First name is required",
+    "familyNameRequired": "Last name is required",
     "invalidEmail": "Invalid email",
     "passwordMin": "Password must be at least 8 characters"
   }

@@ -29,11 +29,11 @@ copy) so the LLM date isn't PATCHed twice. See `docs/n8n-dev-prod-split-plan.md`
 
 The prod agent (`agent_0c73886e96f6cf2ad878def30e`, LLM `llm_9144fb5e818b3d841e18ab084b99`) runs:
 
-- **Voice: `custom_voice_7b088e19c082ed8f759ffd49f4`** ("sunshine") — a custom ElevenLabs voice clone imported via BYOK (paste the ElevenLabs API key into Retell settings → *Import Professional Voices*; the *Community Voices* tab does NOT work for private clones). ElevenLabs runs ~$0.08/min, so voice cost is ~5× the previous `openai-Chloe` — a deliberate brand/quality choice over cost.
-  - **Fallback: `fallback_voice_ids: ["openai-Chloe"]`** — a BYOK voice reaches ElevenLabs live per utterance and can fail mid-call (quota/API); the fallback keeps the (cheap, multilingual) previous voice as a safety net.
-  - *History:* started on `11labs-Marissa`, then a 3-way A/B audition (`pnpm retell:audition`) picked `openai-Chloe` (~$0.015/min) to save ~$100/mo; superseded by the "sunshine" clone once the client wanted their own voice.
-- **Model: `gpt-4.1-mini`** — the reliability/cost sweet spot for a multilingual, tool-calling booking agent (nano was too weak for function-calling). If it starts dropping the `language` param or fumbling `YYYY-MM-DD` dates, step back up.
-- All-in ≈ **$0.10/min** (ElevenLabs voice + LLM + telephony), up from ~$0.036/min on `openai-Chloe`.
+- **Voice: `cartesia-Chloe`** — a predefined Cartesia voice, billed inside Retell's standard per-minute bundle (no external ElevenLabs account/bill). In use since agent v2 (verified against the live agent 2026-07-10).
+  - **Fallback: `fallback_voice_ids: ["openai-Chloe"]`** — keeps the previous (cheap, multilingual) voice as a safety net if the primary TTS fails mid-call.
+  - *History:* started on `11labs-Marissa` → 3-way A/B audition (`pnpm retell:audition`) picked `openai-Chloe` (~$0.015/min, saved ~$100/mo) → briefly an ElevenLabs BYOK custom clone "sunshine" (`custom_voice_…`, ~$0.08/min, agent v0–v1 only; imported via Retell settings → *Import Professional Voices*) → **`cartesia-Chloe`** (current).
+- **Model: `gpt-4.1`** (the live LLM; earlier notes said `gpt-4.1-mini`) — a multilingual, tool-calling booking agent needs the reliability (nano/mini were too weak for consistent function-calling). Post-call analysis runs on `gpt-4.1-mini`.
+- All-in per minute = Retell bundle (Cartesia voice + telephony) + GPT-4.1 LLM — cheaper than the old ElevenLabs-clone setup (~$0.10/min); check the Retell dashboard for the current exact rate.
 
 Change the voice idempotently with `pnpm retell:set-voice` (script: `workflows/scripts/retell-set-voice.mjs`) — it patches `voice_id` + `fallback_voice_ids` via the Retell SDK (`--dry-run` to preview). Re-run the engine A/B anytime with `pnpm retell:audition` (`workflows/scripts/retell-voice-audition.mjs`).
 
@@ -43,6 +43,13 @@ Change the voice idempotently with `pnpm retell:set-voice` (script: `workflows/s
 |------|--------------|---------|
 | `retell-custom-function-router-v2.json` | Retell Custom Function Router (v2 - PostgreSQL) | Handles real-time custom function calls from Retell during a live call (slot availability, booking, cancellation, FAQ, patient capture) |
 | `post-call-processing-v2.json` | Retell Post-Call Processing (v2 - PostgreSQL) | Runs after a call ends — logs the call to the API and emails a summary to the manager |
+| `chat-booking-confirmation.json` | Chat Booking Confirmation Email | Webhook the **chat** API calls after an in-process booking, to email the patient a confirmation (the voice flow emails from its own router node instead). Localized EN/HU/DE; reuses the `Gmail account 2` credential. |
+
+### Chat booking confirmation email (why this exists)
+
+The patient **text chat** (`apps/api` → `chat.service.ts`) books appointments **in-process**, so it never hits the Retell router's `Send Confirmation Email` node — chat bookings would send no email. The `chat-booking-confirmation` workflow closes that gap: the API POSTs the booking to its webhook (`N8N_BOOKING_WEBHOOK_URL`) and it sends the same localized confirmation. Its HU copy uses the corrected chat glossary (`személyi igazolvány` / `TAJ kártya`, `Fogkőeltávolítás`, `Mélytisztítás`), so it's slightly ahead of the voice router's older HU wording.
+
+**Setup after import:** select the `Gmail account 2` credential on the Gmail node → **activate** → copy the Production webhook URL into the API's `N8N_BOOKING_WEBHOOK_URL` env (Coolify) → redeploy. Webhook path: `/webhook/chat-booking-confirmation`.
 
 ## How to Import
 
