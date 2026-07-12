@@ -38,5 +38,6 @@ ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
 
-# tsx resolves the .js import specifiers back to .ts (NodeNext) just like `pnpm dev`.
-CMD ["pnpm", "exec", "tsx", "src/server.ts"]
+# Sync additive Prisma schema changes before boot. Without --accept-data-loss,
+# Prisma refuses destructive changes instead of applying them implicitly.
+CMD ["sh", "-c", "pnpm exec prisma db push --skip-generate && pnpm exec tsx src/server.ts"]

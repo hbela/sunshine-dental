@@ -31,6 +31,7 @@ const MASTER_KEY_PATTERN = /^[0-9a-fA-F]{64}$/;
 
 export const KEYCHECK_SETTING_KEY = 'encryption.keycheck';
 const KEYCHECK_PLAINTEXT = 'sunshine-keycheck-v1';
+const SCHEMA_OUT_OF_DATE_CODES = new Set(['P2021', 'P2022']);
 
 interface Subkeys {
   dataKey: Buffer;
@@ -71,6 +72,11 @@ function decryptWith(dataKey: Buffer, value: string): string {
   decipher.setAuthTag(tag);
   // GCM tag verification throws here on a wrong key or tampered data.
   return Buffer.concat([decipher.update(ct), decipher.final()]).toString('utf8');
+}
+
+function isSchemaOutOfDateError(error: unknown): boolean {
+  const code = (error as { code?: unknown })?.code;
+  return typeof code === 'string' && SCHEMA_OUT_OF_DATE_CODES.has(code);
 }
 
 export function isEncrypted(value: string): boolean {
@@ -121,7 +127,21 @@ export async function unlockWithKeyCheck(
   masterKeyHex: string,
 ): Promise<boolean> {
   const candidate = deriveSubkeys(masterKeyHex);
-  const existing = await db.appSetting.findUnique({ where: { key: KEYCHECK_SETTING_KEY } });
+  let existing: { value: string } | null;
+  try {
+    existing = await db.appSetting.findUnique({ where: { key: KEYCHECK_SETTING_KEY } });
+  } catch (error) {
+    candidate.dataKey.fill(0);
+    candidate.indexKey.fill(0);
+    if (isSchemaOutOfDateError(error)) {
+      throw new HttpError(
+        503,
+        'Database schema is out of date. Run Prisma schema sync before unlocking patient data.',
+        'DATABASE_SCHEMA_OUT_OF_DATE',
+      );
+    }
+    throw error;
+  }
   if (existing) {
     try {
       if (decryptWith(candidate.dataKey, existing.value) !== KEYCHECK_PLAINTEXT) {
@@ -133,9 +153,22 @@ export async function unlockWithKeyCheck(
       return false;
     }
   } else {
-    await db.appSetting.create({
-      data: { key: KEYCHECK_SETTING_KEY, value: encryptWith(candidate.dataKey, KEYCHECK_PLAINTEXT) },
-    });
+    try {
+      await db.appSetting.create({
+        data: { key: KEYCHECK_SETTING_KEY, value: encryptWith(candidate.dataKey, KEYCHECK_PLAINTEXT) },
+      });
+    } catch (error) {
+      candidate.dataKey.fill(0);
+      candidate.indexKey.fill(0);
+      if (isSchemaOutOfDateError(error)) {
+        throw new HttpError(
+          503,
+          'Database schema is out of date. Run Prisma schema sync before unlocking patient data.',
+          'DATABASE_SCHEMA_OUT_OF_DATE',
+        );
+      }
+      throw error;
+    }
   }
   lock();
   keys = candidate;
