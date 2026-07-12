@@ -121,25 +121,28 @@ Mark `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `FASTIFY_API_KEY` as **secret**.
 Click **Deploy**. Coolify builds both images and starts the stack. The `api`
 healthcheck hits `GET /ping` (returns `{"status":"ok"}`); wait for both healthy.
 
-### 6a. Sync the database schema (one-off, first deploy only)
+### 6a. Database schema + seed
 
-This project uses Prisma **`db push`** (no migration files). After the first
-deploy, open a shell in the **api** container (Coolify → api service → *Terminal*)
-and run:
+This project uses Prisma **`db push`** (no migration files). The api container
+**runs `prisma db push` automatically on every boot** (Dockerfile `CMD`), so the
+schema is always in sync after a deploy — no manual step. It runs *without*
+`--accept-data-loss`, so a destructive schema change fails the boot instead of
+silently dropping data (check the api log if the container won't start).
+
+Only the seed is manual. After the **first** deploy, open a shell in the **api**
+container (Coolify → api service → *Terminal*):
 
 ```bash
 cd apps/api
-pnpm exec prisma db push      # create/sync tables from schema.prisma
 pnpm exec tsx prisma/seed.ts  # seed admin + providers — FIRST TIME ONLY
 ```
 
-> If `db push` errors on the pooled connection (advisory-lock/pooling), add a
-> non-pooled `directUrl` to the `datasource` block in
-> `apps/api/prisma/schema.prisma` and set a `DIRECT_DATABASE_URL` env var, or run
-> `db push` once from your laptop against the same `DATABASE_URL`.
+> If the boot-time `db push` errors on the pooled connection
+> (advisory-lock/pooling), add a non-pooled `directUrl` to the `datasource`
+> block in `apps/api/prisma/schema.prisma` and set a `DIRECT_DATABASE_URL` env
+> var, or run `db push` once from your laptop against the same `DATABASE_URL`.
 
-Re-run `prisma db push` after any future schema change (it's safe and idempotent).
-**Do not** re-run the seed — it inserts data.
+**Do not** re-run the seed — it wipes and re-inserts data.
 
 ---
 
@@ -161,7 +164,9 @@ Then in a browser:
 ## 8. Updating / redeploying
 
 Push to `main` → Coolify auto-deploys (if "Auto Deploy" is on), or click **Deploy**.
-Only re-run `prisma db push` when `schema.prisma` changed. The seed is never re-run.
+Schema changes apply automatically (boot-time `db push`, see §6a). The seed is
+never re-run. After every deploy the API boots **locked** — an ADMIN must unlock
+patient data (§8a).
 
 ---
 
@@ -177,6 +182,10 @@ working, but patient/appointment/chat/call-log endpoints return
 
 ### One-time setup (key + existing data)
 
+> **Follow [`dev-to-prod-migration-plan.md`](dev-to-prod-migration-plan.md)** for
+> the full first-rollout runbook (it folds in the lessons from the dev rollout).
+> Summary of the order — it matters:
+
 1. **Generate the key** on the clinic admin's machine (never on the VPS):
    ```bash
    openssl rand -hex 32
@@ -186,21 +195,30 @@ working, but patient/appointment/chat/call-log endpoints return
    optionally the owner's password manager. Test-read one envelope once.
 3. **Backup**: `pg_dump` the prod DB (this final plaintext dump is itself PII —
    keep it offline and destroy it after verifying the migration).
-4. `pnpm exec prisma db push` (adds `Patient.phoneIndex` + `AppSetting`).
-5. Deploy the encryption-enabled build. The API boots locked
+4. Deploy the encryption-enabled build. The boot-time `db push` adds
+   `Patient.phoneIndex` + `AppSetting` automatically; the API boots locked
    (`GET /api/health` → `"encryption": "locked"`).
-6. In the **api** container terminal, encrypt the existing rows (idempotent —
-   safe to re-run after a crash). It verifies/writes the key-check canary
-   *before* touching data, so a wrong key aborts cleanly:
+5. **Before anyone touches the unlock banner**, encrypt the existing rows in the
+   **api** container terminal (idempotent — safe to re-run after a crash). It
+   writes/verifies the key-check canary *before* touching data, so a wrong key
+   aborts cleanly:
    ```bash
    cd apps/api
-   pnpm exec tsx scripts/encrypt-existing-data.ts   # prompts for the key
+   pnpm exec tsx scripts/encrypt-existing-data.ts   # prompts for the key (or --key <hex>)
    ```
-7. Admin logs into the dashboard (login works while locked), pastes the key
+   > ⚠️ **The first key wins.** If no canary exists yet, the first unlock (or
+   > migration run) *creates* it from whatever key was entered — a typo'd key at
+   > the banner would poison the canary and reject the real key ever after.
+   > That's why the script (with the escrowed key) must run first.
+6. Admin logs into the dashboard (login works while locked), pastes the key
    into the amber unlock banner. Health flips to `"unlocked"`.
-8. Verify with a raw query (`SELECT name, phone, "phoneIndex" FROM "Patient"
+7. Verify with a raw query (`SELECT name, phone, "phoneIndex" FROM "Patient"
    LIMIT 5;`) — values must start with `enc:v1:` — and by searching a patient
    in the dashboard.
+
+If unlock returns `503 DATABASE_SCHEMA_OUT_OF_DATE`, the boot-time schema sync
+didn't run — check the api boot log, run `pnpm exec prisma db push` in the
+container, retry the unlock.
 
 ### After every deploy/restart
 
@@ -296,10 +314,10 @@ Use the chosen URL as **`DATABASE_URL`** in the dev app's Coolify env (not the l
 | `N8N_BOOKING_WEBHOOK_URL` | `https://n8ndev.appointer.hu/webhook/chat-booking-confirmation` — emails a chat booking confirmation. Omit to disable. |
 
 ### 11e. Deploy + seed (first time)
-Deploy, then in the **api** container terminal (same as §6a):
+Deploy — the schema syncs automatically at boot (§6a). Then, in the **api**
+container terminal, seed once:
 ```bash
 cd apps/api
-pnpm exec prisma db push       # sync schema into the dev DB
 pnpm exec tsx prisma/seed.ts   # seed admin + providers (Dr. Ibolya Nagy, Dr. István) — first time only
 ```
 
