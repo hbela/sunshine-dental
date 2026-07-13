@@ -85,7 +85,8 @@ async function main() {
   const client = new Retell({ apiKey: resolveApiKey() })
 
   // ── Find existing audition agents so re-runs reuse the same LLM ───────────
-  const agents = await client.agent.list()
+  // POST /v2/list-agents returns { items, pagination_key } (not a bare array).
+  const { items: agents = [] } = await client.agent.list()
   const auditionAgents = agents.filter((a) => (a.agent_name ?? '').startsWith(PREFIX))
   let llmId = auditionAgents[0]?.response_engine?.llm_id ?? null
 
