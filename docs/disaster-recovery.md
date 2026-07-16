@@ -86,7 +86,7 @@ them. A fully compromised VPS cannot decrypt a single historical backup.
 
 | Variable | Value | Notes |
 |---|---|---|
-| `BACKUP_DATABASE_URL` | **Direct, non-pooled** Postgres URL | `pg_dump` is unreliable through a connection pooler — the same pooling issue [`deploy.md`](deploy.md) §6a already flags for `db push`. A direct URL works against Prisma.io **today** and self-hosted Postgres later, so backups aren't blocked on the DB migration. Mark **secret**. (2026-07-16 drill: `pg_dump` of the small dev DB did succeed through `pooled.db.prisma.io` — keep the direct-URL rule anyway; pooler failures are load-dependent.) |
+| `BACKUP_DATABASE_URL` | Composed automatically in `docker-compose.yml` (`postgres://postgres:${POSTGRES_PASSWORD}@db:5432/sunshine`) | Direct in-stack connection — no pooler, no public port. If you ever point it elsewhere, keep it a **direct, non-pooled** URL: `pg_dump` is unreliable through poolers (same issue [`deploy.md`](deploy.md) §6a flags for `db push`). |
 | `BACKUP_AGE_PUBKEY` | `age1…` | Clinic recovery **public** key. Not secret. |
 | `HEALTHCHECK_URL` | e.g. healthchecks.io ping URL | Dead-man's switch — alerts when a run is **missed**, not just when one fails. |
 | `STORAGEBOX_HOST` | `u123456.your-storagebox.de` | Hetzner Storage Box (offsite). If unset the job still runs but keeps backups **local only** and warns loudly. |
@@ -104,16 +104,16 @@ server's). It cannot live in the `api` image: that's `node:22-slim` with neither
 root `scripts/` directory isn't even in its build context (both Dockerfiles copy only `apps/*`
 and `packages/*`).
 
-**Coolify setup (one-time):**
+**Coolify setup (one-time):** the `backup` service is part of `docker-compose.yml` (same
+stack as `db` and `api`, so it reaches Postgres internally as `db:5432` — no public port,
+no cross-network config). `BACKUP_DATABASE_URL` is composed from `POSTGRES_PASSWORD`
+automatically; the container idles (`tail -f /dev/null`) with a named volume at `/backups`.
 
-1. **+ New → Public/Private Repository** (this repo), Build Pack **Dockerfile**,
-   Base Directory `/`, Dockerfile Location `/scripts/backup.Dockerfile`. No exposed ports,
-   no domain. The container idles (`tail -f /dev/null`).
-2. **Storage** → add a volume mounted at `/backups` (local retention / fast restore cache).
-3. **Environment Variables** → set the table above.
-4. **Scheduled Tasks** → name `nightly-backup`, command `backup-db.sh`, frequency
-   `0 3 * * *`. Runs appear in the Coolify UI with full logs.
-5. Verify once by clicking the task's **Run now**: expect `[backup] OK sunshine-<stamp>.dump.age`
+1. **Environment Variables** on the app resource → set `BACKUP_AGE_PUBKEY`,
+   `HEALTHCHECK_URL` and the `STORAGEBOX_*` values from the table above.
+2. **Scheduled Tasks** → name `nightly-backup`, container `backup`, command `backup-db.sh`,
+   frequency `0 3 * * *`. Runs appear in the Coolify UI with full logs.
+3. Verify once by clicking the task's **Run now**: expect `[backup] OK sunshine-<stamp>.dump.age`
    in the log, the file on the Storage Box, and the healthcheck check-in.
 
 ## Restore procedure

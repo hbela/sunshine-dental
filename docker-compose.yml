@@ -1,19 +1,62 @@
 # Production stack for Coolify (Hetzner VPS).
 #
-# Coolify builds both images from the repo, injects the env vars below as
+# Coolify builds the images from the repo, injects the env vars below as
 # secrets, and points your domain at the `web` service via its Traefik proxy.
-# The `api` service is internal only (no public domain) — `web` reverse-proxies
-# /api to it over this compose network.
+# The `api` and `db` services are internal only (no public domain/port) —
+# `web` reverse-proxies /api to the api, and the api reaches Postgres as
+# `db:5432` on this compose network. Deploy the same file twice (prod + dev
+# Coolify resources) with different env values for two isolated stacks.
 #
 # Set these in Coolify's "Environment Variables" UI (do NOT commit real values):
-#   DATABASE_URL          Prisma.io production Postgres URL (?sslmode=require)
+#   POSTGRES_PASSWORD     Postgres superuser password  (openssl rand -hex 32)
 #   WEB_ORIGIN            https://your-domain.com  (CORS + better-auth origin)
 #   BETTER_AUTH_URL       https://your-domain.com  (must match the public URL)
 #   BETTER_AUTH_SECRET    32+ char random string   (openssl rand -base64 32)
 #   FASTIFY_API_KEY       shared key for n8n/Retell webhook auth
 #   ANTHROPIC_API_KEY     Claude API key powering the patient chat receptionist
+# Backups (see docs/disaster-recovery.md — the backup service is part of this
+# stack so it can reach `db` internally; the Scheduled Task execs into it):
+#   BACKUP_AGE_PUBKEY     clinic recovery public key (age1…)
+#   HEALTHCHECK_URL       healthchecks.io ping URL (dead-man's switch)
+#   STORAGEBOX_HOST/USER/PASS/DIR   Hetzner Storage Box (offsite copies)
 
 services:
+  db:
+    # Keep the major version in lockstep with postgresql<N>-client in
+    # scripts/backup.Dockerfile (pg_dump must be >= the server's major).
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: sunshine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sunshine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backup:
+    build:
+      context: .
+      dockerfile: scripts/backup.Dockerfile
+    environment:
+      BACKUP_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/sunshine
+      BACKUP_AGE_PUBKEY: ${BACKUP_AGE_PUBKEY:-}
+      HEALTHCHECK_URL: ${HEALTHCHECK_URL:-}
+      STORAGEBOX_HOST: ${STORAGEBOX_HOST:-}
+      STORAGEBOX_USER: ${STORAGEBOX_USER:-}
+      STORAGEBOX_PASS: ${STORAGEBOX_PASS:-}
+      STORAGEBOX_DIR: ${STORAGEBOX_DIR:-}
+    volumes:
+      - backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   api:
     build:
       context: .
@@ -21,7 +64,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/sunshine
       WEB_ORIGIN: ${WEB_ORIGIN}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
@@ -32,6 +75,9 @@ services:
       N8N_BOOKING_WEBHOOK_URL: ${N8N_BOOKING_WEBHOOK_URL:-}
     expose:
       - "3000"
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test:
@@ -54,3 +100,9 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+
+volumes:
+  # Coolify persists named volumes across redeploys; deleting the whole
+  # resource deletes them too — offsite backups are the real safety net.
+  db-data:
+  backups:
