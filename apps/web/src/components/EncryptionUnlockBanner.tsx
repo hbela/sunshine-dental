@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Lock, LockOpen } from 'lucide-react'
-import { useEncryptionStatus, useUnlockEncryption } from '@/hooks/useEncryptionStatus'
+import { useEncryptionStatus, useExpectedKeyFingerprint, useUnlockEncryption } from '@/hooks/useEncryptionStatus'
 import { useRole } from '@/hooks/useRole'
 import { apiErrorMessage } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input'
 export function EncryptionUnlockBanner() {
   const { t } = useTranslation('common')
   const status = useEncryptionStatus()
+  const fingerprint = useExpectedKeyFingerprint()
   const { isAdmin } = useRole()
   const unlock = useUnlockEncryption()
   const [key, setKey] = useState('')
@@ -53,6 +54,11 @@ export function EncryptionUnlockBanner() {
           </div>
         )}
       </div>
+      {isAdmin && fingerprint && (
+        <p className="mt-1.5 pl-7 font-mono text-xs text-amber-800/80 dark:text-amber-300/80">
+          {t('encryption.expectedKey', { fp: fingerprint })}
+        </p>
+      )}
       {unlock.isError && (
         <p className="mt-1.5 pl-7 text-xs text-destructive">
           {apiErrorMessage(unlock.error, t('error'))}

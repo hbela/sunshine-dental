@@ -17,6 +17,7 @@
     "lockedAdmin": "Die Patientendaten sind gesperrt. Geben Sie den Verschlüsselungsschlüssel der Praxis ein, um sie zu entsperren.",
     "lockedStaff": "Die Patientendaten sind gesperrt — ein Administrator muss sie entsperren.",
     "keyPlaceholder": "Verschlüsselungsschlüssel (64 Hex-Zeichen)",
+    "expectedKey": "Dieser Server erwartet den Schlüssel-Fingerabdruck {{fp}}.",
     "unlock": "Entsperren",
     "unlocking": "Wird entsperrt…"
   }

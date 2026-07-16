@@ -1,6 +1,7 @@
 import {
   createCipheriv,
   createDecipheriv,
+  createHash,
   createHmac,
   hkdfSync,
   randomBytes,
@@ -32,6 +33,18 @@ const MASTER_KEY_PATTERN = /^[0-9a-fA-F]{64}$/;
 export const KEYCHECK_SETTING_KEY = 'encryption.keycheck';
 const KEYCHECK_PLAINTEXT = 'sunshine-keycheck-v1';
 const SCHEMA_OUT_OF_DATE_CODES = new Set(['P2021', 'P2022']);
+
+// Non-secret, short fingerprint of the master key, stored in plaintext next to
+// the canary so operators can tell WHICH key a server expects (dev vs prod)
+// without exposing the key. It's the first 32 bits of a domain-separated
+// SHA-256 over the key — infeasible to invert, and the canary is already an
+// online oracle for the key, so publishing it (e.g. on /api/health) leaks
+// nothing usable while catching key mix-ups before an unlock is attempted.
+export const KEYFP_SETTING_KEY = 'encryption.keyfingerprint';
+
+export function keyFingerprint(masterKeyHex: string): string {
+  return createHash('sha256').update('sunshine-keyfp-v1:' + masterKeyHex).digest('hex').slice(0, 8);
+}
 
 interface Subkeys {
   dataKey: Buffer;
@@ -169,10 +182,35 @@ export async function unlockWithKeyCheck(
       }
       throw error;
     }
+    // Advisory only: store the key fingerprint alongside the fresh canary. A
+    // failure here must never block the unlock, so it's best-effort.
+    try {
+      await db.appSetting.create({
+        data: { key: KEYFP_SETTING_KEY, value: keyFingerprint(masterKeyHex) },
+      });
+    } catch {
+      /* fingerprint is non-essential; ignore write failures */
+    }
   }
   lock();
   keys = candidate;
   return true;
+}
+
+/**
+ * Read the stored (expected) key fingerprint written when the canary was
+ * established. Returns null if absent (canary predates this feature) or on any
+ * read error — it is advisory, so callers must tolerate null.
+ */
+export async function getStoredKeyFingerprint(db: {
+  appSetting: { findUnique(args: { where: { key: string } }): Promise<{ value: string } | null> };
+}): Promise<string | null> {
+  try {
+    const row = await db.appSetting.findUnique({ where: { key: KEYFP_SETTING_KEY } });
+    return row?.value ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**

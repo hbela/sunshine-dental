@@ -103,6 +103,12 @@ with no provider → real slots. **Takeaway:** a voice agent saying "backend unr
   - _(record the monitor dashboard URL here once created: __________ )_
 - **Coolify → Settings → Notifications**: enable email/Discord/Slack/Telegram for **deployment
   failures** and **container-healthcheck failures**.
+- **Backup dead-man's switch** (healthchecks.io): the nightly job pings `HEALTHCHECK_URL`
+  **only on success**, so a *missed* run alerts, not just a failed one. Red ⇒ triage per
+  [`disaster-recovery.md`](disaster-recovery.md#triage): Coolify → Scheduled Task → logs;
+  check `BACKUP_DATABASE_URL` (must be the **direct, non-pooled** URL — `pg_dump` is
+  unreliable through a pooler) and the `postgresql-client` major version vs the server.
+  _(record the check URL here once created: __________ )_
 
 ### n8n execution-failure email alert (implemented)
 

@@ -7,6 +7,7 @@ interface HealthResponse {
   status: string
   db: string
   encryption?: 'locked' | 'unlocked'
+  keyFingerprint?: string | null
   time: string
 }
 
@@ -33,6 +34,30 @@ export function useEncryptionStatus(): EncryptionStatus {
     },
   })
   return data ?? 'unknown'
+}
+
+/**
+ * Non-secret fingerprint of the master key this server expects, from the public
+ * health endpoint. Lets an ADMIN confirm they're pasting the right key (dev vs
+ * prod) before unlocking. null when the canary predates the feature.
+ */
+export function useExpectedKeyFingerprint(): string | null {
+  const { data } = useQuery({
+    queryKey: ['encryption-key-fingerprint'],
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    retry: false,
+    queryFn: async (): Promise<string | null> => {
+      try {
+        const res = await api.get<HealthResponse>('/api/health')
+        return res.data.keyFingerprint ?? null
+      } catch (err: unknown) {
+        const data = (err as { response?: { data?: HealthResponse } })?.response?.data
+        return data?.keyFingerprint ?? null
+      }
+    },
+  })
+  return data ?? null
 }
 
 /** POST /api/admin/unlock — submit the clinic master key (ADMIN only). */
