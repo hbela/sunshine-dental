@@ -107,6 +107,9 @@ Mark `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `FASTIFY_API_KEY` as **secret**.
 | `FASTIFY_API_KEY` | _(openssl output from step 3)_ | Must match what n8n/Retell send. |
 | `ANTHROPIC_API_KEY` | _(Claude API key)_ | Powers the patient chat receptionist. Without it, `/api/chat/*` returns 503 "chat not configured". |
 | `N8N_BOOKING_WEBHOOK_URL` | `https://n8nprod.appointer.hu/webhook/chat-booking-confirmation` | Optional. n8n webhook that emails a **chat** booking confirmation. Empty = no chat email (booking still works). |
+| `BACKUP_DATABASE_URL` | _(direct, **non-pooled** Postgres URL)_ | **Secret.** Used by the nightly backup job — `pg_dump` is unreliable through a pooler (same issue as §6a). See [`disaster-recovery.md`](disaster-recovery.md). |
+| `BACKUP_AGE_PUBKEY` | `age1…` | Clinic recovery **public** key the backups are encrypted to. Not secret. |
+| `HEALTHCHECK_URL` | _(dead-man's-switch ping URL)_ | Pinged only on backup success, so a **missed** run alerts. |
 
 `PORT` defaults to `3000` and is set in compose; no need to add it.
 
@@ -134,8 +137,15 @@ container (Coolify → api service → *Terminal*):
 
 ```bash
 cd apps/api
-pnpm exec tsx prisma/seed.ts  # seed admin + providers — FIRST TIME ONLY
+# SEED_ALLOW_PROD=1 is REQUIRED against a non-local database — the seed refuses
+# otherwise, because it WIPES every table and REWRITES the encryption canary from
+# ENCRYPTION_KEY (this is how prod got re-keyed on 2026-07-14; see §10 of the
+# migration plan). Pass the escrowed key: THIS key becomes the canary key.
+ENCRYPTION_KEY=<escrowed-prod-key> SEED_ALLOW_PROD=1 pnpm exec tsx prisma/seed.ts  # FIRST TIME ONLY
 ```
+
+> **Never re-run the seed on a live clinic database.** It is a first-install tool. Re-keying
+> an existing DB strands all existing ciphertext under the old key.
 
 > If the boot-time `db push` errors on the pooled connection
 > (advisory-lock/pooling), add a non-pooled `directUrl` to the `datasource`

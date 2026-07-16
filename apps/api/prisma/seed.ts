@@ -17,12 +17,47 @@ function daysFromNow(days: number, hour = 0, minute = 0) {
   return d;
 }
 
+/**
+ * Refuse to seed a non-local database unless explicitly forced. This script
+ * WIPES every table and REWRITES the encryption canary from ENCRYPTION_KEY, so
+ * running it against prod re-keys the DB (a wrong env key strands existing
+ * ciphertext). An unparseable URL is treated as non-local (fail closed).
+ * Override for a deliberate prod reset with `--force` or `SEED_ALLOW_PROD=1`.
+ */
+function assertSafeToSeed() {
+  const url = process.env.DATABASE_URL ?? '';
+  let host = '';
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    host = '';
+  }
+  const isLocal = new Set(['localhost', '127.0.0.1', '::1', '[::1]']).has(host);
+  const forced = process.argv.includes('--force') || process.env.SEED_ALLOW_PROD === '1';
+
+  if (isLocal) return;
+  if (forced) {
+    console.warn(`⚠️  Seeding a NON-LOCAL database (host "${host || 'unparseable DATABASE_URL'}") — proceeding because an override is set.`);
+    return;
+  }
+  console.error(
+    `❌ Refusing to seed: DATABASE_URL host "${host || '(unparseable)'}" is not local.\n` +
+    `   seed.ts WIPES all data and REWRITES the encryption canary from ENCRYPTION_KEY —\n` +
+    `   running it against prod re-keys the database and can strand encrypted data.\n` +
+    `   If this is intentional (e.g. a deliberate reset), re-run with --force or SEED_ALLOW_PROD=1.`,
+  );
+  process.exit(1);
+}
+
 // ---------------------------------------------------------------------------
 // Seed
 // ---------------------------------------------------------------------------
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // ── Safety gate: never silently wipe/re-key a non-local (prod) DB ──────────
+  assertSafeToSeed();
 
   // ── 0. Encryption key (PII is encrypted at rest) ──────────────────────────
   const envKey = process.env.ENCRYPTION_KEY;

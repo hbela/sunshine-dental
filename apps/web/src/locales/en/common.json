@@ -17,6 +17,7 @@
     "lockedAdmin": "Patient data is locked. Enter the clinic encryption key to unlock it.",
     "lockedStaff": "Patient data is locked — an administrator must unlock it.",
     "keyPlaceholder": "Encryption key (64 hex characters)",
+    "expectedKey": "This server expects key fingerprint {{fp}}.",
     "unlock": "Unlock",
     "unlocking": "Unlocking…"
   }

@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from '../lib/prisma.js';
-import { isUnlocked } from '../lib/crypto.js';
+import { isUnlocked, getStoredKeyFingerprint } from '../lib/crypto.js';
 
 // Public, unauthenticated health endpoint for external uptime monitoring.
 // Reachable through nginx as GET /api/health (the root-level /ping is internal-only,
@@ -20,7 +20,10 @@ export async function healthRoutes(fastify: FastifyInstance) {
       const encryption = isUnlocked() ? 'unlocked' : 'locked';
       try {
         await prisma.$queryRaw`SELECT 1`;
-        return { status: 'ok', db: 'ok', encryption, time: new Date().toISOString() };
+        // Non-secret fingerprint of the expected master key, so an operator can
+        // confirm which key (dev vs prod) a server wants before unlocking.
+        const keyFingerprint = await getStoredKeyFingerprint(prisma);
+        return { status: 'ok', db: 'ok', encryption, keyFingerprint, time: new Date().toISOString() };
       } catch (err) {
         return reply.status(503).send({
           status: 'error',

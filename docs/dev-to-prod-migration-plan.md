@@ -177,3 +177,68 @@ Encryption cannot be "toggled off" once data is migrated — rollback = restore:
 If only the **unlock** misbehaves (e.g. `DATABASE_SCHEMA_OUT_OF_DATE` 503): the schema
 sync didn't run — check the api boot log, run `pnpm exec prisma db push` in the container
 manually, retry. No rollback needed.
+
+---
+
+## 10. Key-mismatch incident + safeguards (added 2026-07-14)
+
+### What happened
+A correct-format prod key was rejected at unlock with **"Wrong encryption key"** (the
+canary check, not the format check — so the input was a valid 64-hex string, just not the
+one the canary expected). Root cause: **`prisma/seed.ts` re-keys whatever DB it points at.**
+It runs `appSetting.deleteMany()` (drops the canary) then rewrites the canary from
+`process.env.ENCRYPTION_KEY` and re-encrypts seed rows under it. Running `db:seed` with
+`DATABASE_URL`→prod while a **dev** `.env` key was loaded silently re-keyed prod to the dev
+key. The escrowed prod key was then rejected because it no longer matched the canary.
+
+> **Diagnosis shortcut:** if a known-good key is rejected, try the key that was in
+> `ENCRYPTION_KEY` the last time the DB was seeded — it's very likely the current canary key.
+
+### Reset workflow (playground / no real PII to preserve)
+A ciphertext `pg_dump` does **not** help recover a lost key (it's as locked as the DB); only
+a *pre-encryption plaintext* dump does. With only seed/test data, re-establish cleanly —
+run **inside the Coolify api container** (where `DATABASE_URL` already points at prod):
+
+```bash
+cd apps/api
+# Deliberate reset: SEED_ALLOW_PROD=1 is required now (see safeguard #1);
+# THIS key becomes the canary key, so pass your escrowed prod key.
+ENCRYPTION_KEY=<escrowed-prod-key> SEED_ALLOW_PROD=1 pnpm db:seed
+```
+
+Then: confirm Coolify prod env has **no** persistent `ENCRYPTION_KEY` → **restart** the api
+container (boots `locked`) → unlock via the banner with the same key → `/api/health` shows
+`"encryption":"unlocked"`.
+
+### Safeguards shipped (2026-07-14)
+1. **Seed prod-guard** (`prisma/seed.ts`): refuses to run against a non-local `DATABASE_URL`
+   (unparseable = treated as non-local, fail-closed) unless `--force` / `SEED_ALLOW_PROD=1`.
+   Kills the accidental-prod-reseed footgun.
+2. **Key fingerprint** (`crypto.ts` → `/api/health` + unlock banner): a non-secret 32-bit
+   SHA-256 tag of the master key is stored beside the canary and surfaced as
+   `keyFingerprint`. An operator can now confirm *which* key (dev vs prod) a server expects
+   **before** unlocking. Safe to publish — infeasible to invert, and the canary is already an
+   online key oracle. Written on canary creation, so it appears after the next
+   seed/`encrypt-existing-data` run; older canaries report `null` until re-established.
+
+> **Routine disaster recovery now lives in [`disaster-recovery.md`](disaster-recovery.md)** —
+> nightly public-key-encrypted `pg_dump` backups + the `age`-wrapped master-key escrow that
+> supersedes the design note below. This section stays as the incident record.
+
+### Design note — break-glass recovery key (#3) — DECIDED 2026-07-14
+
+The problem: the custody model deliberately keeps the vendor unable to decrypt (the server
+never holds the key), so **if a clinic loses their key, the PII is unrecoverable.**
+
+This note originally proposed envelope encryption with a **vendor-held** recovery KEK. That
+was **rejected** — it would make the vendor a data processor *with access* to patient PII
+(a GDPR/DPA burden), to solve a problem that doesn't require it.
+
+**Decided instead:** a **clinic-held `age` recovery keypair** — the master key is wrapped to
+the clinic's recovery *public* key (`age -r`), and the *private* key is sealed in the clinic's
+safe. Recovery needs no vendor key and no code change; the wrapped blob is ciphertext, so the
+vendor may even store it without holding custody. Same keypair also encrypts the nightly
+backups. Full design + runbook: **[`disaster-recovery.md`](disaster-recovery.md)**.
+
+Still open for scale: cloud **KMS** (IAM-gated) so no human handles a raw hex string —
+bigger infra change, eliminates the lost-string failure mode entirely.
