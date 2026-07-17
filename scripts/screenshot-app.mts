@@ -40,7 +40,19 @@ const screens: { name: string; path: string }[] = [
   { name: "06-call-logs", path: "/call-logs" },
   { name: "07-admin-users", path: "/admin/users" },
   { name: "08-settings", path: "/settings" },
+  { name: "09-chat-logs", path: "/chat-logs" },
 ]
+
+// SHOT_LOCKED=1: the api is running WITHOUT an encryption key (boots locked) —
+// capture only the dashboard with the amber unlock banner, as 11-locked.png.
+const LOCKED_MODE = process.env.SHOT_LOCKED === "1"
+
+/** Patient-side chat opener per language (the chat speaks informally by design). */
+const chatMessage: Record<string, string> = {
+  en: "Hi! When is the clinic open?",
+  hu: "Szia! Mikor van nyitva a rendelő?",
+  de: "Hallo! Wann hat die Praxis geöffnet?",
+}
 
 async function settle(page: import("playwright").Page) {
   await page.waitForLoadState("networkidle").catch(() => {})
@@ -54,7 +66,47 @@ async function shoot(context: BrowserContext, lang: string) {
 
   const page = await context.newPage()
 
-  // 1. Login screen (logged out — fresh context has no session).
+  if (LOCKED_MODE) {
+    // Locked api: log in (login works while locked) and capture the dashboard
+    // with the amber encryption-unlock banner.
+    await page.goto(`${BASE_URL}/login`, { waitUntil: "domcontentloaded" })
+    await page.locator("#email").waitFor({ state: "visible", timeout: 30_000 })
+    await page.fill("#email", EMAIL)
+    await page.fill("#password", PASSWORD)
+    await page.click('button[type="submit"]')
+    await page.waitForURL((u) => !u.pathname.endsWith("/login"), { timeout: 30_000 })
+    await settle(page)
+    await page.screenshot({ path: join(outDir, "11-locked.png"), fullPage: FULL_PAGE })
+    console.log(`  ✓ ${lang}/11-locked.png`)
+    await page.close()
+    return
+  }
+
+  // 0. Public patient chat (/chat, no login) — send one message and wait for
+  //    the AI reply so the shot shows a real exchange. Doubles as the data
+  //    source for the chat-logs screen below.
+  await page.goto(`${BASE_URL}/chat`, { waitUntil: "domcontentloaded" })
+  await page.locator("textarea").waitFor({ state: "visible", timeout: 30_000 })
+  await settle(page)
+  await page.fill("textarea", chatMessage[lang] ?? chatMessage.en)
+  await page.keyboard.press("Enter")
+  // Streaming disables the send button; wait for it to come back (= reply done).
+  await page
+    .waitForFunction(
+      () => {
+        const btns = Array.from(document.querySelectorAll("button"))
+        return btns.some((b) => b.matches("button:not([disabled])") && b.closest("form, div"))
+          && !document.querySelector("textarea[disabled]")
+      },
+      undefined,
+      { timeout: 5_000 },
+    )
+    .catch(() => {})
+  await page.waitForTimeout(15_000) // generous: let the streamed reply finish rendering
+  await page.screenshot({ path: join(outDir, "10-chat.png"), fullPage: FULL_PAGE })
+  console.log(`  ✓ ${lang}/10-chat.png`)
+
+  // 1. Login screen (logged out — the public chat sets no session).
   await page.goto(`${BASE_URL}/login`, { waitUntil: "domcontentloaded" })
   await page.locator("#email").waitFor({ state: "visible", timeout: 30_000 })
   await settle(page)

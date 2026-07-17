@@ -1,8 +1,17 @@
 # Disaster Recovery
 
-_Last updated: 2026-07-14. Companion to [`deploy.md`](deploy.md),
+_Last updated: 2026-07-17. Companion to [`deploy.md`](deploy.md),
 [`monitoring-runbook.md`](monitoring-runbook.md) and
 [`dev-to-prod-migration-plan.md`](dev-to-prod-migration-plan.md)._
+
+> **STATUS 2026-07-17:** everything below is implemented and live except the offsite leg.
+> Postgres runs in-stack (`db` service in `docker-compose.yml`; Prisma.io is gone). The
+> recovery-keypair ceremony is **done** (prod master key age-wrapped, round-trip verified;
+> `BACKUP_AGE_PUBKEY` set on both stacks). `nightly-backup` Scheduled Tasks run on **both**
+> stacks (Run-now verified 2026-07-17: ~33 KB `.dump.age` each). **Still TODO:** Hetzner
+> Storage Box (`STORAGEBOX_*`) — until then backups are local-only and do not survive loss
+> of the VPS — and `HEALTHCHECK_URL` (dead-man's switch). Key fingerprints: prod
+> `6b6114bd`, dev `30286e6d` (shown on `/api/health`).
 
 Patient PII is AES-256-GCM ciphertext at rest (`enc:v1:`) and the master key is held **only**
 by the clinic — never on the server, never by the vendor (see
@@ -116,9 +125,20 @@ automatically; the container idles (`tail -f /dev/null`) with a named volume at 
 3. Verify once by clicking the task's **Run now**: expect `[backup] OK sunshine-<stamp>.dump.age`
    in the log, the file on the Storage Box, and the healthcheck check-in.
 
+> Coolify's task log shows **stdout only** — the script's warnings (Storage Box /
+> healthcheck unset) go to stderr and are invisible there. `[backup] OK` therefore does
+> **not** imply an offsite copy exists; check the env vars, not just the log.
+> Do not confuse this Scheduled Task with Coolify's built-in database "Backups" feature —
+> that one produces an **unencrypted** local dump and is not part of this design.
+
 ## Restore procedure
 
-- [ ] Fetch the newest `sunshine-<date>.dump.age` from the Storage Box.
+The `backup` container has every tool needed (`age`, `pg_restore`, rclone) and can reach
+`db:5432` — run the restore from its terminal (Coolify → app → backup → Terminal). Recent
+dumps are already in its `/backups` volume; only a dead-VPS scenario needs the Storage Box
+copy and a different machine.
+
+- [ ] Fetch the newest `sunshine-<date>.dump.age` (from `/backups`, or the Storage Box).
 - [ ] Decrypt with the sealed private key:
       `age -d -i clinic-recovery.key sunshine-<date>.dump.age > restore.dump`
 - [ ] `pg_restore -d "$BACKUP_DATABASE_URL" --clean --if-exists restore.dump`

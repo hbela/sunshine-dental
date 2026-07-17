@@ -51,7 +51,7 @@ const SHARED = {
   brandIcon: "S",
   docTheme: true,
   published: true,
-  technologies: "React, Vite, TanStack, Fastify, Prisma, Retell AI, n8n",
+  technologies: "React, Vite, TanStack, Fastify, Prisma, PostgreSQL, Claude AI, Retell AI, n8n",
 }
 
 const byLang: Record<Lang, { slug: string; guideFile: string; title: string; excerpt: string }> = {
@@ -60,21 +60,21 @@ const byLang: Record<Lang, { slug: string; guideFile: string; title: string; exc
     guideFile: "user-guide.md",
     title: "Sunshine Dental — User Guide",
     excerpt:
-      "A 24/7 AI phone receptionist for a dental clinic, plus a staff dashboard for the calendar, patients and call logs.",
+      "A 24/7 AI receptionist for a dental clinic — phone and website chat — plus a staff dashboard, with patient data encrypted under a clinic-held key and backed up nightly.",
   },
   hu: {
     slug: "sunshine-dental-hu",
     guideFile: "user-guide.hu.md",
     title: "Sunshine Dental — Felhasználói útmutató",
     excerpt:
-      "Éjjel-nappal elérhető MI telefonos recepciós egy fogorvosi rendelőnek, plusz egy munkatársi felület a naptárhoz, betegekhez és hívásnaplókhoz.",
+      "Éjjel-nappal elérhető MI recepciós egy fogorvosi rendelőnek — telefonon és webes csevegésben —, plusz munkatársi felület, a betegadatok pedig a rendelő saját kulcsával titkosítva, éjszakánként mentve.",
   },
   de: {
     slug: "sunshine-dental-de",
     guideFile: "user-guide.de.md",
     title: "Sunshine Dental — Benutzerhandbuch",
     excerpt:
-      "Eine rund um die Uhr verfügbare KI-Telefonrezeption für eine Zahnarztpraxis, plus ein Team-Dashboard für Kalender, Patienten und Anrufprotokolle.",
+      "Eine 24/7-KI-Rezeption für eine Zahnarztpraxis — Telefon und Website-Chat — plus Team-Dashboard; Patientendaten verschlüsselt mit einem Praxis-Schlüssel und nächtlich gesichert.",
   },
 }
 

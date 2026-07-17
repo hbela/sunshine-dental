@@ -1,7 +1,21 @@
 # Dev → Prod migration plan (`feat/chat-receptionist` → `main`)
 
-_Last updated: 2026-07-12. Companion to [`deploy.md`](deploy.md) — this plan supersedes the
+_Last updated: 2026-07-17. Companion to [`deploy.md`](deploy.md) — this plan supersedes the
 parts of §6a/§8/§8a that predate the boot-time `prisma db push` (commit `5312fe7`)._
+
+> **STATUS 2026-07-17 — executed, then superseded by the self-hosted fresh start.**
+> The branch was merged to `main` on 2026-07-16 and the plan below is now a historical
+> record. Immediately after the merge, the **database layer moved off Prisma.io entirely**:
+> Postgres now runs as the `db` service *inside* `docker-compose.yml` (one isolated
+> instance per Coolify stack, reached as `db:5432`, no public port), and both environments
+> were **re-seeded from scratch with new master keys** (fingerprints: prod `6b6114bd`,
+> dev `30286e6d`) — so no data was migrated and steps 4–6 were replaced by
+> `ENCRYPTION_KEY=… SEED_ALLOW_PROD=1 pnpm exec tsx prisma/seed.ts` in each api container.
+> The Prisma.io projects are deleted; any `DATABASE_URL_DEV`/pooled `db.prisma.io` URL in
+> old notes is dead. The prod master key is escrowed per
+> [`disaster-recovery.md`](disaster-recovery.md) (age-wrapped, verified), and nightly
+> encrypted backups run in-stack on both environments. §10 below (key-mismatch incident,
+> seed guard, fingerprint) remains fully current.
 
 ## 0. What is being promoted
 

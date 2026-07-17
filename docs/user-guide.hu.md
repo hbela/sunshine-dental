@@ -6,7 +6,7 @@
 
 ## Mi ez, egyetlen mondatban?
 
-Ez egy **éjjel-nappal elérhető, mesterséges intelligenciás telefonos recepciós a fogorvosi rendelőjéhez, plusz egy egyszerű felület, amellyel a csapata kezeli a naptárat, a betegeket és a telefonhívásokat** — mindezt egy helyen.
+Ez egy **éjjel-nappal elérhető, mesterséges intelligenciás recepciós a fogorvosi rendelőjéhez — felveszi a telefont *és* csevegésben is válaszol a weboldalán —, plusz egy egyszerű felület, amellyel a csapata kezeli a naptárat, a betegeket, a hívásokat és a csevegéseket** — mindezt egy helyen.
 
 Képzelje el úgy, mintha felvenne egy fáradhatatlan recepcióst, aki soha nem alszik, soha nem megy ebédelni, és soha nem várakoztatja a hívót — mindezt egy letisztult, modern adminisztrációs felülettel a munkatársai számára.
 
@@ -20,7 +20,7 @@ Ne csak a szavunkra hagyatkozzon — íme egy **valódi hívás**, amelyet az MI
 
 ---
 
-## Az alkalmazás két fele
+## Az alkalmazás három része
 
 ### 1. Az MI telefonos recepciós 🤖📞
 
@@ -35,7 +35,19 @@ Amikor egy beteg felhívja a rendelőt, egy MI hangasszisztens veszi fel a telef
 
 A lényeg: éjjel-nappal működik. Egy fájó foggal küzdő beteg vasárnap este 9-kor is tud időpontot foglalni hétfő reggelre — nincs elszalasztott hívás, nincs tele hangposta, nincs elvesztett bevétel.
 
-### 2. A munkatársi felület 💻
+### 2. A csevegő recepciós 💬
+
+Ugyanez az MI recepciós a weboldalán **szöveges csevegésként** is elérhető — azoknak a betegeknek, akik szívesebben írnak, mint telefonálnak. Köszönti a látogatókat, válaszol a kérdésekre, és ugyanabból az élő naptárból foglal, módosít vagy mond le időpontot, mint a telefonos ügynök — a beteg saját nyelvén (a nyelv a csevegés fejlécében bármikor átváltható).
+
+![A betegek csevegő recepciósa válaszol egy kérdésre](assets/screenshots/10-chat.png)
+
+Néhány dolog, amit érdemes tudni:
+
+- **Foglalás előtt mindig elkér egy e-mail-címet**, így minden csevegésből származó foglalásról automatikusan visszaigazoló e-mail megy — semmi sem marad megerősítés nélkül.
+- **A betegek alkalmazásként is telepíthetik** a telefonjukra (egyetlen koppintással a böngészőből) — a rendelő saját ikont kap a kezdőképernyőjükön, alkalmazásbolt nélkül.
+- **Minden beszélgetésről összefoglaló és napló készül** a munkatársak számára, ugyanúgy, mint a telefonhívásokról (lásd lentebb a Csevegésnaplókat).
+
+### 3. A munkatársi felület 💻
 
 Ez az a webes képernyő, amelyre a csapata bejelentkezik. Itt tartják kézben az emberek mindazt, amit az MI csinál. Innen a munkatársak látnak minden időpontot, kezelik a naptárat, betegeket keresnek ki, és átnézik, mi történt minden telefonhívás során.
 
@@ -52,7 +64,8 @@ Az MI recepciós és a munkatársi felület **egyetlen közös naptárat és egy
 ```mermaid
 flowchart LR
     Patient([📞 Beteg hív]) --> AI[🤖 MI recepciós]
-    AI <--> Core[(📅 Közös naptár<br/>👥 Betegadatok<br/>☎️ Hívásnaplók)]
+    Chat([💬 Beteg csevegést indít]) --> AI
+    AI <--> Core[(📅 Közös naptár<br/>👥 Betegadatok<br/>☎️ Hívás- és csevegésnaplók)]
     Staff([👩‍⚕️ Munkatársak]) --> Dashboard[💻 Munkatársi felület]
     Dashboard <--> Core
 ```
@@ -128,6 +141,11 @@ Minden telefonhívás rögzítése, amelyet az MI kezelt, beleértve:
 
 Ez az Ön minőség-ellenőrző ablaka — mindig láthatja pontosan, mit mondott és tett az MI.
 
+### 💬 Csevegésnaplók
+Ugyanez az átláthatóság a csevegő recepciósnál is: minden webes beszélgetés listázva van a **nyelvével, üzenetszámával, hangulatával és kimenetelével** együtt, írott összefoglalóval (a beteg nyelvén), és igény szerint a teljes átirattal.
+
+![Csevegésnaplók nyelvvel, hangulattal és kimenetellel](assets/screenshots/09-chat-logs.png)
+
 ### 👤 Felhasználók (Adminok)
 A tulajdonosok és vezetők itt kezelik a csapatukat — munkatársi fiókokat hoznak létre, és beállítják mindenki szerepkörét.
 
@@ -172,7 +190,33 @@ Egy fogorvos a naptárát **delegálhatja** is egy asszisztensnek — így a rec
 - **Tehermentesíti a recepciót** — a munkatársak a személyes betegekre koncentrálnak a telefon helyett
 - **Teljes átláthatóság** — minden hívás összefoglalva és rögzítve van, így mindig Ön irányít
 - **A betegek nyelvén beszél** — a közösség nagyobb részét szolgálja ki
-- **Egyetlen egyszerű rendszer** — naptár, betegek és hívások egy helyen (nincs több zsonglőrködés táblázatokkal és külön naptárakkal)
+- **Ott éri el a betegeket, ahol ők vannak** — egyeseknek telefon, másoknak webes csevegés, mögöttük egyetlen közös naptár
+- **A betegadatok valóban bizalmasak maradnak** — olyan kulccsal titkosítva, amelyet csak az Ön rendelője birtokol, és minden éjjel biztonsági mentéssel
+- **Egyetlen egyszerű rendszer** — naptár, betegek, hívások és csevegések egy helyen (nincs több zsonglőrködés táblázatokkal és külön naptárakkal)
+
+---
+
+## 🔐 Hogyan védjük a betegek adatait
+
+A betegadatok egészségügyi adatok, és ez az alkalmazás ennek megfelelően kezeli őket — olyan védelemmel, amelyet egy betegnek is el tud magyarázni egyetlen lélegzettel.
+
+### Titkosítva — a kulcsot pedig kizárólag az Ön rendelője birtokolja
+
+Minden személyes betegadat (nevek, telefonszámok, időpont-megjegyzések, hívás- és csevegésátiratok) **titkosítva** tárolódik AES-256-tal — ugyanazzal a titkosítási családdal, amelyet a netbankok is használnak. A titkosítási kulcs **kizárólag az Ön rendelőjéé**: soha nem tárolódik a szerveren, és nálunk sincs meg. A gyakorlatban ez azt jelenti, hogy aki ellopná az adatbázist — vagy akár a szerver lemezeit —, csak olvashatatlan karakterhalmazt látna.
+
+Ennek van egy látható, hétköznapi oldala is: amikor a rendszer újraindul (például egy frissítés után), **zárolt** állapotban tér vissza. A munkatársak be tudnak jelentkezni és látják a naptárat, de a betegnevek `••••`-ként jelennek meg, amíg egy adminisztrátor meg nem adja a rendelő kulcsát — ez egy 10 másodperces rutin:
+
+![A zárolt állapot: az admin a rendelő kulcsával oldja fel a betegadatokat](assets/screenshots/11-locked.png)
+
+A sáv még a várt kulcs rövid „ujjlenyomatát" is mutatja, így az admin egy pillantással meggyőződhet róla, hogy a megfelelő kulcsot készül használni — anélkül, hogy maga a kulcs valaha megjelenne.
+
+### Minden éjjel biztonsági mentés — olyan formában, amelyet még mi sem tudunk elolvasni
+
+A rendszer minden éjjel 3 órakor automatikusan biztonsági mentést készít a **teljes adatbázisról**, titkosítja a mentést, és 90 napnyi előzményt őriz meg. A csavar a dologban: a mentések olyan módszerrel titkosítottak, amellyel a szerver *létrehozni* tudja őket, de *visszaolvasni* soha — egy mentést kizárólag a rendelő lepecsételt **helyreállítási kulcsa** (a rendelő széfjében őrzött nyomtatott dokumentum) tud megnyitni.
+
+- **Ha a szerver valaha elveszne** (hardverhiba, katasztrófa), a legfrissebb mentés visszaállítható, és a megszokott kulccsal feloldható. Ez a visszaállítási eljárás nem elmélet — rendszeres „tűzoltó-gyakorlatokon" próbáljuk el.
+- **Ha a rendelő valaha elvesztené a kulcsát**, a széfben őrzött lepecsételt helyreállítási dokumentummal visszanyerhető. Nincs adatvesztés, és nem kell a szolgáltatót hívni másolatért — nekünk soha nem is volt.
+- És ha *mindkettő* elveszne? Akkor az adatok helyreállíthatatlanok — **szándékosan**. Ez nem hiba, hanem annak bizonyítéka, hogy a rendelőn kívül soha senki nem olvashatja el a betegei adatait.
 
 ---
 
@@ -191,7 +235,10 @@ Igen. Minden híváshoz teljes írott átirat és összefoglaló tartozik a Hív
 Nem. Az MI csak az élő naptárból foglal, így csak a valóban szabad időpontokat ajánlja fel.
 
 **Bizalmasan kezeli a betegadatokat?**
-Igen. A hozzáférés szerepkör szerint korlátozott, a fiókok jelszóval védettek, és csak az arra jogosult munkatársak jelentkezhetnek be.
+Igen, több szinten is. A hozzáférés szerepkör szerint és jelszóval korlátozott. Ezen túl minden személyes betegadat **titkosítva** tárolódik, a titkosítási kulcsot pedig kizárólag az Ön rendelője birtokolja — sem mi, sem a szerver. Az éjszakai biztonsági mentések ugyanígy titkosítottak. Lásd fentebb: „Hogyan védjük a betegek adatait".
+
+**Mi történik, ha az MI csevegés nem tud segíteni, vagy éppen frissül a rendszer?**
+A csevegés udvariasan jelzi, hogy átmenetileg nem elérhető, és a betegek továbbra is telefonálhatnak. A munkatársi oldalon a frissítések rövid időre „zárolják" a betegadatokat, amíg egy admin újra meg nem adja a rendelő kulcsát — a naptár közben végig működik.
 
 ---
 

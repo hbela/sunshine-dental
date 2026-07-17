@@ -6,7 +6,7 @@
 
 ## Was ist das, in einem Satz?
 
-Es ist eine **rund um die Uhr verfügbare KI-Telefonrezeption für Ihre Zahnarztpraxis, plus ein einfaches Dashboard, mit dem Ihr Team den Kalender, die Patienten und die Anrufe verwaltet** — alles an einem Ort.
+Es ist eine **rund um die Uhr verfügbare KI-Rezeption für Ihre Zahnarztpraxis — sie beantwortet Ihr Telefon *und* chattet auf Ihrer Website — plus ein einfaches Dashboard, mit dem Ihr Team den Kalender, die Patienten, die Anrufe und die Chats verwaltet** — alles an einem Ort.
 
 Stellen Sie es sich vor wie eine unermüdliche Empfangskraft, die nie schläft, nie in die Mittagspause geht und nie einen Anrufer in der Warteschleife lässt — zusammen mit einer klaren, modernen Verwaltungsoberfläche für Ihr Team.
 
@@ -20,7 +20,7 @@ Verlassen Sie sich nicht nur auf unser Wort — hier ist ein **echter Anruf**, d
 
 ---
 
-## Die zwei Hälften der App
+## Die drei Teile der App
 
 ### 1. Die KI-Telefonrezeption 🤖📞
 
@@ -35,7 +35,19 @@ Wenn ein Patient Ihre Praxis anruft, nimmt ein KI-Sprachassistent ab und führt 
 
 Der entscheidende Punkt: Sie arbeitet rund um die Uhr. Ein Patient mit Zahnschmerzen kann sonntags um 21 Uhr noch einen Termin für Montagmorgen buchen — keine verpassten Anrufe, keine volle Mailbox, kein verlorenes Geschäft.
 
-### 2. Das Team-Dashboard 💻
+### 2. Die Chat-Rezeption 💬
+
+Dieselbe KI-Rezeption lebt auch als **Text-Chat** auf Ihrer Website — für die wachsende Zahl von Patienten, die lieber tippen als anrufen. Sie begrüßt Besucher, beantwortet Fragen und bucht, verschiebt oder storniert Termine aus demselben Live-Kalender wie die Telefon-KI — in der Sprache des Patienten (die Sprache lässt sich direkt im Chat-Kopf umschalten).
+
+![Die Chat-Rezeption für Patienten beantwortet eine Frage](assets/screenshots/10-chat.png)
+
+Ein paar Dinge, die Sie wissen sollten:
+
+- **Vor jeder Buchung fragt sie nach einer E-Mail-Adresse**, sodass jede Chat-Buchung automatisch eine Bestätigungs-E-Mail erhält — nichts bleibt unbestätigt.
+- **Patienten können sie wie eine App installieren** — ein Tipp im Browser genügt, und Ihre Praxis bekommt ein eigenes Symbol auf dem Startbildschirm, ganz ohne App Store.
+- **Jedes Gespräch wird zusammengefasst und protokolliert**, genau wie Telefonanrufe (siehe Chat-Protokolle weiter unten).
+
+### 3. Das Team-Dashboard 💻
 
 Dies ist die Weboberfläche, in die sich Ihr Team einloggt. Hier behalten die Menschen die Kontrolle über alles, was die KI tut. Von hier aus sieht das Team jeden Termin, verwaltet den Kalender, schlägt Patienten nach und prüft, was bei jedem Anruf geschah.
 
@@ -52,7 +64,8 @@ Die KI-Rezeption und Ihr Team-Dashboard teilen sich **einen Kalender und eine Pa
 ```mermaid
 flowchart LR
     Patient([📞 Patient ruft an]) --> AI[🤖 KI-Rezeption]
-    AI <--> Core[(📅 Gemeinsamer Kalender<br/>👥 Patientendaten<br/>☎️ Anrufprotokolle)]
+    Chat([💬 Patient chattet]) --> AI
+    AI <--> Core[(📅 Gemeinsamer Kalender<br/>👥 Patientendaten<br/>☎️ Anruf- & Chat-Protokolle)]
     Staff([👩‍⚕️ Ihr Team]) --> Dashboard[💻 Team-Dashboard]
     Dashboard <--> Core
 ```
@@ -128,6 +141,11 @@ Eine Aufzeichnung jedes Anrufs, den die KI bearbeitet hat, einschließlich:
 
 Dies ist Ihr Fenster zur Qualitätskontrolle — Sie sehen jederzeit genau, was die KI gesagt und getan hat.
 
+### 💬 Chat-Protokolle
+Dieselbe Transparenz für die Chat-Rezeption: Jedes Website-Gespräch wird mit **Sprache, Nachrichtenzahl, Stimmung und Ergebnis** aufgelistet, dazu eine schriftliche Zusammenfassung (in der Sprache des Patienten) und auf Wunsch das vollständige Transkript.
+
+![Chat-Protokolle mit Sprache, Stimmung und Ergebnis](assets/screenshots/09-chat-logs.png)
+
 ### 👤 Benutzer (Admins)
 Inhaber und Manager verwalten hier ihr Team — sie legen Mitarbeiterkonten an und bestimmen die Rolle jeder Person.
 
@@ -172,7 +190,33 @@ Ein Zahnarzt kann seinen Kalender auch an eine Assistenz **delegieren** — so k
 - **Entlasten Sie Ihren Empfang** — das Team konzentriert sich auf die Patienten vor Ort statt aufs Telefon
 - **Volle Transparenz** — jeder Anruf wird zusammengefasst und aufgezeichnet, sodass Sie stets die Kontrolle behalten
 - **Spricht die Sprachen Ihrer Patienten** — bedienen Sie einen größeren Teil Ihrer Gemeinschaft
-- **Ein einfaches System** — Kalender, Patienten und Anrufe an einem Ort (kein Jonglieren mehr mit Tabellen und separaten Kalendern)
+- **Holt Patienten dort ab, wo sie sind** — Telefon für die einen, Website-Chat für die anderen, ein gemeinsamer Kalender dahinter
+- **Patientendaten bleiben wirklich privat** — verschlüsselt mit einem Schlüssel, den nur Ihre Praxis besitzt, und jede Nacht gesichert
+- **Ein einfaches System** — Kalender, Patienten, Anrufe und Chats an einem Ort (kein Jonglieren mehr mit Tabellen und separaten Kalendern)
+
+---
+
+## 🔐 So sind die Daten Ihrer Patienten geschützt
+
+Patientendaten sind Gesundheitsdaten, und diese App behandelt sie auch so — mit einem Schutz, den Sie einem Patienten in einem Satz erklären können.
+
+### Verschlüsselt — mit einem Schlüssel, den nur Ihre Praxis besitzt
+
+Alle persönlichen Patientendaten (Namen, Telefonnummern, Terminnotizen, Anruf- und Chat-Transkripte) werden **verschlüsselt** gespeichert, mit AES-256 — derselben Verschlüsselungsfamilie, die auch beim Online-Banking zum Einsatz kommt. Der Schlüssel gehört **allein Ihrer Praxis**: Er wird nie auf dem Server gespeichert und liegt auch nicht bei uns. Praktisch heißt das: Wer die Datenbank stiehlt — oder sogar die Festplatten des Servers —, sieht nur unlesbaren Zeichensalat.
+
+Das hat auch eine sichtbare, alltägliche Seite: Wenn das System neu startet (zum Beispiel nach einem Update), kommt es **gesperrt** zurück. Das Team kann sich weiter anmelden und den Kalender sehen, aber Patientennamen erscheinen als `••••`, bis ein Administrator den Praxis-Schlüssel eingibt — eine Routine von 10 Sekunden:
+
+![Der gesperrte Zustand: ein Admin entsperrt die Patientendaten mit dem Praxis-Schlüssel](assets/screenshots/11-locked.png)
+
+Der Hinweisbalken zeigt sogar einen kurzen „Fingerabdruck" des erwarteten Schlüssels, sodass der Admin auf einen Blick erkennt, dass er den richtigen verwendet — ohne dass der Schlüssel selbst je angezeigt wird.
+
+### Jede Nacht gesichert — in einer Form, die nicht einmal wir lesen können
+
+Jede Nacht um 3 Uhr sichert das System automatisch die **gesamte Datenbank**, verschlüsselt die Sicherung und bewahrt 90 Tage Verlauf auf. Der Clou: Die Sicherungen sind mit einem Verfahren verschlüsselt, mit dem der Server sie zwar *erstellen*, aber nie *zurücklesen* kann — öffnen lässt sich eine Sicherung nur mit dem versiegelten **Wiederherstellungsschlüssel** Ihrer Praxis (einem gedruckten Dokument im Praxistresor).
+
+- **Geht der Server je verloren** (Hardwaredefekt, Katastrophe), wird die neueste Sicherung wiederhergestellt und mit Ihrem gewohnten Schlüssel entsperrt. Dieses Verfahren ist keine Theorie — es wird in regelmäßigen „Feuerübungen" geprobt.
+- **Verliert die Praxis je ihren Schlüssel**, lässt er sich mit dem versiegelten Dokument aus dem Tresor wiederherstellen. Kein Datenverlust, kein Anruf beim Anbieter für eine Kopie — wir hatten nie eine.
+- Und wenn *beides* verloren geht? Dann sind die Daten unwiederbringlich — **mit Absicht**. Das ist kein Mangel, sondern der Beweis, dass niemand außerhalb Ihrer Praxis je die Daten Ihrer Patienten lesen kann.
 
 ---
 
@@ -191,7 +235,10 @@ Ja. Zu jedem Anruf gibt es ein vollständiges schriftliches Transkript und eine 
 Nein. Die KI bucht nur aus Ihrem Live-Kalender, also bietet sie nur Zeiten an, die tatsächlich frei sind.
 
 **Werden Patientendaten vertraulich behandelt?**
-Ja. Der Zugriff ist nach Rolle beschränkt, die Konten sind passwortgeschützt, und nur Ihre autorisierten Mitarbeiter können sich anmelden.
+Ja, auf mehreren Ebenen. Der Zugriff ist nach Rolle und Passwort beschränkt. Darüber hinaus werden alle persönlichen Patientendaten **verschlüsselt** gespeichert, und den Schlüssel besitzt allein Ihre Praxis — nicht wir, nicht der Server. Die nächtlichen Sicherungen sind genauso verschlüsselt. Siehe oben: „So sind die Daten Ihrer Patienten geschützt".
+
+**Was passiert, wenn der KI-Chat nicht weiterhelfen kann oder das System gerade aktualisiert wird?**
+Der Chat meldet höflich, dass er vorübergehend nicht verfügbar ist — Patienten können weiterhin anrufen. Auf Team-Seite „sperren" Updates die Patientendaten kurzzeitig, bis ein Admin den Praxis-Schlüssel erneut eingibt — der Kalender funktioniert währenddessen durchgehend.
 
 ---
 

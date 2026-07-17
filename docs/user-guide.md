@@ -6,7 +6,7 @@
 
 ## What is this, in one sentence?
 
-It's a **24/7 AI phone receptionist for your dental clinic, plus a simple dashboard your team uses to manage the calendar, patients, and phone calls** — all in one place.
+It's a **24/7 AI receptionist for your dental clinic — answering your phone *and* chatting on your website — plus a simple dashboard your team uses to manage the calendar, patients, calls and chats** — all in one place.
 
 Think of it as hiring a tireless front-desk assistant who never sleeps, never takes a lunch break, and never puts a caller on hold — working alongside a clean, modern admin screen for your staff.
 
@@ -20,7 +20,7 @@ Don't take our word for it — here's a **real call** the AI receptionist handle
 
 ---
 
-## The two halves of the app
+## The three parts of the app
 
 ### 1. The AI Phone Receptionist 🤖📞
 
@@ -35,7 +35,19 @@ When a patient calls your clinic, an AI voice agent picks up and has a natural c
 
 The key point: it works around the clock. A patient with a toothache at 9 PM on a Sunday can still book an appointment for Monday morning — no missed calls, no full voicemail box, no lost business.
 
-### 2. The Staff Dashboard 💻
+### 2. The Chat Receptionist 💬
+
+The same AI receptionist also lives on your website as a **text chat** — for the growing number of patients who would rather type than call. It greets visitors, answers questions, and books, moves or cancels appointments from the same live calendar as the phone agent, in the patient's own language (the language can be switched right in the chat header).
+
+![The patient chat receptionist answering a question](assets/screenshots/10-chat.png)
+
+A few things worth knowing:
+
+- **It always asks for an email before booking**, so every chat booking gets a confirmation email automatically — nothing is left unconfirmed.
+- **Patients can install it like an app** on their phone (one tap from the browser) — your clinic gets its own icon on their home screen, with no app store involved.
+- **Every conversation is summarized and logged** for your staff, just like phone calls (see Chat Logs below).
+
+### 3. The Staff Dashboard 💻
 
 This is the web screen your team logs into. It's where the humans stay in control of everything the AI does. From here, staff can see every appointment, manage the calendar, look up patients, and review what happened on every phone call.
 
@@ -52,7 +64,8 @@ The AI receptionist and your staff dashboard share **one calendar and one patien
 ```mermaid
 flowchart LR
     Patient([📞 Patient calls]) --> AI[🤖 AI Receptionist]
-    AI <--> Core[(📅 Shared Calendar<br/>👥 Patient Records<br/>☎️ Call Logs)]
+    Chat([💬 Patient chats]) --> AI
+    AI <--> Core[(📅 Shared Calendar<br/>👥 Patient Records<br/>☎️ Call & Chat Logs)]
     Staff([👩‍⚕️ Your Staff]) --> Dashboard[💻 Staff Dashboard]
     Dashboard <--> Core
 ```
@@ -128,6 +141,11 @@ A record of every phone call the AI handled, including:
 
 This is your quality-control window — you can always see exactly what the AI said and did.
 
+### 💬 Chat Logs
+The same transparency for the chat receptionist: every website conversation is listed with its **language, message count, sentiment and outcome**, plus a written summary (in the patient's language) and the full transcript on demand.
+
+![Chat logs with language, sentiment and outcome](assets/screenshots/09-chat-logs.png)
+
 ### 👤 Users (Admins)
 Owners and managers manage their team here — creating staff accounts and setting each person's role.
 
@@ -172,7 +190,33 @@ A dentist can also **delegate** their calendar to an assistant — letting the f
 - **Free up your front desk** — staff focus on in-person patients instead of the phone
 - **Full transparency** — every call is summarized and recorded, so you're always in control
 - **Speaks your patients' languages** — serve more of your community
-- **One simple system** — calendar, patients, and calls all in one place (no more juggling spreadsheets and separate calendars)
+- **Meets patients where they are** — phone for some, website chat for others, one shared calendar behind both
+- **Patient data stays truly private** — encrypted with a key only your clinic holds, and backed up every night
+- **One simple system** — calendar, patients, calls and chats all in one place (no more juggling spreadsheets and separate calendars)
+
+---
+
+## 🔐 How your patients' data is protected
+
+Patient records are medical data, and this app treats them that way — with protections you can explain to a patient in one breath.
+
+### Encrypted, with a key only your clinic holds
+
+All patient personal data (names, phone numbers, appointment notes, call and chat transcripts) is stored **encrypted** with AES-256 — the same encryption family used in online banking. The encryption key belongs to **your clinic alone**: it is never stored on the server and never held by us. Practically, that means someone who stole the database — or even the server's disks — would see only unreadable ciphertext.
+
+There's a visible, everyday side to this: whenever the system restarts (for example after an update), it comes back **locked**. Staff can still log in and see the calendar, but patient names show as `••••` until an administrator enters the clinic's key — a 10-second routine:
+
+![The locked state: an admin unlocks patient data with the clinic key](assets/screenshots/11-locked.png)
+
+The banner even shows a short "fingerprint" of the expected key, so the admin can tell at a glance they're about to use the right one — without the key itself ever being displayed.
+
+### Backed up every night — in a form even we can't read
+
+Every night at 3 AM the system automatically backs up the **entire database**, encrypts the backup, and keeps 90 days of history. The clever part: backups are encrypted with a method where the server can *create* them but can never *read* them back — only your clinic's sealed **recovery key** (a printed document kept in the clinic safe) can open a backup.
+
+- **If the server is ever lost** (hardware failure, disaster), the newest backup is restored and unlocked with your usual key. This restore procedure isn't theoretical — it's rehearsed with regular fire drills.
+- **If the clinic ever loses its key**, the sealed recovery document in your safe can recover it. No data loss, no calling the vendor to ask for a copy — we never had one.
+- And if *both* were lost? Then the data is unrecoverable — **by design**. That's not a flaw; it's the proof that nobody outside your clinic can ever read your patients' records.
 
 ---
 
@@ -191,7 +235,10 @@ Yes. Every call has a full written transcript and summary in the Call Logs.
 No. The AI books only from your live calendar, so it only offers slots that are actually free.
 
 **Is patient information kept private?**
-Yes. Access is restricted by role, accounts are password-protected, and only your authorized staff can log in.
+Yes, on several levels. Access is restricted by role and password. Beyond that, all patient personal data is stored **encrypted**, and the encryption key is held only by your clinic — not by us, not on the server. Nightly backups are encrypted the same way. See "How your patients' data is protected" above.
+
+**What happens if the AI chat can't help, or the system is being updated?**
+The chat politely says it's temporarily unavailable and patients can still call. Staff-side, updates briefly "lock" patient data until an admin re-enters the clinic key — the calendar keeps working throughout.
 
 ---
 
