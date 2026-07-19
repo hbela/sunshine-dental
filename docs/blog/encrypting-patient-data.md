@@ -157,6 +157,16 @@ The drill also surfaced three things no amount of desk-checking would have:
 
 That's the actual value of a drill: not confirming the happy path, but finding the places where your *documentation* and your *monitoring* would have lied to you during a real incident.
 
+## Why pgcrypto isn't a good fit here
+
+The most common "isn't this over-engineered?" question this design gets: Postgres ships [pgcrypto](https://www.postgresql.org/docs/current/pgcrypto.html) — why not just `pgp_sym_encrypt()` the columns and delete all that application code? Because it quietly reverses the one sentence the whole design hangs on:
+
+- **The key travels to the database.** `pgp_sym_encrypt(data, key)` puts the key inside every SQL statement, so the DB server sees both key and plaintext — and statement logs, `pg_stat_statements`, and error messages become places your master key can land on disk. The attacker this design defends against (anyone with database access: a leaked dump, the hosting provider, the vendor) is exactly who pgcrypto hands the key to. "The server never holds the key" becomes "the *database* holds it, per query."
+- **Weaker cryptography.** pgcrypto has no AES-GCM. `pgp_sym_encrypt` is CFB mode with a SHA-1-based PGP integrity check; the raw `encrypt()` function is unauthenticated CBC/ECB. The GCM auth tag is what powers the wrong-key canary and tamper detection above — you'd be giving that up, not just swapping libraries.
+- **No real simplification behind an ORM.** Prisma can't express pgcrypto calls, so every read and write of every encrypted field becomes raw SQL — trading one small, grep-able `crypto.ts` for `$queryRaw` scattered through every service. And since `pgp_sym_encrypt` is (correctly) non-deterministic, the blind index for phone lookups is still needed; its HMAC key would now also be shipped to the DB.
+
+pgcrypto is a fine tool for a different threat model — one where the database is trusted and you want in-SQL convenience: password hashing with `crypt()`/`gen_salt()`, `gen_random_uuid()`, ad-hoc encryption in a pipeline. For "the DB and its operator must never see plaintext," encryption has to happen before the data reaches the database, which means the application layer.
+
 ## Honest limits, again
 
 - Root on the live box can read the key from process memory while unlocked. Encryption at rest protects stolen dumps/disks/backups/providers — real threats — not a hostile host.
