@@ -17,7 +17,14 @@
     "guide:publish": "tsx scripts/publish-user-guide.mts",
     "guide:publish:en": "tsx scripts/publish-user-guide.mts --lang en",
     "guide:publish:hu": "tsx scripts/publish-user-guide.mts --lang hu",
-    "guide:publish:de": "tsx scripts/publish-user-guide.mts --lang de"
+    "guide:publish:de": "tsx scripts/publish-user-guide.mts --lang de",
+    "video": "pnpm --filter @repo/video-generator video",
+    "video:scenes": "pnpm --filter @repo/video-generator video:scenes",
+    "video:screens": "pnpm --filter @repo/video-generator video:screens",
+    "video:voice": "pnpm --filter @repo/video-generator video:voice",
+    "video:render": "pnpm --filter @repo/video-generator video:render",
+    "video:studio": "pnpm --filter @repo/video-generator video:studio",
+    "video:browsers": "pnpm --filter @repo/video-generator video:browsers"
   },
   "devDependencies": {
     "ffmpeg-static": "^5.3.0",
