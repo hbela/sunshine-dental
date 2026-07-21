@@ -10,6 +10,8 @@
   "close": "Schließen",
   "loading": "Wird geladen…",
   "error": "Etwas ist schiefgelaufen",
+  "errorBody": "Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu.",
+  "errorReload": "Seite neu laden",
   "language": "Sprache",
   "toggleTheme": "Design umschalten",
   "comingSoon": "Demnächst verfügbar.",

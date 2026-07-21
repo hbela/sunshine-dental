@@ -96,13 +96,26 @@ with no provider → real slots. **Takeaway:** a voice agent saying "backend unr
 
 ## External monitoring & alerts
 
-- **Uptime monitor** (UptimeRobot / Better Stack), 1–5 min interval, email + Slack/Telegram alerts on:
-  - `https://sunshine.appointer.hu` (expect 200)
-  - `https://sunshine.appointer.hu/api/health` (expect 200)
-  - `https://n8nprod.appointer.hu/healthz` (expect 200)
+- **Uptime monitor — UptimeRobot** (implemented), 5-min interval, email alerts to
+  `hajzerbela@gmail.com` (add Slack/Telegram later to match the deferred escalation). Three
+  HTTP(s) monitors:
+  - **Web SPA** — `https://sunshine.appointer.hu` — expect **200**.
+  - **API + DB** — `https://sunshine.appointer.hu/api/health` — expect **200**.
+    - **Keyword sub-check (recommended):** a second monitor on the same URL requiring the
+      keyword `"encryption":"unlocked"`. Rationale: `/api/health` returns **200 even when the
+      keyring is locked** (see [`../apps/api/src/routes/health.routes.ts`](../apps/api/src/routes/health.routes.ts)),
+      so a plain up/down check can't detect a post-restart **locked** state where patient PII
+      can't be decrypted. The keyword monitor alerts on that. Unlock via
+      `POST /api/admin/unlock`.
+  - **n8n liveness** — `https://n8nprod.appointer.hu/healthz` — expect **200**.
   - _(record the monitor dashboard URL here once created: __________ )_
-- **Coolify → Settings → Notifications**: enable email/Discord/Slack/Telegram for **deployment
-  failures** and **container-healthcheck failures**.
+- **Why UptimeRobot on top of Coolify:** Coolify's notifications are *inside-out* (the VPS's
+  own view). UptimeRobot is the *outside-in* view Coolify can't give — DNS resolution, TLS-cert
+  expiry, Traefik/nginx edge routing actually serving 200, and **response-body correctness**
+  (the `encryption:unlocked` keyword). Keep both.
+- **Coolify → Settings → Notifications**: email is **already enabled** for **Deployment
+  failure, Backup failure, Scheduled Task failure, Docker Cleanup failure, Server Disk Usage,
+  Server Unreachable, and Server Patching**. (Optional: add Discord/Slack/Telegram later.)
 - **Backup dead-man's switch** (healthchecks.io): the nightly job pings `HEALTHCHECK_URL`
   **only on success**, so a *missed* run alerts, not just a failed one. Red ⇒ triage per
   [`disaster-recovery.md`](disaster-recovery.md#triage): Coolify → Scheduled Task → logs;
@@ -129,8 +142,32 @@ dynamic-vars `jUh6a3wia5turKAw`, daily-date `BxgJLziofW7fEME1`.
 - Verified 2026-07-02 with a throwaway failing workflow → handler executed (mode `error`, success),
   email sent; test workflow deleted.
 
+### Sentry error tracking (implemented)
+
+Error capture in **both** the API and the web SPA. Both are **no-ops without a DSN**, so
+local dev and any un-configured environment are unaffected.
+
+- **API — `@sentry/node`.** Init lives in [`../apps/api/src/instrument.ts`](../apps/api/src/instrument.ts),
+  imported as the **first** line of [`../apps/api/src/server.ts`](../apps/api/src/server.ts).
+  5xx / unhandled exceptions are reported from the existing `setErrorHandler` in
+  [`../apps/api/src/app.ts`](../apps/api/src/app.ts) — via `Sentry.captureException` on the
+  genuine-error fallthrough only (validation 400s and coded HttpErrors like `ENCRYPTION_LOCKED`
+  return earlier and are **not** reported). Errors-only, `tracesSampleRate: 0`.
+  - **DSN:** runtime env `SENTRY_DSN` — set as a Coolify **Environment Variable** on the `api`
+    resource (wired in `docker-compose.yml`). Empty = disabled.
+- **Web — `@sentry/react`.** Init in [`../apps/web/src/main.tsx`](../apps/web/src/main.tsx)
+  reading `import.meta.env.VITE_SENTRY_DSN`; a root `errorComponent` in
+  [`../apps/web/src/routes/__root.tsx`](../apps/web/src/routes/__root.tsx) captures render/route
+  errors and shows a translated fallback. `init` also auto-captures unhandled errors + promise
+  rejections. Errors-only, `tracesSampleRate: 0`.
+  - **DSN:** **build-time** `VITE_SENTRY_DSN` (baked into the static bundle) — set as a Coolify
+    **BUILD variable** on the `web` resource, passed via `ARG VITE_SENTRY_DSN` in
+    [`../apps/web/Dockerfile`](../apps/web/Dockerfile). A browser DSN is public/non-secret.
+    **Changing it requires a rebuild, not just a restart.** Empty = disabled.
+- **Test:** temporarily throw in an API route (→ event in the api project) or a web component
+  (→ fallback UI renders + event in the web project); remove the throw afterwards.
+
 ## Next (deferred, not yet implemented)
 
-- Sentry error tracking in the Fastify API (capture 5xx + unhandled exceptions).
 - Structured request logging (Pino) with retained logs / log shipping.
-- Escalate n8n alerts to Slack/Telegram (currently email-only).
+- Escalate n8n + Sentry alerts to Slack/Telegram (currently email-only).

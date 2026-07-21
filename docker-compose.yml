@@ -14,6 +14,7 @@
 #   BETTER_AUTH_SECRET    32+ char random string   (openssl rand -base64 32)
 #   FASTIFY_API_KEY       shared key for n8n/Retell webhook auth
 #   ANTHROPIC_API_KEY     Claude API key powering the patient chat receptionist
+#   SENTRY_DSN            (optional) Sentry DSN for API error tracking; empty = off
 # Backups (see docs/disaster-recovery.md — the backup service is part of this
 # stack so it can reach `db` internally; the Scheduled Task execs into it):
 #   BACKUP_AGE_PUBKEY     clinic recovery public key (age1…)
@@ -73,6 +74,8 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       # Optional: n8n webhook that emails a chat booking confirmation. Empty = off.
       N8N_BOOKING_WEBHOOK_URL: ${N8N_BOOKING_WEBHOOK_URL:-}
+      # Optional: Sentry DSN for API error tracking. Empty = Sentry disabled.
+      SENTRY_DSN: ${SENTRY_DSN:-}
     expose:
       - "3000"
     depends_on:

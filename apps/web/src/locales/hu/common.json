@@ -10,6 +10,8 @@
   "close": "Bezárás",
   "loading": "Betöltés…",
   "error": "Valami hiba történt",
+  "errorBody": "Váratlan hiba történt. Kérjük, töltse be újra az oldalt.",
+  "errorReload": "Oldal újratöltése",
   "language": "Nyelv",
   "toggleTheme": "Téma váltása",
   "comingSoon": "Hamarosan.",

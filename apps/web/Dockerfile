@@ -22,6 +22,12 @@ RUN pnpm install --frozen-lockfile
 COPY apps/web ./apps/web
 COPY packages ./packages
 
+# Sentry DSN for the browser SDK. Baked into the static bundle at build time, so
+# it must be a build ARG (not a runtime env). Public/non-secret by design; empty
+# = Sentry disabled. Set it as a Coolify BUILD variable for the web resource.
+ARG VITE_SENTRY_DSN=""
+ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
+
 WORKDIR /app/apps/web
 RUN pnpm build
 

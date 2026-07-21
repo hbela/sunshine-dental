@@ -12,6 +12,7 @@
   "dependencies": {
     "@hookform/resolvers": "latest",
     "@repo/shared": "workspace:*",
+    "@sentry/react": "^10.67.0",
     "@tanstack/react-query": "latest",
     "@tanstack/react-router": "latest",
     "axios": "latest",

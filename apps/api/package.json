@@ -25,6 +25,7 @@
         "@fastify/swagger-ui": "latest",
         "@prisma/client": "^6.0.0",
         "@repo/shared": "workspace:*",
+        "@sentry/node": "^10.67.0",
         "bcryptjs": "^3.0.3",
         "better-auth": "latest",
         "date-fns": "^4.1.0",
