@@ -16,5 +16,9 @@ if (dsn) {
     environment: process.env.NODE_ENV ?? 'development',
     // Errors-only: no performance tracing (keeps overhead + quota minimal).
     tracesSampleRate: 0,
+    // Explicit, not just the SDK default: never attach request bodies, headers,
+    // cookies or IPs to events. This app handles encrypted patient PII (GDPR) —
+    // error reports must not become a side channel for it.
+    sendDefaultPii: false,
   })
 }

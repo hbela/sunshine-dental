@@ -108,7 +108,8 @@ with no provider → real slots. **Takeaway:** a voice agent saying "backend unr
       can't be decrypted. The keyword monitor alerts on that. Unlock via
       `POST /api/admin/unlock`.
   - **n8n liveness** — `https://n8nprod.appointer.hu/healthz` — expect **200**.
-  - _(record the monitor dashboard URL here once created: __________ )_
+  - **Created 2026-07-22** — all three monitors are live.
+  - _(record the monitor dashboard URL here: __________ )_
 - **Why UptimeRobot on top of Coolify:** Coolify's notifications are *inside-out* (the VPS's
   own view). UptimeRobot is the *outside-in* view Coolify can't give — DNS resolution, TLS-cert
   expiry, Traefik/nginx edge routing actually serving 200, and **response-body correctness**
@@ -146,6 +147,18 @@ dynamic-vars `jUh6a3wia5turKAw`, daily-date `BxgJLziofW7fEME1`.
 
 Error capture in **both** the API and the web SPA. Both are **no-ops without a DSN**, so
 local dev and any un-configured environment are unaffected.
+
+**Projects (sentry.io, EU region — `ingest.de.sentry.io`, org `o4507850050109440`):**
+`sunshine-dental-api` and `sunshine-dental-web`. Created 2026-07-22; both verified end-to-end
+with a delivered smoke-test event. EU-region ingest keeps error data in the EU alongside the
+clinic's other data. **DSNs are not stored in the repo** — they live in Coolify (and in the
+gitignored local `.env` files for dev).
+
+**Privacy — patient PII (GDPR):** both SDKs set **`sendDefaultPii: false` explicitly**, so
+request bodies, headers, cookies and IP addresses are never attached to events. This is set
+deliberately rather than relying on the SDK default, so a future SDK change can't silently
+start shipping PII. Keep it that way; if you ever need more request context, add
+**scrubbed** fields rather than flipping this flag.
 
 - **API — `@sentry/node`.** Init lives in [`../apps/api/src/instrument.ts`](../apps/api/src/instrument.ts),
   imported as the **first** line of [`../apps/api/src/server.ts`](../apps/api/src/server.ts).

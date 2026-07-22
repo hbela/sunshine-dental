@@ -18,6 +18,9 @@ if (sentryDsn) {
     environment: import.meta.env.MODE,
     // Errors-only: no performance tracing (keeps overhead + quota minimal).
     tracesSampleRate: 0,
+    // Explicit, not just the SDK default: never attach IPs or request details.
+    // Patient PII (GDPR) must not leak into error reports.
+    sendDefaultPii: false,
   })
 }
 
