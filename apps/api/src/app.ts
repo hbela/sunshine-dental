@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import cors from '@fastify/cors'
+import * as Sentry from '@sentry/node'
 import { authRoutes } from './routes/auth.routes.js'
 import openapiPlugin from './plugins/openapi.plugin.js'
 import { calendarRoutes } from './routes/calendar.routes.js'
@@ -28,6 +29,10 @@ export async function app(fastify: FastifyInstance) {
     if (typeof error?.statusCode === 'number' && typeof error?.code === 'string') {
       return reply.status(error.statusCode).send({ error: error.message, code: error.code })
     }
+    // Genuine 5xx / unhandled exceptions reach here — report them to Sentry
+    // (no-op without SENTRY_DSN). Validation 400s and coded HttpErrors above
+    // return early and are deliberately NOT reported.
+    Sentry.captureException(error)
     reply.send(error)
   })
 

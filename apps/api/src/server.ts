@@ -1,3 +1,5 @@
+// MUST be first: arms Sentry (no-op without SENTRY_DSN) before anything else loads.
+import './instrument.js'
 import Fastify from 'fastify'
 import { app } from './app.js'
 import { tryUnlockFromEnv } from './lib/crypto.js'

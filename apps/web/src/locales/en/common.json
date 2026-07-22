@@ -10,6 +10,8 @@
   "close": "Close",
   "loading": "Loading…",
   "error": "Something went wrong",
+  "errorBody": "An unexpected error occurred. Please try reloading the page.",
+  "errorReload": "Reload page",
   "language": "Language",
   "toggleTheme": "Toggle theme",
   "comingSoon": "Coming soon.",
