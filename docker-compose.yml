@@ -15,6 +15,9 @@
 #   FASTIFY_API_KEY       shared key for n8n/Retell webhook auth
 #   ANTHROPIC_API_KEY     Claude API key powering the patient chat receptionist
 #   SENTRY_DSN            (optional) Sentry DSN for API error tracking; empty = off
+#   VITE_SENTRY_DSN       (optional) Sentry DSN for the WEB bundle. Must be marked
+#                         as a BUILD variable in Coolify — it is baked in at build
+#                         time, so changing it needs a rebuild, not a restart.
 # Backups (see docs/disaster-recovery.md — the backup service is part of this
 # stack so it can reach `db` internally; the Scheduled Task execs into it):
 #   BACKUP_AGE_PUBKEY     clinic recovery public key (age1…)
@@ -97,6 +100,11 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      # Build-time only: Vite bakes this into the static bundle, so it must be a
+      # build arg (a runtime `environment:` entry would never reach the bundle).
+      # Changing it requires a REBUILD, not just a restart. Empty = Sentry off.
+      args:
+        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
     # Coolify attaches the domain + TLS to this published port via Traefik.
     ports:
       - "80"
