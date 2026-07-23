@@ -6,6 +6,7 @@ import { AppointmentTypeSchema, isValidPhoneNumber } from '@repo/shared';
 import { CalendarService } from './calendar.service.js';
 import { AppointmentService } from './appointment.service.js';
 import { buildChatSystemPrompt } from '../prompts/chat-receptionist.js';
+import { clinic, clinicToday } from '../lib/clinic.js';
 import { assertUnlocked, decryptString, encryptString } from '../lib/crypto.js';
 import { decryptRow, decryptRows, encryptRow, phoneIndexOf } from '../lib/crypto-fields.js';
 
@@ -25,15 +26,6 @@ function client(): Anthropic {
   return _client;
 }
 
-/** Today's date (YYYY-MM-DD) in the clinic's timezone, matching the voice agent. */
-function budapestToday(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Budapest',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-}
 
 /** lower_case tool value (e.g. "new_patient_exam") → UPPER enum, or undefined. */
 function normalizeType(t?: string): string | undefined {
@@ -411,7 +403,7 @@ export class ChatService {
       }
     }
 
-    const system = buildChatSystemPrompt(budapestToday());
+    const system = buildChatSystemPrompt(clinicToday(), clinic);
     let assistantText = '';
 
     for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {

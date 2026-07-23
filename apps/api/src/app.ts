@@ -13,6 +13,7 @@ import { adminRoutes } from './routes/admin.routes.js'
 import { delegationsRoutes } from './routes/delegations.routes.js'
 import { usersRoutes } from './routes/users.routes.js'
 import { chatRoutes } from './routes/chat.routes.js'
+import { faqRoutes } from './routes/faq.routes.js'
 
 export async function app(fastify: FastifyInstance) {
   fastify.setErrorHandler((error: any, request, reply) => {
@@ -54,6 +55,7 @@ export async function app(fastify: FastifyInstance) {
 
   // Register App API routes
   await fastify.register(healthRoutes, { prefix: '/api' })
+  await fastify.register(faqRoutes, { prefix: '/api' })
   await fastify.register(calendarRoutes, { prefix: '/api/calendar' })
   await fastify.register(providersRoutes, { prefix: '/api/providers' })
   await fastify.register(appointmentsRoutes, { prefix: '/api/appointments' })

@@ -1,5 +1,10 @@
 # Deploying Sunshine Dental (Hetzner VPS + Coolify + Docker)
 
+> **Deploying a stack for a *different* clinic?** Follow
+> [`onboarding-new-clinic.md`](onboarding-new-clinic.md) instead — it wraps this
+> guide with the per-clinic parts (clinic config, `CLINIC_ID`/`VITE_CLINIC_ID`,
+> `--minimal` seed, its own Retell agent and n8n workflows).
+
 This guide deploys the full app — **web** (Vite SPA) and **api** (Fastify + Prisma) —
 to a Hetzner VPS managed by [Coolify](https://coolify.io), using the production
 Postgres database hosted on Prisma.io.

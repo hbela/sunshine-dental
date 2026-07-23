@@ -28,6 +28,12 @@ COPY packages ./packages
 ARG VITE_SENTRY_DSN=""
 ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 
+# Which clinic this bundle is branded for (packages/shared/src/clinics/<id>.ts).
+# Also a build ARG: the name, page title, PWA manifest and icon paths are baked
+# into the static output. Empty = sunshine. Must match the api's CLINIC_ID.
+ARG VITE_CLINIC_ID=""
+ENV VITE_CLINIC_ID=$VITE_CLINIC_ID
+
 WORKDIR /app/apps/web
 RUN pnpm build
 

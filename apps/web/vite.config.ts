@@ -1,19 +1,55 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+// Relative path on purpose: Vite loads this config in Node and treats bare
+// specifiers like `@repo/shared` as external, which fails because that package
+// ships raw TypeScript. A relative import gets bundled by esbuild instead.
+import { getClinic } from '../../packages/shared/src/clinic.js'
 
 // Where the dev proxy forwards /api requests. Override with API_PROXY_TARGET
 // (e.g. http://localhost:3100 if the API runs on a non-default port).
 const apiTarget = process.env.API_PROXY_TARGET || 'http://localhost:3000'
+
+// Which clinic this bundle is for (unset → sunshine). Read from the process env
+// rather than import.meta.env because this runs in Node at build time; Coolify
+// passes it as the VITE_CLINIC_ID **build arg** (see docker-compose.yml).
+const clinic = getClinic(process.env.VITE_CLINIC_ID)
+const assets = clinic.brand.assetBasePath ?? '/'
+
+/**
+ * Stamp the clinic's identity into index.html. The file keeps Sunshine's values
+ * as literals so `vite dev` and a plain build still look right; this rewrites
+ * them for any other clinic.
+ */
+function clinicHtml(): Plugin {
+  return {
+    name: 'clinic-html',
+    transformIndexHtml(html) {
+      return html
+        .replace(/<title>[^<]*<\/title>/, `<title>${clinic.fullName}</title>`)
+        .replace(
+          /(<meta name="theme-color" content=")[^"]*(")/,
+          `$1${clinic.brand.themeColor}$2`,
+        )
+        .replace(
+          /(<meta name="apple-mobile-web-app-title" content=")[^"]*(")/,
+          `$1${clinic.shortName}$2`,
+        )
+        .replace(/(<link rel="icon" type="image\/svg\+xml" href=")[^"]*(")/, `$1${assets}favicon.svg$2`)
+        .replace(/(<link rel="apple-touch-icon" href=")[^"]*(")/, `$1${assets}apple-touch-icon.png$2`)
+    },
+  }
+}
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
     TanStackRouterVite(),
     react(),
+    clinicHtml(),
     // Installable PWA for the patient chat. The app is served same-origin with
     // the API, so the service worker must NEVER touch /api (SSE streaming +
     // POSTs go straight to the network). See docs/mobile-chat-pwa-plan.md.
@@ -22,22 +58,22 @@ export default defineConfig({
       injectRegister: 'auto',
       // Keep the SW out of `vite dev`; verify via `vite preview`.
       devOptions: { enabled: false },
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: [`${assets}favicon.svg`.slice(1), `${assets}apple-touch-icon.png`.slice(1)],
       manifest: {
-        name: 'Sunshine Dental Chat',
-        short_name: 'SD Chat',
-        description: 'Chat with Sunshine Dental Clinic to book and manage appointments.',
-        lang: 'en',
+        name: `${clinic.name} Chat`,
+        short_name: clinic.shortName,
+        description: `Chat with ${clinic.fullName} to book and manage appointments.`,
+        lang: clinic.defaultLanguage,
         start_url: '/chat',
         scope: '/',
         display: 'standalone',
-        theme_color: '#55624d',
-        background_color: '#f8faf3',
+        theme_color: clinic.brand.themeColor,
+        background_color: clinic.brand.backgroundColor,
         icons: [
-          { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: `${assets}pwa-192x192.png`, sizes: '192x192', type: 'image/png' },
+          { src: `${assets}pwa-512x512.png`, sizes: '512x512', type: 'image/png' },
           {
-            src: '/pwa-maskable-512x512.png',
+            src: `${assets}pwa-maskable-512x512.png`,
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',

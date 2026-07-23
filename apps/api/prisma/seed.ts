@@ -3,8 +3,26 @@ import { auth } from '../src/lib/auth.js';
 import { canonicalName } from '../src/lib/name.js';
 import { unlockWithKeyCheck } from '../src/lib/crypto.js';
 import { encryptRow, phoneIndexOf } from '../src/lib/crypto-fields.js';
+import { clinic } from '../src/lib/clinic.js';
 
 const prisma = new PrismaClient();
+
+/**
+ * `--minimal` seeds a REAL clinic: the staff accounts and standard availability
+ * from its config (`packages/shared/src/clinics/<id>.ts`) and nothing else.
+ * Without it the script seeds the original demo dataset — fake patients,
+ * appointments and call logs — which must never land in a live clinic's
+ * database. See docs/onboarding-new-clinic.md.
+ */
+const MINIMAL = process.argv.includes('--minimal') || process.env.SEED_MINIMAL === '1';
+
+/** Initial password for every seeded account; override with SEED_PASSWORD. */
+const DEFAULT_PASSWORDS: Record<string, string> = {
+  ADMIN: 'Admin1234!',
+  PROVIDER: 'Provider1234!',
+  ASSISTANT: 'Assistant1234!',
+};
+const passwordFor = (role: string) => process.env.SEED_PASSWORD || DEFAULT_PASSWORDS[role] || 'Change1234!';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -50,6 +68,102 @@ function assertSafeToSeed() {
 }
 
 // ---------------------------------------------------------------------------
+// Minimal (real-clinic) seed
+// ---------------------------------------------------------------------------
+
+/**
+ * Create the clinic's staff accounts and their standard weekly availability
+ * from the clinic config — no demo patients, appointments or call logs.
+ *
+ * Assumes the caller has already wiped the database and armed the keyring, so
+ * it shares the encryption guarantees of the demo path.
+ */
+async function seedMinimal() {
+  console.log(`  ℹ Minimal seed for clinic "${clinic.id}" (${clinic.fullName})`);
+
+  const created: Array<{ email: string; role: string; password: string; user: any }> = [];
+
+  for (const member of clinic.seed.staff) {
+    const password = passwordFor(member.role);
+    const signUp = await auth.api.signUpEmail({
+      body: { name: canonicalName(member), email: member.email, password },
+    });
+    const user = await prisma.user.update({
+      where: { id: signUp.user.id },
+      data: {
+        role: member.role as any,
+        emailVerified: true,
+        title: member.title ?? null,
+        givenName: member.givenName,
+        familyName: member.familyName,
+      },
+    });
+    created.push({ email: member.email, role: member.role, password, user });
+  }
+  console.log(`  ✓ Created ${created.length} users`);
+
+  // Provider profiles + availability. Times in the config are HH:MM and are
+  // written as UTC instants, matching how the demo seed and the calendar
+  // service have always stored CalendarEvent rows.
+  const { weekdays, horizonDays, blocks } = clinic.seed.availability;
+  let providerCount = 0;
+  let eventCount = 0;
+
+  for (const member of clinic.seed.staff) {
+    if (member.role !== 'PROVIDER') continue;
+    const owner = created.find((c) => c.email === member.email)!.user;
+
+    const provider = await prisma.provider.create({
+      data: encryptRow('provider', {
+        userId: owner.id,
+        specialty: member.specialty ?? null,
+        phone: member.phone ?? null,
+        bio: member.bio ?? null,
+        isActive: true,
+      }),
+    });
+    providerCount++;
+
+    const days = member.weekdays ?? weekdays;
+    const events: any[] = [];
+    let offset = 1;
+    let added = 0;
+    while (added < horizonDays) {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() + offset);
+      const iso = d.getUTCDay() === 0 ? 7 : d.getUTCDay(); // JS Sun=0 → ISO Sun=7
+      if (days.includes(iso)) {
+        const ds = d.toISOString().split('T')[0];
+        for (const b of blocks) {
+          events.push({
+            providerId: provider.id,
+            title: b.title,
+            start: new Date(`${ds}T${b.start}:00.000Z`),
+            end: new Date(`${ds}T${b.end}:00.000Z`),
+            allDay: false,
+            type: b.type,
+            notes: b.notes ?? null,
+            createdBy: owner.id,
+          });
+        }
+        added++;
+      }
+      offset++;
+      if (offset > 400) break; // guard against an empty `weekdays` config
+    }
+    await prisma.calendarEvent.createMany({ data: events });
+    eventCount += events.length;
+  }
+  console.log(`  ✓ Created ${providerCount} provider profiles and ${eventCount} calendar events`);
+
+  console.log('\n✅ Seed complete!\n');
+  console.log('  Credentials — change these immediately after the first login:');
+  for (const c of created) {
+    console.log(`  │ ${c.email.padEnd(34)} │ ${c.password.padEnd(17)} │ ${c.role}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Seed
 // ---------------------------------------------------------------------------
 
@@ -83,6 +197,9 @@ async function main() {
   // Arm the keyring + write a fresh key-check canary matching ENCRYPTION_KEY.
   await unlockWithKeyCheck(prisma, envKey);
   console.log('  ✓ Encryption keyring armed (canary written)');
+
+  // A real clinic stops here: staff + availability only, no demo data.
+  if (MINIMAL) return seedMinimal();
 
   // ── 2. Users & hashed passwords ───────────────────────────────────────────
   type SeedRole = 'ADMIN' | 'PROVIDER' | 'ASSISTANT';

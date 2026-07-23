@@ -25,6 +25,20 @@ copy) so the LLM date isn't PATCHed twice. See `docs/n8n-dev-prod-split-plan.md`
 > source of truth is the live workflows in each n8n instance — export/import between instances
 > rather than editing these files.
 
+## Multiple clinics on one n8n instance
+
+Each customer clinic gets its **own copy** of the three workflows on the shared
+prod instance, with clinic-scoped webhook paths (`/webhook/<clinic>-custom-functions`,
+`/webhook/<clinic>-post-call`, `/webhook/<clinic>-chat-booking-confirmation`) and
+that clinic's `FASTIFY_API_KEY` on the HTTP nodes. Full procedure:
+[`docs/onboarding-new-clinic.md`](../docs/onboarding-new-clinic.md).
+
+The one workflow edit a new copy needs beyond URLs and keys: the **FAQ Handler**
+node should call `GET <api-base>/api/faq?topic=…&language=…` instead of carrying a
+hardcoded answer dictionary. Clinic facts now live in
+[`packages/shared/src/clinics/<id>.ts`](../packages/shared/src/clinic.ts) and are
+served by the API, so the voice agent and the text chat can never drift apart.
+
 ## Agent voice & model (cost choice)
 
 The prod agent (`agent_0c73886e96f6cf2ad878def30e`, LLM `llm_9144fb5e818b3d841e18ab084b99`) runs:

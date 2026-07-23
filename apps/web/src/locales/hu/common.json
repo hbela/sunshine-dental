@@ -1,5 +1,5 @@
 {
-  "appName": "Sunshine Dental",
+  "appName": "{{clinicName}}",
   "logout": "Kijelentkezés",
   "save": "Mentés",
   "saving": "Mentés…",
