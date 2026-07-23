@@ -8,6 +8,12 @@
 # Coolify resources) with different env values for two isolated stacks.
 #
 # Set these in Coolify's "Environment Variables" UI (do NOT commit real values):
+#   CLINIC_ID             which clinic this stack serves (see packages/shared/src/clinics/).
+#                         Unset = sunshine. Pair it with VITE_CLINIC_ID below —
+#                         they must match, or the UI and the agent disagree.
+#   VITE_CLINIC_ID        same value, as a BUILD variable in Coolify: the web
+#                         bundle bakes the clinic's name/branding in at build
+#                         time, so changing it needs a rebuild, not a restart.
 #   POSTGRES_PASSWORD     Postgres superuser password  (openssl rand -hex 32)
 #   WEB_ORIGIN            https://your-domain.com  (CORS + better-auth origin)
 #   BETTER_AUTH_URL       https://your-domain.com  (must match the public URL)
@@ -68,6 +74,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
+      # Which clinic's facts the prompts and /api/faq serve. Empty = sunshine.
+      CLINIC_ID: ${CLINIC_ID:-}
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/sunshine
       WEB_ORIGIN: ${WEB_ORIGIN}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
@@ -105,6 +113,9 @@ services:
       # Changing it requires a REBUILD, not just a restart. Empty = Sentry off.
       args:
         VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
+        # Clinic branding (name, title, PWA manifest, icons) is baked in here.
+        # Must equal the api's CLINIC_ID. Empty = sunshine.
+        VITE_CLINIC_ID: ${VITE_CLINIC_ID:-}
     # Coolify attaches the domain + TLS to this published port via Traefik.
     ports:
       - "80"

@@ -34,7 +34,7 @@
   },
   "roles": {
     "USER": "Patient",
-    "ASSISTANT": "Sarah",
+    "ASSISTANT": "{{personaName}}",
     "TOOL": "System"
   },
   "sentiment": {

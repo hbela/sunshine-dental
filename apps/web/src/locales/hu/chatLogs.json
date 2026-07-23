@@ -34,7 +34,7 @@
   },
   "roles": {
     "USER": "Páciens",
-    "ASSISTANT": "Sarah",
+    "ASSISTANT": "{{personaName}}",
     "TOOL": "Rendszer"
   },
   "sentiment": {

@@ -2,6 +2,8 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 
+import { CLINIC } from '@/lib/clinic'
+
 import enCommon from '@/locales/en/common.json'
 import enNav from '@/locales/en/nav.json'
 import enAuth from '@/locales/en/auth.json'
@@ -130,7 +132,17 @@ void i18n
     fallbackLng: 'en',
     defaultNS,
     ns: [...namespaces],
-    interpolation: { escapeValue: false },
+    // `defaultVariables` supplies the clinic's identity to every string without
+    // each call site passing it: the locale files say "{{clinicName}}", so one
+    // shared translation set serves every clinic we host.
+    interpolation: {
+      escapeValue: false,
+      defaultVariables: {
+        clinicName: CLINIC.name,
+        clinicFullName: CLINIC.fullName,
+        personaName: CLINIC.personaName,
+      },
+    },
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: 'sd.lang',
