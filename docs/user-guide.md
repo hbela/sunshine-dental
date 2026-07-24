@@ -220,6 +220,49 @@ Every night at 3 AM the system automatically backs up the **entire database**, e
 
 ---
 
+## Under the hood — how it's deployed
+
+*For the technically curious: here's the actual system behind the friendly front desk.* The whole product runs as a small set of Docker containers on a single **Hetzner VPS** (managed with Coolify, which also terminates HTTPS at the edge), talking to a handful of specialised cloud services for voice, chat and email.
+
+```mermaid
+flowchart TB
+    browser(["🌐 Patient & Staff browser"]) -->|HTTPS| web
+    phone(["📞 Phone caller"]) --> retell
+
+    subgraph vps["🖥️ Hetzner VPS — Coolify + Traefik (TLS)"]
+        direction TB
+        web["📦 web · nginx + Vite/React SPA<br/>serves UI, reverse-proxies /api"]
+        api["📦 api · Fastify + Prisma + better-auth<br/>PII encrypted AES-256-GCM"]
+        db[("📦 db · PostgreSQL 17")]
+        backup["📦 backup · nightly pg_dump + age"]
+        web -->|"HTTP :3000"| api
+        api -->|"TCP :5432"| db
+        backup -->|"TCP :5432"| db
+    end
+
+    subgraph cloud["☁️ External cloud services"]
+        retell["🤖 Retell AI · voice agent (gpt-4.1)"]
+        n8n["🔀 n8n · webhook router + workflows"]
+        anthropic["💬 Anthropic · Claude Haiku 4.5"]
+        gmail["✉️ Gmail · OAuth2 email"]
+    end
+
+    retell -->|HTTPS webhook| n8n
+    n8n -->|"HTTPS · Bearer → /api"| web
+    api -->|"HTTPS (chat)"| anthropic
+    n8n -->|OAuth2| gmail
+    backup -.->|age-encrypted offsite| storagebox[("🗄️ Hetzner Storage Box")]
+```
+
+- **Hetzner VPS (Coolify + Traefik)** — one Docker stack with TLS at the edge. The very same stack is deployed twice, as fully separate production (`sunshine.appointer.hu`) and staging (`sunshinedev.appointer.hu`) environments.
+- **`web` / `api` / `db` / `backup` containers** — nginx serves the React single-page app and reverse-proxies `/api`; a Fastify API holds the business logic; an in-stack PostgreSQL 17 database stores everything; and a nightly job takes an encrypted backup.
+- **Retell AI → n8n → API** — the phone path. The Retell voice agent calls an n8n workflow, which routes each request to the API over HTTPS with a bearer key; the answer travels straight back on the same connection, so callers get live, real-calendar availability.
+- **Anthropic Claude Haiku 4.5** — the website chat path. The API talks to Claude directly (no workflow hop) and reuses the exact same booking logic as the phone agent.
+- **Gmail (OAuth2)** — booking confirmations, call summaries and error alerts are all sent from n8n through Gmail.
+- **Encrypted, clinic-held keys** — patient data is encrypted with a key only the clinic holds, and the nightly backups are sealed with a separate offsite key (see *How your patients' data is protected* above).
+
+---
+
 ## Frequently asked questions
 
 **Does the AI replace my staff?**

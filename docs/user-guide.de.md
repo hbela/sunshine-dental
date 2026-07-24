@@ -220,6 +220,49 @@ Jede Nacht um 3 Uhr sichert das System automatisch die **gesamte Datenbank**, ve
 
 ---
 
+## Unter der Haube — wie es bereitgestellt ist
+
+*Für technisch Interessierte: Hier ist das tatsächliche System hinter der freundlichen Rezeption.* Das gesamte Produkt läuft als kleine Gruppe von Docker-Containern auf einem einzigen **Hetzner VPS** (verwaltet mit Coolify, das auch HTTPS am Rand terminiert) und kommuniziert mit einigen spezialisierten Cloud-Diensten für Sprache, Chat und E-Mail.
+
+```mermaid
+flowchart TB
+    browser(["🌐 Patienten- & Team-Browser"]) -->|HTTPS| web
+    phone(["📞 Anrufer"]) --> retell
+
+    subgraph vps["🖥️ Hetzner VPS — Coolify + Traefik (TLS)"]
+        direction TB
+        web["📦 web · nginx + Vite/React SPA<br/>liefert UI, Reverse-Proxy für /api"]
+        api["📦 api · Fastify + Prisma + better-auth<br/>PII verschlüsselt AES-256-GCM"]
+        db[("📦 db · PostgreSQL 17")]
+        backup["📦 backup · nächtliches pg_dump + age"]
+        web -->|"HTTP :3000"| api
+        api -->|"TCP :5432"| db
+        backup -->|"TCP :5432"| db
+    end
+
+    subgraph cloud["☁️ Externe Cloud-Dienste"]
+        retell["🤖 Retell AI · Sprachagent (gpt-4.1)"]
+        n8n["🔀 n8n · Webhook-Router + Workflows"]
+        anthropic["💬 Anthropic · Claude Haiku 4.5"]
+        gmail["✉️ Gmail · OAuth2-E-Mail"]
+    end
+
+    retell -->|HTTPS-Webhook| n8n
+    n8n -->|"HTTPS · Bearer → /api"| web
+    api -->|"HTTPS (Chat)"| anthropic
+    n8n -->|OAuth2| gmail
+    backup -.->|age-verschlüsselt, extern| storagebox[("🗄️ Hetzner Storage Box")]
+```
+
+- **Hetzner VPS (Coolify + Traefik)** — ein Docker-Stack mit TLS am Rand. Genau derselbe Stack wird zweimal bereitgestellt, als vollständig getrennte Produktions- (`sunshine.appointer.hu`) und Staging-Umgebung (`sunshinedev.appointer.hu`).
+- **`web`- / `api`- / `db`- / `backup`-Container** — nginx liefert die React-Single-Page-App und stellt einen Reverse-Proxy für `/api` bereit; eine Fastify-API enthält die Geschäftslogik; eine im Stack laufende PostgreSQL-17-Datenbank speichert alles; und ein nächtlicher Job erstellt eine verschlüsselte Sicherung.
+- **Retell AI → n8n → API** — der Telefonweg. Der Retell-Sprachagent ruft einen n8n-Workflow auf, der jede Anfrage über HTTPS mit einem Bearer-Schlüssel an die API weiterleitet; die Antwort kommt auf derselben Verbindung zurück, sodass Anrufer live die tatsächliche Kalenderverfügbarkeit erhalten.
+- **Anthropic Claude Haiku 4.5** — der Chat-Weg der Website. Die API spricht direkt mit Claude (ohne Workflow-Umweg) und nutzt exakt dieselbe Buchungslogik wie der Telefonagent.
+- **Gmail (OAuth2)** — Buchungsbestätigungen, Anrufzusammenfassungen und Fehlerbenachrichtigungen werden alle von n8n über Gmail versendet.
+- **Verschlüsselung mit praxiseigenen Schlüsseln** — Patientendaten werden mit einem Schlüssel verschlüsselt, den nur die Praxis besitzt, und die nächtlichen Sicherungen werden mit einem separaten externen Schlüssel versiegelt (siehe oben: *So sind die Daten Ihrer Patienten geschützt*).
+
+---
+
 ## Häufig gestellte Fragen
 
 **Ersetzt die KI mein Team?**

@@ -18,6 +18,8 @@ Ne csak a szavunkra hagyatkozzon — íme egy **valódi hívás**, amelyet az MI
 
 <audio controls preload="none" src="assets/screenshots/latest-call.mp3"></audio>
 
+👉 **Élőben is kipróbálná?** Szívesen adunk Önnek egy **valódi telefonszámot**, amelyet felhívva saját maga tesztelheti a hangalapú MI recepcióst — pontosan úgy, ahogy a betegei tapasztalnák. Csak kérje.
+
 ---
 
 ## Az alkalmazás három része
@@ -41,6 +43,8 @@ Ugyanez az MI recepciós a weboldalán **szöveges csevegésként** is elérhet�
 
 ![A betegek csevegő recepciósa válaszol egy kérdésre](assets/screenshots/10-chat.png)
 
+👉 **Próbálja ki most, ingyen:** [sunshinedev.appointer.hu/chat](https://sunshinedev.appointer.hu/chat) — nyissa meg, és csevegjen a recepcióssal úgy, ahogy a betegei tennék. Kérdezzen rá a nyitvatartásra, vagy foglaljon egy próbaidőpontot; néhány másodperc az egész, és semmibe sem kerül.
+
 Néhány dolog, amit érdemes tudni:
 
 - **Foglalás előtt mindig elkér egy e-mail-címet**, így minden csevegésből származó foglalásról automatikusan visszaigazoló e-mail megy — semmi sem marad megerősítés nélkül.
@@ -54,6 +58,8 @@ Ez az a webes képernyő, amelyre a csapata bejelentkezik. Itt tartják kézben 
 A munkatársak saját e-mail-címmel és jelszóval jelentkeznek be:
 
 ![Bejelentkezési képernyő](assets/screenshots/01-login.png)
+
+👉 **Nézzen körül maga is a felületen.** Szívesen adunk Önnek teszthozzáférést mind a három szerepkörhöz — **adminisztrátor**, **orvos** és **asszisztens** —, hogy saját szemével lássa, kinek mi jelenik meg: az adminisztrátor a csapatot és a beállításokat is kezeli, az orvos a saját naptárát és időpontjait látja, az asszisztens pedig az egész rendelőt felügyeli. Kérjen belépést, és próbálja ki mindhármat.
 
 ---
 
@@ -217,6 +223,49 @@ A rendszer minden éjjel 3 órakor automatikusan biztonsági mentést készít a
 - **Ha a szerver valaha elveszne** (hardverhiba, katasztrófa), a legfrissebb mentés visszaállítható, és a megszokott kulccsal feloldható. Ez a visszaállítási eljárás nem elmélet — rendszeres „tűzoltó-gyakorlatokon" próbáljuk el.
 - **Ha a rendelő valaha elvesztené a kulcsát**, a széfben őrzött lepecsételt helyreállítási dokumentummal visszanyerhető. Nincs adatvesztés, és nem kell a szolgáltatót hívni másolatért — nekünk soha nem is volt.
 - És ha *mindkettő* elveszne? Akkor az adatok helyreállíthatatlanok — **szándékosan**. Ez nem hiba, hanem annak bizonyítéka, hogy a rendelőn kívül soha senki nem olvashatja el a betegei adatait.
+
+---
+
+## A motorháztető alatt — hogyan van üzembe helyezve
+
+*A technikailag érdeklődőknek: íme a barátságos recepció mögötti valódi rendszer.* Az egész termék néhány Docker-konténerként fut egyetlen **Hetzner VPS**-en (Coolify kezeli, amely a HTTPS-t is lezárja a peremen), és néhány specializált felhőszolgáltatással kommunikál a hang, a csevegés és az e-mail számára.
+
+```mermaid
+flowchart TB
+    browser(["🌐 Beteg és munkatárs böngészője"]) -->|HTTPS| web
+    phone(["📞 Telefonáló"]) --> retell
+
+    subgraph vps["🖥️ Hetzner VPS — Coolify + Traefik (TLS)"]
+        direction TB
+        web["📦 web · nginx + Vite/React SPA<br/>felületet szolgál, /api-t proxyz"]
+        api["📦 api · Fastify + Prisma + better-auth<br/>PII titkosítva AES-256-GCM"]
+        db[("📦 db · PostgreSQL 17")]
+        backup["📦 backup · éjszakai pg_dump + age"]
+        web -->|"HTTP :3000"| api
+        api -->|"TCP :5432"| db
+        backup -->|"TCP :5432"| db
+    end
+
+    subgraph cloud["☁️ Külső felhőszolgáltatások"]
+        retell["🤖 Retell AI · hangügynök (gpt-4.1)"]
+        n8n["🔀 n8n · webhook-útválasztó + munkafolyamatok"]
+        anthropic["💬 Anthropic · Claude Haiku 4.5"]
+        gmail["✉️ Gmail · OAuth2 e-mail"]
+    end
+
+    retell -->|HTTPS webhook| n8n
+    n8n -->|"HTTPS · Bearer → /api"| web
+    api -->|"HTTPS (csevegés)"| anthropic
+    n8n -->|OAuth2| gmail
+    backup -.->|age-gel titkosítva, külső helyre| storagebox[("🗄️ Hetzner Storage Box")]
+```
+
+- **Hetzner VPS (Coolify + Traefik)** — egyetlen Docker-verem, TLS-sel a peremen. Pontosan ugyanez a verem kétszer van üzembe helyezve, teljesen különálló éles (`sunshine.appointer.hu`) és teszt (`sunshinedev.appointer.hu`) környezetként.
+- **`web` / `api` / `db` / `backup` konténerek** — az nginx szolgálja ki a React egyoldalas alkalmazást és proxyzza az `/api`-t; egy Fastify API tartalmazza az üzleti logikát; egy vermen belüli PostgreSQL 17 adatbázis tárol mindent; egy éjszakai feladat pedig titkosított biztonsági mentést készít.
+- **Retell AI → n8n → API** — a telefonos útvonal. A Retell hangügynök egy n8n-munkafolyamatot hív, amely minden kérést HTTPS-en, bearer kulccsal továbbít az API-nak; a válasz ugyanazon a kapcsolaton tér vissza, így a hívók élő, valós naptári elérhetőséget kapnak.
+- **Anthropic Claude Haiku 4.5** — a weboldali csevegés útvonala. Az API közvetlenül a Claude-dal beszél (munkafolyamat-ugrás nélkül), és pontosan ugyanazt a foglalási logikát használja, mint a telefonos ügynök.
+- **Gmail (OAuth2)** — a foglalási visszaigazolásokat, hívásösszefoglalókat és hibariasztásokat mind az n8n küldi a Gmailen keresztül.
+- **Titkosítás, a rendelő birtokolta kulcsokkal** — a betegadatok olyan kulccsal titkosítottak, amelyet kizárólag a rendelő birtokol, az éjszakai mentéseket pedig egy külön, külső helyen tárolt kulcs zárja le (lásd fentebb: *Hogyan védjük a betegek adatait*).
 
 ---
 
