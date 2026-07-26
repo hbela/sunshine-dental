@@ -119,7 +119,8 @@ curl "https://corona.appointer.hu/api/faq?topic=office_hours&language=hu"
    `unlocked` with the clinic's key fingerprint. Change the seeded passwords.
 
 7. **Backups** — Coolify → *Scheduled Tasks* → name `nightly-backup`, container
-   `backup`, command `backup-db.sh`, nightly. Set `STORAGEBOX_DIR=backups/<id>`
+   `backup`, command `backup-db.sh`, nightly. `STORAGEBOX_DIR` defaults to
+   `backups/<id>` from `CLINIC_ID` — only set it to override
    and a **new** healthchecks.io ping URL. Click *Run now* and expect
    `[backup] OK <id>-<stamp>.dump.age`. Do a restore drill into a scratch
    database before go-live.
