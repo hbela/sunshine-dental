@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { AppointmentTypeSchema, isValidPhoneNumber } from '@repo/shared'
+import { isValidPhoneNumber } from '@repo/shared'
 import {
   Dialog,
   DialogHeader,
@@ -19,6 +19,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { apiErrorMessage } from '@/lib/api'
 import { useFormat } from '@/i18n/useFormat'
 import { useEnum } from '@/i18n/useEnum'
+import { useServiceLabel } from '@/i18n/useServiceLabel'
+import { CLINIC } from '@/lib/clinic'
 import { isoToWall, wallToDateTimeParts } from '@/lib/calendar-utils'
 import {
   useBookAppointment,
@@ -27,7 +29,8 @@ import {
   type CalendarItem,
 } from '@/hooks/useCalendar'
 
-const APPOINTMENT_TYPES = AppointmentTypeSchema.options
+/** What this clinic offers, in the order it wants them shown. */
+const APPOINTMENT_TYPES = CLINIC.services.map((s) => s.code)
 
 type BookValues = {
   patient_name: string
@@ -76,6 +79,7 @@ function ViewAppointment({
   const { t } = useTranslation('appointments')
   const { t: tc } = useTranslation('common')
   const { tEnum } = useEnum()
+  const { tService } = useServiceLabel()
   const { formatDate, formatTime } = useFormat()
   const [error, setError] = useState<string | null>(null)
   const cancel = useCancelAppointment()
@@ -102,7 +106,7 @@ function ViewAppointment({
       <DialogHeader>
         <DialogTitle>{item.patientName}</DialogTitle>
         <DialogDescription>
-          {item.appointmentType ? tEnum('appointmentType', item.appointmentType) : ''} ·{' '}
+          {item.appointmentType ? tService(item.appointmentType) : ''} ·{' '}
           {item.status ? tEnum('appointmentStatus', item.status) : ''}
         </DialogDescription>
       </DialogHeader>
@@ -155,7 +159,7 @@ function CreateAppointment({
 }) {
   const { t } = useTranslation('appointments')
   const { t: tc } = useTranslation('common')
-  const { tEnum } = useEnum()
+  const { tService } = useServiceLabel()
   const [error, setError] = useState<string | null>(null)
   const book = useBookAppointment()
   const parts = slotStart ? wallToDateTimeParts(slotStart) : { date: '', time: '' }
@@ -247,7 +251,7 @@ function CreateAppointment({
           <Select id="appointment_type" {...register('appointment_type')}>
             {APPOINTMENT_TYPES.map((code) => (
               <option key={code} value={code}>
-                {tEnum('appointmentType', code)}
+                {tService(code)}
               </option>
             ))}
           </Select>

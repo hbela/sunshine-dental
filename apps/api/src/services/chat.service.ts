@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { randomBytes } from 'node:crypto';
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
-import { AppointmentTypeSchema, isValidPhoneNumber } from '@repo/shared';
+import { agentServiceCodes, defaultServiceCode, findService, isValidPhoneNumber } from '@repo/shared';
 import { CalendarService } from './calendar.service.js';
 import { AppointmentService } from './appointment.service.js';
 import { buildChatSystemPrompt } from '../prompts/chat-receptionist.js';
@@ -27,11 +27,9 @@ function client(): Anthropic {
 }
 
 
-/** lower_case tool value (e.g. "new_patient_exam") → UPPER enum, or undefined. */
+/** lower_case tool value (e.g. "new_patient_exam") → the clinic's UPPER code, or undefined. */
 function normalizeType(t?: string): string | undefined {
-  if (!t) return undefined;
-  const parsed = AppointmentTypeSchema.safeParse(String(t).toUpperCase());
-  return parsed.success ? parsed.data : undefined;
+  return findService(clinic, t)?.code;
 }
 
 /**
@@ -69,19 +67,12 @@ async function sendBookingConfirmationEmail(payload: {
   }
 }
 
-const APPOINTMENT_TYPE_ENUM = [
-  'new_patient_exam',
-  'cleaning',
-  'deep_cleaning',
-  'filling',
-  'crown_prep',
-  'consultation',
-  'emergency',
-];
+/** What this clinic actually offers, lowercased — n8n and the router upper-case it back. */
+const APPOINTMENT_TYPE_ENUM = agentServiceCodes(clinic);
 const LANGUAGE_PARAM = {
   type: 'string' as const,
-  enum: ['en', 'hu', 'de'],
-  description: "The patient's detected language (en/hu/de). Always set it.",
+  enum: [...clinic.languages],
+  description: `The patient's detected language (${clinic.languages.join('/')}). Always set it.`,
 };
 
 /**
@@ -227,7 +218,7 @@ async function runTool(conversationId: string, name: string, input: any): Promis
 
     switch (name) {
       case 'check_availability': {
-        const type = normalizeType(input.appointment_type) ?? 'CONSULTATION';
+        const type = normalizeType(input.appointment_type) ?? defaultServiceCode(clinic);
         const { slots, duration, provider_name } = await CalendarService.getAvailableSlots(
           input.date,
           type,

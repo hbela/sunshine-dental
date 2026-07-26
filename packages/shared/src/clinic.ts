@@ -57,6 +57,40 @@ export const FAQ_FALLBACK: Record<ClinicLanguage, string> = {
   de: 'Es tut mir leid, zu diesem Thema habe ich keine Informationen. Möchten Sie, dass Sie jemand aus der Praxis zurückruft?',
 };
 
+// ── Services ────────────────────────────────────────────────────────────────
+
+/** Availability is walked in steps of this many minutes unless a clinic says otherwise. */
+export const DEFAULT_SLOT_INTERVAL_MINUTES = 30;
+
+/** Appointment length assumed for a code the clinic doesn't list. */
+export const FALLBACK_DURATION_MINUTES = 30;
+
+/** Service codes are UPPER_SNAKE — the value stored in the DB and sent over HTTP. */
+const SERVICE_CODE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
+
+/**
+ * One bookable service. This replaced a Prisma enum + a shared duration
+ * constant, so a clinic can offer whatever it actually offers, with its own
+ * durations, without a schema change on every other clinic's stack.
+ */
+export interface ClinicService {
+  /**
+   * Canonical UPPER_SNAKE code — the DB value and the HTTP value.
+   *
+   * The voice and chat tools expose `code.toLowerCase()` and the n8n router
+   * upper-cases it straight back, so the two must stay a pure case flip.
+   */
+  code: string;
+  /** How long the appointment blocks the provider's calendar. */
+  durationMinutes: number;
+  /**
+   * What patients are told this is called. English is required — the system
+   * prompts are written in English and it is the fallback for every other
+   * language.
+   */
+  labels: { en: string } & Partial<Record<ClinicLanguage, string>>;
+}
+
 // ── Config shape ────────────────────────────────────────────────────────────
 
 /** A staff member the first-install seed creates (intake form §4 and §5). */
@@ -97,6 +131,26 @@ export interface ClinicConfig {
   shortName: string;
   /** What the AI receptionist calls itself. */
   personaName: string;
+
+  /**
+   * Everything this clinic can be booked for, in the order patients should be
+   * offered them. Drives the booking dropdown, the agent tool enums, the
+   * prompt's service list and every duration lookup.
+   */
+  services: readonly ClinicService[];
+  /**
+   * Service assumed when the agent checks availability without naming one
+   * (e.g. "who's free on Tuesday?"). Defaults to the first entry, so set it
+   * only when the first service is a poor stand-in for a generic visit.
+   */
+  defaultServiceCode?: string;
+  /**
+   * Granularity of the offered start times, in minutes. Defaults to
+   * {@link DEFAULT_SLOT_INTERVAL_MINUTES}. Lower it to pack the day more
+   * tightly (a 45-minute service on a 30-minute stride can only ever start
+   * on the hour or half hour).
+   */
+  slotIntervalMinutes?: number;
 
   /** IANA timezone; every date the agent reasons about is resolved in it. */
   timezone: string;
@@ -199,7 +253,105 @@ export function getClinic(id?: string | null): ClinicConfig {
         `Check CLINIC_ID / VITE_CLINIC_ID.`,
     );
   }
+  assertValidServices(config);
   return config;
+}
+
+/**
+ * Fail at boot on a malformed service list, for the same reason `getClinic`
+ * throws on an unknown id: a typo here silently mis-prices a patient's time or
+ * makes a service unbookable, which is worse than not starting.
+ */
+function assertValidServices(clinic: ClinicConfig): void {
+  const where = `Clinic "${clinic.id}"`;
+  if (!clinic.services?.length) {
+    throw new Error(`${where} lists no services — at least one is required.`);
+  }
+
+  const seen = new Set<string>();
+  for (const service of clinic.services) {
+    if (!SERVICE_CODE_PATTERN.test(service.code)) {
+      throw new Error(
+        `${where}: service code "${service.code}" must be UPPER_SNAKE_CASE ` +
+          `(the agent tools expose its lowercase form and n8n upper-cases it back).`,
+      );
+    }
+    if (seen.has(service.code)) {
+      throw new Error(`${where}: duplicate service code "${service.code}".`);
+    }
+    seen.add(service.code);
+
+    if (!Number.isInteger(service.durationMinutes) || service.durationMinutes <= 0) {
+      throw new Error(
+        `${where}: service "${service.code}" needs a positive whole-minute duration, ` +
+          `got ${service.durationMinutes}.`,
+      );
+    }
+    if (!service.labels?.en?.trim()) {
+      throw new Error(`${where}: service "${service.code}" is missing its English label.`);
+    }
+  }
+
+  if (clinic.defaultServiceCode && !seen.has(clinic.defaultServiceCode)) {
+    throw new Error(
+      `${where}: defaultServiceCode "${clinic.defaultServiceCode}" is not one of its services ` +
+        `(${[...seen].join(', ')}).`,
+    );
+  }
+
+  const interval = clinic.slotIntervalMinutes;
+  if (interval !== undefined && (!Number.isInteger(interval) || interval <= 0)) {
+    throw new Error(`${where}: slotIntervalMinutes must be a positive whole number, got ${interval}.`);
+  }
+}
+
+// ── Service lookups ─────────────────────────────────────────────────────────
+
+/** Canonical UPPER_SNAKE codes, in the clinic's declared order. */
+export function serviceCodes(clinic: ClinicConfig): string[] {
+  return clinic.services.map((s) => s.code);
+}
+
+/** The lowercase codes the voice and chat tools expose to the model. */
+export function agentServiceCodes(clinic: ClinicConfig): string[] {
+  return clinic.services.map((s) => s.code.toLowerCase());
+}
+
+/** Resolve a service by code, accepting either case (the agent sends lowercase). */
+export function findService(
+  clinic: ClinicConfig,
+  code?: string | null,
+): ClinicService | undefined {
+  if (!code) return undefined;
+  const wanted = String(code).trim().toUpperCase();
+  return clinic.services.find((s) => s.code === wanted);
+}
+
+/** Appointment length for a code, falling back to {@link FALLBACK_DURATION_MINUTES}. */
+export function durationFor(clinic: ClinicConfig, code?: string | null): number {
+  return findService(clinic, code)?.durationMinutes ?? FALLBACK_DURATION_MINUTES;
+}
+
+/** Patient-facing name, with the documented fallbacks: language → English → the bare code. */
+export function serviceLabel(
+  clinic: ClinicConfig,
+  code?: string | null,
+  language?: string,
+): string {
+  const service = findService(clinic, code);
+  if (!service) return String(code ?? '').replace(/_/g, ' ').toLowerCase();
+  const lang = isClinicLanguage(language) ? language : 'en';
+  return service.labels[lang] || service.labels.en;
+}
+
+/** The service to assume when the caller didn't name one. */
+export function defaultServiceCode(clinic: ClinicConfig): string {
+  return clinic.defaultServiceCode ?? clinic.services[0]!.code;
+}
+
+/** Minutes between consecutive offered start times. */
+export function slotInterval(clinic: ClinicConfig): number {
+  return clinic.slotIntervalMinutes ?? DEFAULT_SLOT_INTERVAL_MINUTES;
 }
 
 /** FAQ answer with the documented fallbacks: requested language → English → generic apology. */

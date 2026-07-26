@@ -21,6 +21,41 @@ export const corona: ClinicConfig = {
   shortName: 'Corona',
   personaName: 'Petra',
 
+  // Same seven services Corona launched with. Listed per clinic on purpose —
+  // this is the file to edit when Corona adds or re-times a treatment, and
+  // doing so no longer touches Sunshine or the database schema.
+  // No German labels: Corona serves hu/en only.
+  services: [
+    {
+      code: 'NEW_PATIENT_EXAM',
+      durationMinutes: 60,
+      labels: { en: 'New Patient Exam', hu: 'Új páciens vizsgálat' },
+    },
+    {
+      code: 'CLEANING',
+      durationMinutes: 30,
+      labels: { en: 'Regular Cleaning', hu: 'Fogkőeltávolítás' },
+    },
+    {
+      code: 'DEEP_CLEANING',
+      durationMinutes: 60,
+      labels: { en: 'Deep Cleaning', hu: 'Mélytisztítás' },
+    },
+    { code: 'FILLING', durationMinutes: 45, labels: { en: 'Filling', hu: 'Tömés' } },
+    {
+      code: 'CROWN_PREP',
+      durationMinutes: 90,
+      labels: { en: 'Crown Prep', hu: 'Korona előkészítése' },
+    },
+    { code: 'CONSULTATION', durationMinutes: 30, labels: { en: 'Consultation', hu: 'Konzultáció' } },
+    {
+      code: 'EMERGENCY',
+      durationMinutes: 30,
+      labels: { en: 'Emergency Visit', hu: 'Sürgősségi ellátás' },
+    },
+  ],
+  defaultServiceCode: 'CONSULTATION',
+
   timezone: 'Europe/Budapest',
   languages: ['hu', 'en'],
   defaultLanguage: 'hu',

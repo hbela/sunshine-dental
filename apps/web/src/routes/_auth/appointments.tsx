@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { AppointmentTypeSchema, AppointmentStatusSchema } from '@repo/shared'
+import { AppointmentStatusSchema } from '@repo/shared'
 import { requireRole } from '@/lib/route-guards'
 import { useRole } from '@/hooks/useRole'
 import { useProviders } from '@/hooks/useProviders'
@@ -13,6 +13,7 @@ import {
   type Appointment,
 } from '@/hooks/useAppointments'
 import { useEnum } from '@/i18n/useEnum'
+import { useServiceLabel } from '@/i18n/useServiceLabel'
 import { useFormat } from '@/i18n/useFormat'
 import { useDisplayName } from '@/lib/name'
 import { apiErrorMessage } from '@/lib/api'
@@ -31,7 +32,6 @@ import {
 
 const PAGE_SIZE = 25
 const STATUSES = AppointmentStatusSchema.options
-const TYPES = AppointmentTypeSchema.options
 
 /** Parse a `YYYY-MM-DD` date string to a local Date for display formatting. */
 function parseDate(d: string) {
@@ -58,6 +58,7 @@ function AppointmentsPage() {
   const { t } = useTranslation('appointments')
   const { t: tc } = useTranslation('common')
   const { tEnum } = useEnum()
+  const { tService } = useServiceLabel()
   const { formatDate } = useFormat()
   const displayName = useDisplayName()
   const { canManageAppointments } = useRole()
@@ -196,7 +197,7 @@ function AppointmentsPage() {
                 </td>
                 <td className="px-4 py-3 font-medium text-foreground">{a.patientName}</td>
                 <td className="px-4 py-3">{a.providerName}</td>
-                <td className="px-4 py-3">{tEnum('appointmentType', a.appointmentType)}</td>
+                <td className="px-4 py-3">{tService(a.appointmentType)}</td>
                 <td className="px-4 py-3">
                   <Badge variant={statusVariant(a.status)}>
                     {tEnum('appointmentStatus', a.status)}
@@ -259,6 +260,7 @@ function AppointmentDetail({
   const { t } = useTranslation('appointments')
   const { t: tc } = useTranslation('common')
   const { tEnum } = useEnum()
+  const { tService } = useServiceLabel()
   const { formatDate } = useFormat()
   const [error, setError] = useState<string | null>(null)
   const cancel = useCancelAppointmentById()
@@ -281,7 +283,7 @@ function AppointmentDetail({
       <DialogHeader>
         <DialogTitle>{appointment.patientName}</DialogTitle>
         <DialogDescription>
-          {tEnum('appointmentType', appointment.appointmentType)} ·{' '}
+          {tService(appointment.appointmentType)} ·{' '}
           {tEnum('appointmentStatus', appointment.status)}
         </DialogDescription>
       </DialogHeader>

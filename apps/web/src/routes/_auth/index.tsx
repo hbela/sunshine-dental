@@ -9,6 +9,7 @@ import { useAppointments, type Appointment } from '@/hooks/useAppointments'
 import { usePatients } from '@/hooks/usePatients'
 import { useCallLogStats, useCallLogs, type CallLog } from '@/hooks/useCallLogs'
 import { useEnum } from '@/i18n/useEnum'
+import { useServiceLabel } from '@/i18n/useServiceLabel'
 import { useFormat } from '@/i18n/useFormat'
 import { givenNameOf } from '@/lib/name'
 import { Badge } from '@/components/ui/badge'
@@ -162,6 +163,7 @@ function PanelCard({
 function ScheduleList({ appointments }: { appointments: Appointment[] }) {
   const { t } = useTranslation('dashboard')
   const { tEnum } = useEnum()
+  const { tService } = useServiceLabel()
   if (appointments.length === 0) {
     return <p className="py-6 text-center text-sm text-muted-foreground">{t('schedule.empty')}</p>
   }
@@ -180,7 +182,7 @@ function ScheduleList({ appointments }: { appointments: Appointment[] }) {
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium text-foreground">{a.patientName}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {a.providerName} · {tEnum('appointmentType', a.appointmentType)}
+              {a.providerName} · {tService(a.appointmentType)}
             </p>
           </div>
           <Badge variant={statusVariant(a.status)}>{tEnum('appointmentStatus', a.status)}</Badge>

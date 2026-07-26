@@ -144,7 +144,11 @@ model Appointment {
   providerId      String
   provider        Provider          @relation(fields: [providerId], references: [id])
   providerName    String            // Denormalized for display
-  appointmentType AppointmentType
+  // Free-form on purpose: the valid codes are per-clinic and live in
+  // `ClinicConfig.services` (packages/shared/src/clinic.ts). Keeping this an
+  // enum meant every clinic needed a schema migration for one clinic's new
+  // treatment. Validated in AppointmentService.book.
+  appointmentType String
   date            DateTime          @db.Date
   startTime       DateTime          @db.Time
   endTime         DateTime          @db.Time
@@ -155,16 +159,6 @@ model Appointment {
   callId          String?           // Retell call_id that triggered booking
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-}
-
-enum AppointmentType {
-  CLEANING
-  NEW_PATIENT_EXAM
-  DEEP_CLEANING
-  FILLING
-  CROWN_PREP
-  CONSULTATION
-  EMERGENCY
 }
 
 enum AppointmentStatus {

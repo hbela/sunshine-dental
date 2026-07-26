@@ -221,7 +221,14 @@ Keep **one agent per clinic**, flipped between n8n hosts with
 
 ## Known limits (quote separately)
 
-- **New appointment types** are a Prisma enum change + prompt work, not config.
+- ~~**New appointment types** are a Prisma enum change + prompt work, not config.~~
+  **Fixed 2026-07-26.** Services, durations and per-language names are now
+  `ClinicConfig.services` (see [`../packages/shared/src/clinic.ts`](../packages/shared/src/clinic.ts)).
+  Adding one is a config edit in that clinic's file — no schema change, no effect
+  on other clinics, and it flows automatically to the booking dropdown, both
+  prompts and the chat tool enum. Two follow-ups are still manual per clinic:
+  the Retell tool `appointment_type` enum, and the n8n label maps (see
+  [`services-config-refactor-plan.md`](services-config-refactor-plan.md) Step 6).
 - **Phone-number validation is Hungary-specific**
   ([`../packages/shared/src/phone.ts`](../packages/shared/src/phone.ts)) — a clinic
   outside HU needs that generalised first.

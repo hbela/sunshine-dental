@@ -1,11 +1,51 @@
 import { prisma } from '../lib/prisma.js';
-import { AppointmentDurations } from '@repo/shared';
+import { defaultServiceCode, durationFor, slotInterval } from '@repo/shared';
+import { clinic } from '../lib/clinic.js';
 import { decryptOrPlaceholder } from '../lib/crypto.js';
 import { dateToStr, timeToStr } from '../lib/datetime.js';
 import { expandRecurrence } from '../lib/recurrence.js';
 import { providerNameWhere } from '../lib/name.js';
 
 type CalendarEventRow = Awaited<ReturnType<typeof prisma.calendarEvent.findMany>>[number];
+
+/** A half-open [start, end) span of a day, in minutes since midnight. */
+export interface MinuteRange {
+  start: number;
+  end: number;
+}
+
+/**
+ * Walk each availability window on `interval` boundaries and keep every start
+ * where a `duration`-long appointment fits without running past the window or
+ * colliding with an unavailable range.
+ *
+ * Pure and exported so slot behaviour can be tested without a database — this
+ * is the arithmetic every booking depends on.
+ */
+export function generateSlots(
+  windows: readonly MinuteRange[],
+  unavailable: readonly MinuteRange[],
+  duration: number,
+  interval: number,
+): string[] {
+  const slots: string[] = [];
+
+  for (const window of windows) {
+    for (let start = window.start; start < window.end; start += interval) {
+      const end = start + duration;
+      if (end > window.end) continue;
+
+      const collides = unavailable.some((range) => start < range.end && end > range.start);
+      if (collides) continue;
+
+      const hh = Math.floor(start / 60).toString().padStart(2, '0');
+      const mm = (start % 60).toString().padStart(2, '0');
+      slots.push(`${hh}:${mm}`);
+    }
+  }
+
+  return slots;
+}
 
 /** A concrete occurrence of a (possibly recurring) calendar event. */
 interface ExpandedEvent {
@@ -99,7 +139,7 @@ export class CalendarService {
       throw new Error('Provider not found');
     }
 
-    const duration = AppointmentDurations[type] || 30;
+    const duration = durationFor(clinic, type);
 
     // Build date range for the requested day (full UTC day)
     const dayStart = new Date(`${dateString}T00:00:00.000Z`);
@@ -139,29 +179,15 @@ export class CalendarService {
     const allUnavailableRanges = [...blockedRanges, ...appointmentRanges];
 
     // 4. Generate slots within each AVAILABLE window
-    const availableSlots: string[] = [];
-
-    for (const event of availableEvents) {
-      const windowStart = timeToMinutes(dateToTimeString(event.start));
-      const windowEnd = timeToMinutes(dateToTimeString(event.end));
-
-      for (let slotStart = windowStart; slotStart < windowEnd; slotStart += 30) {
-        const slotEnd = slotStart + duration;
-
-        if (slotEnd > windowEnd) continue;
-
-        // Check if this slot overlaps with any unavailable range
-        const isOverlapping = allUnavailableRanges.some(range => {
-          return slotStart < range.end && slotEnd > range.start;
-        });
-
-        if (!isOverlapping) {
-          const hh = Math.floor(slotStart / 60).toString().padStart(2, '0');
-          const mm = (slotStart % 60).toString().padStart(2, '0');
-          availableSlots.push(`${hh}:${mm}`);
-        }
-      }
-    }
+    const availableSlots = generateSlots(
+      availableEvents.map((event) => ({
+        start: timeToMinutes(dateToTimeString(event.start)),
+        end: timeToMinutes(dateToTimeString(event.end)),
+      })),
+      allUnavailableRanges,
+      duration,
+      slotInterval(clinic),
+    );
 
     return { slots: availableSlots, duration, provider_name: provider.user.name };
   }
@@ -192,7 +218,11 @@ export class CalendarService {
     // For each provider count actual bookable slots (respects blocks + appointments)
     const results = await Promise.all(
       providers.map(async (p) => {
-        const { slots } = await CalendarService.getAvailableSlots(dateString, type ?? 'CONSULTATION', p.id);
+        const { slots } = await CalendarService.getAvailableSlots(
+          dateString,
+          type ?? defaultServiceCode(clinic),
+          p.id,
+        );
         return { provider_id: p.id, provider_name: p.user.name, available_slots: slots.length };
       })
     );
