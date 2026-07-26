@@ -9,6 +9,7 @@ import { requireRole } from '@/lib/route-guards'
 import { isValidPhoneNumber } from '@repo/shared'
 import { usePatients, usePatient, useUpdatePatient, type Patient } from '@/hooks/usePatients'
 import { useEnum } from '@/i18n/useEnum'
+import { useServiceLabel } from '@/i18n/useServiceLabel'
 import { useFormat } from '@/i18n/useFormat'
 import { apiErrorMessage } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
@@ -156,6 +157,7 @@ function PatientDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const { t } = useTranslation('patients')
   const { t: tc } = useTranslation('common')
   const { tEnum } = useEnum()
+  const { tService } = useServiceLabel()
   const { formatDate } = useFormat()
   const { data: patient, isLoading } = usePatient(id)
   const [editing, setEditing] = useState(false)
@@ -205,7 +207,7 @@ function PatientDetail({ id, onClose }: { id: string; onClose: () => void }) {
                       {formatDate(new Date(`${a.date}T00:00:00`), 'PP')} · {a.startTime}
                     </span>
                     <span className="text-muted-foreground">
-                      {tEnum('appointmentType', a.appointmentType)} ·{' '}
+                      {tService(a.appointmentType)} ·{' '}
                       {tEnum('appointmentStatus', a.status)}
                     </span>
                   </li>

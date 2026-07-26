@@ -14,11 +14,29 @@
 
 This file is kept in sync with the live Retell LLM (`llm_9144fb5e818b3d841e18ab084b99`, agent "Dental Clinic" `agent_0c73886e96f6cf2ad878def30e`).
 
+> **The prompt is now generated.** Do not hand-edit the text below and do not paste
+> a hand-written prompt into Retell. The source is
+> `apps/api/src/prompts/voice-agent.ts` plus the clinic's own `ClinicConfig`, which
+> it shares with the chat receptionist so the two cannot drift apart again:
+>
+> ```bash
+> pnpm prompt:voice -- --clinic sunshine      # print
+> pnpm prompt:voice -- --clinic corona --out /tmp/corona-voice.md
+> ```
+>
+> To change wording, edit the prompt modules (`voice-agent.ts`,
+> `scheduling-core.ts`, `dental-pack.ts`) or the clinic config — never the copy below.
+>
+> **Reconciliation is still pending.** The live agent carries hand-tuning from the
+> 2026-07-20 Hungarian pass (`docs/retell-hu-prompt-new-2026-07-20.txt`). Before
+> pushing a generated prompt: back up the live one, diff it against the render, fold
+> anything worth keeping back into the modules, then publish.
+
 ---
 
 ## System Prompt
 
-> Copy everything below this line into the Retell "System Prompt" field. The live agent stores a concrete date in place of `{{current_date}}` (kept current by the "Retell – Update LLM Date Daily" workflow); if pasting manually, substitute today's date in `YYYY-MM-DD`.
+> Snapshot of the live prompt, for reference and diffing. `{{current_date}}` is substituted per call by Retell (kept current by the "Retell – Update LLM Date Daily" workflow).
 
 ---
 

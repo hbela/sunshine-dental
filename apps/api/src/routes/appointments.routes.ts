@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { requireAuthOrApiKey, requireAuth, requireRole } from '../middleware/auth.middleware.js';
-import { AppointmentSchema, AppointmentTypeSchema } from '@repo/shared';
+import { AppointmentSchema } from '@repo/shared';
 import { AppointmentService } from '../services/appointment.service.js';
 import { sendError } from '../lib/errors.js';
 
@@ -86,7 +86,9 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
         patient_name: z.string(),
         phone: z.string().optional(),
         email: z.string().optional(),
-        appointment_type: AppointmentTypeSchema,
+        // Validated against the clinic's own service list in AppointmentService.book,
+        // which returns a 400 naming the valid codes.
+        appointment_type: z.string(),
         date: z.string(), // YYYY-MM-DD
         time: z.string(), // HH:MM
         provider_id: z.string().optional(),

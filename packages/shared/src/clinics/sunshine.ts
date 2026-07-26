@@ -17,6 +17,55 @@ export const sunshine: ClinicConfig = {
   shortName: 'SD Chat',
   personaName: 'Sarah',
 
+  // Codes and durations are exactly what the Prisma `AppointmentType` enum and
+  // the shared `AppointmentDurations` constant held before services became
+  // config, so this changed no behaviour. Labels are the patient-facing wording
+  // from the agent prompt and the n8n confirmation e-mails — those, not the
+  // staff dashboard's locale files, are what patients actually read.
+  services: [
+    {
+      code: 'NEW_PATIENT_EXAM',
+      durationMinutes: 60,
+      labels: {
+        en: 'New Patient Exam',
+        hu: 'Új páciens vizsgálat',
+        de: 'Neupatienten-Untersuchung',
+      },
+    },
+    {
+      code: 'CLEANING',
+      durationMinutes: 30,
+      labels: { en: 'Regular Cleaning', hu: 'Fogkőeltávolítás', de: 'Zahnreinigung' },
+    },
+    {
+      code: 'DEEP_CLEANING',
+      durationMinutes: 60,
+      labels: { en: 'Deep Cleaning', hu: 'Mélytisztítás', de: 'Tiefenreinigung' },
+    },
+    {
+      code: 'FILLING',
+      durationMinutes: 45,
+      labels: { en: 'Filling', hu: 'Tömés', de: 'Füllung' },
+    },
+    {
+      code: 'CROWN_PREP',
+      durationMinutes: 90,
+      labels: { en: 'Crown Prep', hu: 'Korona előkészítése', de: 'Kronenpräparation' },
+    },
+    {
+      code: 'CONSULTATION',
+      durationMinutes: 30,
+      labels: { en: 'Consultation', hu: 'Konzultáció', de: 'Beratung' },
+    },
+    {
+      code: 'EMERGENCY',
+      durationMinutes: 30,
+      labels: { en: 'Emergency Visit', hu: 'Sürgősségi ellátás', de: 'Notfallbehandlung' },
+    },
+  ],
+  // Matches the literal the availability and chat code used to fall back to.
+  defaultServiceCode: 'CONSULTATION',
+
   timezone: 'Europe/Budapest',
   languages: ['en', 'hu', 'de'],
   defaultLanguage: 'en',

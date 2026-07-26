@@ -1,7 +1,8 @@
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { dateToStr, timeToStr, strToDate, strToTime, addMinutes } from '../lib/datetime.js';
-import { AppointmentDurations, isValidPhoneNumber } from '@repo/shared';
+import { findService, isValidPhoneNumber, serviceCodes } from '@repo/shared';
+import { clinic } from '../lib/clinic.js';
 import { CalendarService } from './calendar.service.js';
 import { providerNameWhere } from '../lib/name.js';
 import { assertUnlocked, decryptString, encryptString } from '../lib/crypto.js';
@@ -131,8 +132,17 @@ export class AppointmentService {
       throw new HttpError(400, `Phone number "${input.phone}" is not a valid format`);
     }
 
-    const type = input.appointment_type;
-    const duration = AppointmentDurations[type] ?? 30;
+    // The route accepts any string — the clinic's own list is the authority.
+    const service = findService(clinic, input.appointment_type);
+    if (!service) {
+      throw new HttpError(
+        400,
+        `"${input.appointment_type}" is not a service ${clinic.name} offers. ` +
+          `Valid types: ${serviceCodes(clinic).join(', ')}`,
+      );
+    }
+    const type = service.code;
+    const duration = service.durationMinutes;
 
     // 1. Resolve provider
     let provider;
@@ -195,7 +205,7 @@ export class AppointmentService {
         patientEmail: input.email ?? null,
         providerId: provider.id,
         providerName: provider.user.name,
-        appointmentType: type as any,
+        appointmentType: type,
         date: strToDate(input.date),
         startTime: strToTime(input.time),
         endTime: strToTime(endTime),

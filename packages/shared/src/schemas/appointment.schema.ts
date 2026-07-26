@@ -1,25 +1,5 @@
 import { z } from 'zod';
 
-export const AppointmentTypeSchema = z.enum([
-  'CLEANING',
-  'NEW_PATIENT_EXAM',
-  'DEEP_CLEANING',
-  'FILLING',
-  'CROWN_PREP',
-  'CONSULTATION',
-  'EMERGENCY',
-]);
-
-export const AppointmentDurations: Record<string, number> = {
-  CLEANING: 30,
-  NEW_PATIENT_EXAM: 60,
-  DEEP_CLEANING: 60,
-  FILLING: 45,
-  CROWN_PREP: 90,
-  CONSULTATION: 30,
-  EMERGENCY: 30,
-};
-
 export const AppointmentStatusSchema = z.enum([
   'CONFIRMED',
   'CANCELLED',
@@ -35,7 +15,10 @@ export const AppointmentSchema = z.object({
   patientEmail: z.string().nullable(),
   providerId: z.string(),
   providerName: z.string(),
-  appointmentType: AppointmentTypeSchema,
+  // Open on purpose: the valid set is per-clinic (`ClinicConfig.services`), and
+  // this schema is also the *response* schema on every appointment route — a
+  // closed enum here would reject a clinic's own service on the way out.
+  appointmentType: z.string(),
   date: z.string(),
   startTime: z.string(),
   endTime: z.string(),
