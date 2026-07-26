@@ -100,7 +100,7 @@ them. A fully compromised VPS cannot decrypt a single historical backup.
 | `HEALTHCHECK_URL` | e.g. healthchecks.io ping URL | Dead-man's switch — alerts when a run is **missed**, not just when one fails. |
 | `STORAGEBOX_HOST` | `u123456.your-storagebox.de` | Hetzner Storage Box (offsite). If unset the job still runs but keeps backups **local only** and warns loudly. |
 | `STORAGEBOX_USER` / `STORAGEBOX_PASS` | Storage Box credentials | Mark `STORAGEBOX_PASS` **secret**. |
-| `STORAGEBOX_DIR` | default `backups/sunshine` | Remote directory. |
+| `STORAGEBOX_DIR` | default `backups/<CLINIC_ID>` | Remote directory. The default is already per-clinic — only set it to override. |
 | `RETENTION_DAYS` | default `90` | Prune horizon, applied both remotely and to the local `/backups` volume. |
 
 ### The job — [`scripts/backup-db.sh`](../scripts/backup-db.sh)
@@ -122,7 +122,10 @@ automatically; the container idles (`tail -f /dev/null`) with a named volume at 
    `HEALTHCHECK_URL` and the `STORAGEBOX_*` values from the table above.
 2. **Scheduled Tasks** → name `nightly-backup`, container `backup`, command `backup-db.sh`,
    frequency `0 3 * * *`. Runs appear in the Coolify UI with full logs.
-3. Verify once by clicking the task's **Run now**: expect `[backup] OK sunshine-<stamp>.dump.age`
+3. Verify once by clicking the task's **Run now**: expect
+   `[backup] OK <clinic>-<stamp>.dump.age (offsite: backups/<clinic>)`. If that line ends in
+   `(offsite: none — LOCAL ONLY)` the `STORAGEBOX_*` values are missing and the backup lives
+   only on the VPS it is backing up
    in the log, the file on the Storage Box, and the healthcheck check-in.
 
 > Coolify's task log shows **stdout only** — the script's warnings (Storage Box /

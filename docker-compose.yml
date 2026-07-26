@@ -54,6 +54,9 @@ services:
       dockerfile: scripts/backup.Dockerfile
     environment:
       BACKUP_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/sunshine
+      # Names the dump file and the default remote directory. Without it every
+      # clinic's backups are called `sunshine-<stamp>.dump.age`.
+      CLINIC_ID: ${CLINIC_ID:-sunshine}
       BACKUP_AGE_PUBKEY: ${BACKUP_AGE_PUBKEY:-}
       HEALTHCHECK_URL: ${HEALTHCHECK_URL:-}
       STORAGEBOX_HOST: ${STORAGEBOX_HOST:-}
