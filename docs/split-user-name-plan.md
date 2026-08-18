@@ -144,9 +144,9 @@ matching `validation.givenNameRequired` / `validation.familyNameRequired`.
 HU: Keresztnév / Vezetéknév / Megszólítás. DE: Vorname / Nachname / Titel.
 
 ### 10. Prompt/doc text that assumes an order (small edits)
-- `docs/retell-agent-prompt.md:140` — confirmation "scheduled with Dr. [Last
+- `docs/archive/retell-agent-prompt.md:140` — confirmation "scheduled with Dr. [Last
   Name]" → use the full doctor name (or note that order follows the call
-  language). `docs/retell-agent-prompt.md:44` already says "names stay as-is".
+  language). `docs/archive/retell-agent-prompt.md:44` already says "names stay as-is".
 - `apps/api/src/prompts/chat-receptionist.ts` — no hardcoded order; leave as-is.
 - n8n workflows (`workflows/retell-custom-function-router-v2.json`,
   `chat-booking-confirmation.json`) print `provider_name` as returned by the API

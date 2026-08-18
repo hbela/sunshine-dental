@@ -6,7 +6,7 @@ import { DelegationService } from '../services/delegation.service.js';
 import { prisma } from '../lib/prisma.js';
 
 export async function calendarRoutes(fastify: FastifyInstance) {
-  // GET /api/calendar/slots — get available appointment slots (used by n8n/Retell)
+  // GET /api/calendar/slots — get available appointment slots (used by the chat agent)
   fastify.route({
     method: 'GET',
     url: '/slots',
@@ -34,7 +34,7 @@ export async function calendarRoutes(fastify: FastifyInstance) {
     },
   });
 
-  // GET /api/calendar/available-providers — list providers with slots on a given date (used by n8n/Retell)
+  // GET /api/calendar/available-providers — list providers with slots on a given date (used by the chat agent)
   fastify.route({
     method: 'GET',
     url: '/available-providers',

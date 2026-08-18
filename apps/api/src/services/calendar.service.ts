@@ -194,7 +194,7 @@ export class CalendarService {
 
   /**
    * Get all active providers that have at least one bookable slot on a given date.
-   * Used by the Retell list_available_providers function.
+   * Used by the chat agent's list_available_providers tool.
    */
   static async getAvailableProviders(dateString: string, type?: string) {
     const dayStart = new Date(`${dateString}T00:00:00.000Z`);

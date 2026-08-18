@@ -29,7 +29,7 @@ export function normalizePhoneNumber(raw: string): string {
  * Validate the *shape* of a phone number.
  *
  * Hungarian numbers (+36 / 0036 / 06) are held to the strict national shape the
- * voice agent enforces (see `workflows/scripts/retell-add-language.mjs`), so an
+ * agent enforces, so an
  * over- or under-typed local number is rejected. Any other number is accepted as
  * a generic international one (E.164 length bounds) — the clinic also serves
  * English/German-speaking patients whose numbers aren't Hungarian.

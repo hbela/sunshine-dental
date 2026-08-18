@@ -18,7 +18,7 @@
 #   WEB_ORIGIN            https://your-domain.com  (CORS + better-auth origin)
 #   BETTER_AUTH_URL       https://your-domain.com  (must match the public URL)
 #   BETTER_AUTH_SECRET    32+ char random string   (openssl rand -base64 32)
-#   FASTIFY_API_KEY       shared key for n8n/Retell webhook auth
+#   FASTIFY_API_KEY       shared key for n8n webhook auth
 #   ANTHROPIC_API_KEY     Claude API key powering the patient chat receptionist
 #   SENTRY_DSN            (optional) Sentry DSN for API error tracking; empty = off
 #   VITE_SENTRY_DSN       (optional) Sentry DSN for the WEB bundle. Must be marked

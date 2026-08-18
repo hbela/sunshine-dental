@@ -143,14 +143,14 @@ Split `apps/api/src/prompts/chat-receptionist.ts` into:
 
 Then add `prompts/voice-agent.ts` exporting `buildVoiceSystemPrompt(clinic)`: the same core + pack,
 but with voice mechanics (phone read-back, TTS pacing, end-of-call) and FAQ via the `get_faq_answer`
-tool rather than inlined facts — matching the section order of `docs/retell-agent-prompt.md`.
+tool rather than inlined facts — matching the section order of `docs/archive/retell-agent-prompt.md`.
 
 New script `workflows/scripts/render-voice-prompt.mts` (`pnpm prompt:voice -- --clinic <id>`).
 `rewritePrompt()` / `residue()` in `workflows/scripts/retell-clone-agent.mts:102-125` — the
 "remaining 10% is yours" string substitution — are replaced by a render call.
 
 > **Do not blindly overwrite the live prompt.** It has been hand-tuned (see
-> `docs/retell-hu-prompt-new-2026-07-20.txt`). Render, diff against the live LLM, fold any missing
+> `docs/archive/retell-hu-prompt-new-2026-07-20.txt`). Render, diff against the live LLM, fold any missing
 > tuning back into the modules, and only then push. Back up the live prompt first.
 
 ## Step 5 — Web
@@ -182,7 +182,7 @@ Then, per clinic:
   `list_available_providers` from clinic config. Model this on
   `workflows/scripts/retell-add-language.mjs`, which already does an idempotent SDK round-trip to
   patch a tool param enum. Push the rendered prompt, then **publish**.
-- Update `docs/retell-custom-functions.md` and `docs/onboarding-new-clinic.md` (§"Known limits" — the
+- Update `docs/archive/retell-custom-functions.md` and `docs/onboarding-new-clinic.md` (§"Known limits" — the
   "appointment types are a Prisma enum change, not config" entry is now false).
 
 ---

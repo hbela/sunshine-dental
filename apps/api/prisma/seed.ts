@@ -28,13 +28,6 @@ const passwordFor = (role: string) => process.env.SEED_PASSWORD || DEFAULT_PASSW
 // Helpers
 // ---------------------------------------------------------------------------
 
-function daysFromNow(days: number, hour = 0, minute = 0) {
-  const d = new Date();
-  d.setUTCHours(hour, minute, 0, 0);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d;
-}
-
 /**
  * Refuse to seed a non-local database unless explicitly forced. This script
  * WIPES every table and REWRITES the encryption canary from ENCRYPTION_KEY, so
@@ -184,7 +177,6 @@ async function main() {
   await prisma.calendarDelegation.deleteMany();
   await prisma.calendarEvent.deleteMany();
   await prisma.appointment.deleteMany();
-  await prisma.callLog.deleteMany();
   await prisma.provider.deleteMany();
   await prisma.patient.deleteMany();
   await prisma.session.deleteMany();
@@ -407,21 +399,11 @@ async function main() {
   const d2 = nextWeekday(2);
   const d3 = nextWeekday(3);
 
-  await prisma.appointment.create({ data: encryptRow('appointment', { patientId: patients[0]!.id, patientName: patients[0]!.name, patientPhone: patients[0]!.phone, patientEmail: patients[0]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'CLEANING',         date: d1, startTime: t(d1, 9,  0), endTime: t(d1, 9,  30), durationMinutes: 30, status: 'CONFIRMED', isNewPatient: false, notes: 'Regular biannual cleaning',                      callId: 'call_seed_001' }) });
-  await prisma.appointment.create({ data: encryptRow('appointment', { patientId: patients[1]!.id, patientName: patients[1]!.name, patientPhone: patients[1]!.phone, patientEmail: patients[1]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'NEW_PATIENT_EXAM', date: d1, startTime: t(d1, 10, 0), endTime: t(d1, 11,  0), durationMinutes: 60, status: 'CONFIRMED', isNewPatient: true,  notes: 'Tooth pain — lower right molar. Handle with care.', callId: 'call_seed_002' }) });
+  await prisma.appointment.create({ data: encryptRow('appointment', { patientId: patients[0]!.id, patientName: patients[0]!.name, patientPhone: patients[0]!.phone, patientEmail: patients[0]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'CLEANING',         date: d1, startTime: t(d1, 9,  0), endTime: t(d1, 9,  30), durationMinutes: 30, status: 'CONFIRMED', isNewPatient: false, notes: 'Regular biannual cleaning' }) });
+  await prisma.appointment.create({ data: encryptRow('appointment', { patientId: patients[1]!.id, patientName: patients[1]!.name, patientPhone: patients[1]!.phone, patientEmail: patients[1]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'NEW_PATIENT_EXAM', date: d1, startTime: t(d1, 10, 0), endTime: t(d1, 11,  0), durationMinutes: 60, status: 'CONFIRMED', isNewPatient: true,  notes: 'Tooth pain — lower right molar. Handle with care.' }) });
   await prisma.appointment.create({ data: encryptRow('appointment', { patientId: patients[2]!.id, patientName: patients[2]!.name, patientPhone: patients[2]!.phone, patientEmail: patients[2]!.email, providerId: aliceProvider.id, providerName: aliceUser.name, appointmentType: 'FILLING',          date: d2, startTime: t(d2, 9,  30), endTime: t(d2, 10, 15), durationMinutes: 45, status: 'CONFIRMED', isNewPatient: false, notes: 'Old filling — upper left second premolar.' }) });
   await prisma.appointment.create({ data: encryptRow('appointment', { patientId: patients[0]!.id, patientName: patients[0]!.name, patientPhone: patients[0]!.phone, patientEmail: patients[0]!.email, providerId: bobProvider.id,   providerName: bobUser.name,   appointmentType: 'CONSULTATION',    date: d3, startTime: t(d3, 8,   0), endTime: t(d3, 8,  30), durationMinutes: 30, status: 'CONFIRMED', isNewPatient: false, notes: 'Alignment consultation.' }) });
   console.log('  ✓ Created 4 appointments');
-
-  // ── 8. Call Logs ──────────────────────────────────────────────────────────
-  await prisma.callLog.createMany({
-    data: [
-      { callId: 'call_seed_001', agentId: 'agent_sunshine_01', patientId: patients[0]!.id, fromNumber: '+15551001', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 187, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'Agent: Hello, Sunshine Dental. How can I help?\nUser: Hi, I\'d like to book a cleaning.', summary: 'Patient John Smith booked a routine cleaning with Dr. Ibolya Nagy.', sentiment: 'Positive', successful: true, startTime: daysFromNow(-1, 10, 15), endTime: daysFromNow(-1, 10, 18) },
-      { callId: 'call_seed_002', agentId: 'agent_sunshine_01', patientId: patients[1]!.id, fromNumber: '+15551002', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 243, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'Agent: Hello, Sunshine Dental.\nUser: I have a terrible toothache.', summary: 'New patient Emily Chen reporting tooth pain. Booked new patient exam.', sentiment: 'Neutral', successful: true, startTime: daysFromNow(-1, 14, 30), endTime: daysFromNow(-1, 14, 34) },
-      { callId: 'call_seed_003', agentId: 'agent_sunshine_01', patientId: null, fromNumber: '+15559999', toNumber: '+18005559999', direction: 'inbound', durationSeconds: 42, status: 'ended', disconnectionReason: 'user_hangup', transcript: 'User: Actually I\'ll call back, sorry.', summary: 'Caller hung up before completing booking.', sentiment: 'Neutral', successful: false, startTime: daysFromNow(-2, 9, 5), endTime: daysFromNow(-2, 9, 6) },
-    ].map((row) => encryptRow('callLog', row)),
-  });
-  console.log('  ✓ Created 3 call logs');
 
   // ── Done ──────────────────────────────────────────────────────────────────
   console.log('\n✅ Seed complete!\n');

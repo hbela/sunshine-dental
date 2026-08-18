@@ -76,9 +76,9 @@ const LANGUAGE_PARAM = {
 };
 
 /**
- * The 5 chat tools. These mirror the Retell custom functions
- * (`docs/retell-custom-functions.md`) minus `get_faq_answer`, which is folded
- * into the system prompt. Each executes in-process against the existing services.
+ * The 5 chat tools. FAQ answers are folded into the system prompt rather than
+ * exposed as a sixth tool. Each executes in-process against the existing
+ * services — nothing here goes out to n8n.
  */
 const tools: Anthropic.Tool[] = [
   {

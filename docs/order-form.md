@@ -22,30 +22,26 @@
 
 ## Subscription & Usage Rates
 
-Pricing has two parts: a fixed **platform fee** for the service itself, and **metered usage** that scales with how much the AI receptionist actually works for you. You only pay AI usage for the minutes and chats you use.
+Pricing has two parts: a fixed **platform fee** for the service itself, and **metered usage** that scales with how much the AI receptionist actually works for you. You only pay AI usage for the conversations you use.
 
 | Component | What it covers | Rate |
 |-----------|----------------|------|
-| **Platform fee** (per location) | 24/7 AI receptionist (voice + web/mobile chat), staff dashboard & calendar, booking/cancel/reschedule, patient records, call & chat logs, email confirmations, 3 languages (EN/HU/DE), secure EU hosting, monitoring, backups, updates & support | **€249 / month** |
+| **Platform fee** (per location) | 24/7 AI chat receptionist (web & mobile), staff dashboard & calendar, booking/cancel/reschedule, patient records, chat logs, email confirmations, 3 languages (EN/HU/DE), secure EU hosting, monitoring, backups, updates & support | **€249 / month** |
 | Additional location | Same features, pooled usage rates | €149 / month |
-| **Voice AI usage** | Per minute of AI-handled phone conversation (billed per second) | **€0.35 / minute** |
 | **Chat AI usage** | Per completed chat conversation (any length) | **€0.25 / conversation** |
-| Phone number | Local number rental (pass-through) | €5 / month |
-| Setup (one-time) | Onboarding, agent & voice tuning, number setup, staff training — ☐ waived with annual billing | €490 |
+| Setup (one-time) | Onboarding, prompt tuning, website embed, staff training — ☐ waived with annual billing | €490 |
 
 **Worked example — typical single-location month:**
 
 | | |
 |---|---:|
 | Platform fee | €249.00 |
-| Voice: ~300 calls × ~3 min = 900 min × €0.35 | €315.00 |
-| Chat: ~200 conversations × €0.25 | €50.00 |
-| Phone number | €5.00 |
-| **Estimated monthly total** | **€619.00** |
+| Chat: ~400 conversations × €0.25 | €100.00 |
+| **Estimated monthly total** | **€349.00** |
 
-> A quieter month (~450 min, ~100 chats) lands around €436. Compare: a human answering service runs €800–1,500/month for business hours only.
+> A quieter month (~150 conversations) lands around €286. Compare: a human answering service runs €800–1,500/month for business hours only.
 
-**Why usage is metered — where the money goes.** Every AI minute has a real cost paid per call on the clinic's behalf: speech recognition & voice synthesis, the language model that understands and answers patients, telephony, and the secure EU infrastructure (hosting, database, monitoring, backups) running the dashboard. Metered billing means a quiet month costs less, a busy month pays for itself in bookings — and no clinic subsidises another's call volume.
+**Why usage is metered — where the money goes.** Every AI conversation has a real cost paid on the clinic's behalf: the language model that understands and answers patients, and the secure EU infrastructure (hosting, database, monitoring, backups) running the dashboard. Metered billing means a quiet month costs less, a busy month pays for itself in bookings — and no clinic subsidises another's volume.
 
 **Rate stability:** usage rates are fixed for the initial term; thereafter they may only change to reflect material changes in underlying AI-provider pricing, with 30 days' written notice.
 
@@ -55,8 +51,8 @@ Pricing has two parts: a fixed **platform fee** for the service itself, and **me
 
 **Billing cycle:** ☐ Monthly  ☐ Annual (2 platform-fee months free + setup waived)
 **Initial term:** ☐ 1 month  ☐ 12 months   **Renewal notice:** 30 days
-Platform fee billed in advance; usage billed monthly in arrears with an itemised statement (minutes & conversations).
-**Locations:** `____`  **Phone numbers:** `____`
+Platform fee billed in advance; usage billed monthly in arrears with an itemised statement (conversations).
+**Locations:** `____`
 **Monthly usage alert threshold (notified above):** €`________`
 **Founding-customer pilot (if applicable):** ☐ platform fee **€99/mo** for the first **3** months (usage at standard rates), in exchange for feedback + a reference testimonial.
 
@@ -68,8 +64,8 @@ Platform fee billed in advance; usage billed monthly in arrears with an itemised
 ☐ Providers (names, specialties, working hours)
 ☐ Appointment types & durations
 ☐ Top FAQs (location, parking, insurance, services)
-☐ Preferred AI voice & language(s)
-☐ Phone number to forward / port
+☐ Preferred language(s) and clinic tone of voice
+☐ Website page(s) where the chat should appear
 ☐ Staff accounts to create (name, email, role: Provider / Assistant / Admin)
 
 **Target go-live date:** `________________`
@@ -81,13 +77,13 @@ Platform fee billed in advance; usage billed monthly in arrears with an itemised
 By signing, the Customer confirms it understands and agrees that:
 
 1. ☐ The Customer is the **Data Controller**; the Provider is the **Data Processor**. A **Data Processing Agreement** (Schedule 2 of the Agreement) is signed alongside this Order Form.
-2. ☐ The Customer will display a **patient privacy notice** stating that calls may be handled by an **AI assistant** and **recorded**.
-3. ☐ The Customer agrees the **in-call AI disclosure stays enabled** (the agent identifies the clinic, purpose, and its AI nature) and will not disable it.
+2. ☐ The Customer will display a **patient privacy notice** stating that website enquiries may be handled by an **AI assistant** and that conversations are **stored**.
+3. ☐ The Customer agrees the **in-chat AI disclosure stays enabled** (the assistant identifies the clinic, purpose, and its AI nature) and will not disable it.
 4. ☐ The Customer is responsible for obtaining any **patient consents** required under GDPR / local healthcare-privacy law.
-5. ☐ The Customer understands the AI is an **operational support tool**, may occasionally err, and that staff review bookings and call records as part of normal operations.
-6. ☐ Subprocessors used (e.g. `[Retell AI, Anthropic, OpenAI & Cartesia via Retell, Hetzner, telephony, email provider]`) are listed in the DPA; the Customer consents to their use.
+5. ☐ The Customer understands the AI is an **operational support tool**, may occasionally err, and that staff review bookings and chat records as part of normal operations.
+6. ☐ Subprocessors used (e.g. `[Anthropic, Hetzner, email provider]`) are listed in the DPA; the Customer consents to their use.
 
-> *If the Customer's clinic or any called patients are in the **US**, additional rules (e.g. TCPA, and possibly HIPAA) apply — flag this so the Provider can adjust the setup.*
+> *If the Customer's clinic or its patients are in the **US**, additional rules (possibly HIPAA) apply — flag this so the Provider can adjust the setup.*
 
 ---
 

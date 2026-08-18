@@ -3,7 +3,7 @@
 ## Context
 
 Sunshine Dental is deployed **one isolated stack per clinic** (own domain, own Postgres,
-own Retell agent, own Coolify resource — see [onboarding-new-clinic.md](onboarding-new-clinic.md)
+own Coolify resource — see [onboarding-new-clinic.md](onboarding-new-clinic.md)
 and [new-clinic-onboarding-plan.md](new-clinic-onboarding-plan.md)). Clinic #2 (Corona) is
 being onboarded now; the clinic registry lives in
 [../packages/shared/src/clinic.ts](../packages/shared/src/clinic.ts). This is the
@@ -42,8 +42,8 @@ This session produces the **PRD document only**. No code.
 
 ### 1. Summary, problem, goals / non-goals
 Goals: single fleet-health view; zero manual billing bookkeeping; every clinic's onboarding
-state visible. **Non-goals (MVP):** provisioning automation (Coolify/DNS/Retell), reading
-tenant databases, metered per-minute overage, clinic-owner portal, self-serve signup,
+state visible. **Non-goals (MVP):** provisioning automation (Coolify/DNS), reading
+tenant databases, metered per-conversation overage, clinic-owner portal, self-serve signup,
 non-EUR currencies, i18n (English-only, internal tool), mobile app.
 
 ### 2. Users & roles
@@ -54,7 +54,7 @@ checklist). Invite-only — accounts created by an OWNER; no public registration
 - **Clinic** — `slug` (must equal the tenant stack's `CLINIC_ID`), display/legal name, owner
   contact (name, email, phone), country, timezone, `domain`, `healthUrl`, `status` enum,
   `plan`, `goLiveAt`, `churnedAt`, `churnReason`, free-text notes, and reference links
-  (Sentry project, UptimeRobot monitor, n8n webhook prefix, Retell agent id, healthchecks.io).
+  (Sentry project, UptimeRobot monitor, n8n webhook prefix, healthchecks.io).
 - **Subscription** — `stripeCustomerId`, `stripeSubscriptionId`, `priceId`, plan, Stripe
   `status`, `currentPeriodEnd`, `cancelAtPeriodEnd`, `trialEndsAt`, `mrrCents`, currency.
   Mirror of Stripe, never the source of truth.
@@ -66,7 +66,7 @@ checklist). Invite-only — accounts created by an OWNER; no public registration
   closed on recovery. Exists so alerts fire once, not every poll.
 - **ChecklistItem** — per clinic, seeded from a template mirroring the Phase 2–5 runbook
   (DNS, Coolify resource, env vars, key ceremony, seed, unlock, backups + restore drill,
-  n8n workflows, Retell agent + publish, phone number, UptimeRobot/Sentry, DPA signed).
+  n8n confirmation-email workflow, chat prompt review, UptimeRobot/Sentry, DPA signed).
 - **User / Session / Account** (better-auth tables), **AuditLog**, **StripeEvent**
   (webhook idempotency by event id).
 

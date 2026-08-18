@@ -113,12 +113,12 @@ The live prompt is the source of truth (richer than docs; includes the 2026-06-1
 - [x] Inserted a *Language Handling* section into the live prompt (between Personality and Core
       Responsibilities) via the round-trip script: detect en/hu/de from the opening turns; conduct the
       whole call in it; relay English tool data in the caller's language; **pass `language` to every
-      custom function**. Mirrored in `docs/retell-agent-prompt.md`.
+      custom function**. Mirrored in `docs/archive/retell-agent-prompt.md`.
 
 ## B2. Custom-function tool schemas — add `language`
 - [x] Added optional `language` enum (`en`/`hu`/`de`) to all 6 custom tools via the SDK `general_tools`
       round-trip (`workflows/scripts/retell-add-language.mjs`, idempotent). Verified live; `end_call`
-      and all existing fields preserved. Mirrored in `docs/retell-custom-functions.md`.
+      and all existing fields preserved. Mirrored in `docs/archive/retell-custom-functions.md`.
 
 ## B3. n8n router localization (workflow `rQ7I7vX2oAYnNIbR`)
 - [x] **FAQ Handler**: split into **per-language dictionaries (en/hu/de)** keyed by `body.args.language`
@@ -133,8 +133,8 @@ The live prompt is the source of truth (richer than docs; includes the 2026-06-1
       the multilingual LLM relays it in the caller's language (B1). *(No change — confirmed.)*
 
 ## B4. Docs & tests
-- [x] Update `docs/retell-agent-prompt.md` (Language section + multilingual agent settings) +
-      `docs/retell-custom-functions.md` (`language` param on all 6 functions) to mirror live.
+- [x] Update `docs/archive/retell-agent-prompt.md` (Language section + multilingual agent settings) +
+      `docs/archive/retell-custom-functions.md` (`language` param on all 6 functions) to mirror live.
 - [ ] Extend the **Retell Simulation** scenario set with HU + DE personas (re-seed same day, use
       `Nagy`/`Kis`, give personas a terminal exit — see the simulation loop-guard notes).
 

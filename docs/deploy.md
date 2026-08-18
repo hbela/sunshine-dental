@@ -3,7 +3,7 @@
 > **Deploying a stack for a *different* clinic?** Follow
 > [`onboarding-new-clinic.md`](onboarding-new-clinic.md) instead — it wraps this
 > guide with the per-clinic parts (clinic config, `CLINIC_ID`/`VITE_CLINIC_ID`,
-> `--minimal` seed, its own Retell agent and n8n workflows).
+> `--minimal` seed, its own n8n confirmation-email workflow).
 
 This guide deploys the full app — **web** (Vite SPA) and **api** (Fastify + Prisma) —
 to a Hetzner VPS managed by [Coolify](https://coolify.io), using the production
@@ -79,7 +79,7 @@ On any machine:
 # Stable session-signing secret for better-auth (32+ chars):
 openssl rand -base64 32
 
-# Shared key for the n8n / Retell webhooks to authenticate to the API:
+# Shared key for the n8n webhook to authenticate to the API:
 openssl rand -hex 24
 ```
 
@@ -109,7 +109,7 @@ Mark `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `FASTIFY_API_KEY` as **secret**.
 | `WEB_ORIGIN` | `https://your-domain.com` | CORS + better-auth trusted origin. Comma-separate if several. |
 | `BETTER_AUTH_URL` | `https://your-domain.com` | Must match the public URL exactly. |
 | `BETTER_AUTH_SECRET` | _(openssl output from step 3)_ | Stable across restarts, or sessions break. |
-| `FASTIFY_API_KEY` | _(openssl output from step 3)_ | Must match what n8n/Retell send. |
+| `FASTIFY_API_KEY` | _(openssl output from step 3)_ | Must match what n8n sends. |
 | `ANTHROPIC_API_KEY` | _(Claude API key)_ | Powers the patient chat receptionist. Without it, `/api/chat/*` returns 503 "chat not configured". |
 | `N8N_BOOKING_WEBHOOK_URL` | `https://n8nprod.appointer.hu/webhook/chat-booking-confirmation` | Optional. n8n webhook that emails a **chat** booking confirmation. Empty = no chat email (booking still works). |
 | `BACKUP_DATABASE_URL` | _(direct, **non-pooled** Postgres URL)_ | **Secret.** Used by the nightly backup job — `pg_dump` is unreliable through a pooler (same issue as §6a). See [`disaster-recovery.md`](disaster-recovery.md). |
@@ -241,7 +241,7 @@ The keyring is in-memory only, so **every** api restart returns to `locked`.
 The admin opens the dashboard and unlocks via the banner (or
 `POST /api/admin/unlock`, ADMIN session required). Point uptime monitoring at
 `/api/health` and alert when `encryption` stays `locked` for more than ~15
-minutes — voice/chat bookings fail while locked (n8n should retry the
+minutes — chat bookings fail while locked (n8n should retry the
 `POST /api/call-logs` and booking nodes so calls landing in a locked window
 are not lost).
 
@@ -253,16 +253,18 @@ writes a matching key-check canary.
 
 ---
 
-## 9. Wiring n8n / Retell (after deploy)
+## 9. Wiring n8n (after deploy)
 
-The voice/automation webhooks must now point at the production API and send the
-`FASTIFY_API_KEY`:
+Since the voice agent was retired, n8n is **only** in the confirmation-e-mail path —
+the chat receptionist books in-process. Nothing in the booking flow depends on it.
 
-- Base URL: `https://your-domain.com/api/...`
-- Auth header carrying `FASTIFY_API_KEY` (see `apps/api/src/middleware/auth.middleware.ts`).
+The wiring is one direction: the API POSTs a completed booking to the workflow's
+webhook. Set `N8N_BOOKING_WEBHOOK_URL` on the api service to the workflow's
+Production webhook URL, then redeploy.
 
-Update the n8n credentials / Retell tool URLs accordingly (replaces the local
-ngrok `127.0.0.1:3000` used in development).
+`FASTIFY_API_KEY` still guards the API's machine-facing routes for any workflow that
+calls back in (see `apps/api/src/middleware/auth.middleware.ts`); base URL is
+`https://your-domain.com/api/...`.
 
 ---
 
@@ -281,11 +283,9 @@ ngrok `127.0.0.1:3000` used in development).
 
 ## 11. Dev environment (`sunshinedev.appointer.hu`)
 
-A second, **isolated** backend so the voice agent's dev lane (Retell DEV agent →
-`n8ndev.appointer.hu` → this API → **dev** Postgres) never touches production data.
-It reuses the same repo, `docker-compose.yml`, and Dockerfiles — only the domain,
-database, and secrets differ. See [`retell-dev-prod-split-plan.md`](retell-dev-prod-split-plan.md)
-for the full split.
+A second, **isolated** backend so the dev lane (`n8ndev.appointer.hu` → this API →
+**dev** Postgres) never touches production data. It reuses the same repo,
+`docker-compose.yml`, and Dockerfiles — only the domain, database, and secrets differ.
 
 ### 11a. DNS
 Add an **A record**: `sunshinedev.appointer.hu` → **`116.203.205.166`** (same VPS as prod).

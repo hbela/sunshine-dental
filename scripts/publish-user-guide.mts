@@ -51,7 +51,7 @@ const SHARED = {
   brandIcon: "S",
   docTheme: true,
   published: true,
-  technologies: "React, Vite, TanStack, Fastify, Prisma, PostgreSQL, Claude AI, Retell AI, n8n",
+  technologies: "React, Vite, TanStack, Fastify, Prisma, PostgreSQL, Claude AI, n8n",
 }
 
 const byLang: Record<Lang, { slug: string; guideFile: string; title: string; excerpt: string }> = {
@@ -60,21 +60,21 @@ const byLang: Record<Lang, { slug: string; guideFile: string; title: string; exc
     guideFile: "user-guide.md",
     title: "Sunshine Dental — User Guide",
     excerpt:
-      "A 24/7 AI receptionist for a dental clinic — phone and website chat — plus a staff dashboard, with patient data encrypted under a clinic-held key and backed up nightly.",
+      "A 24/7 AI chat receptionist for a dental clinic — on the website, in three languages — plus a staff dashboard, with patient data encrypted under a clinic-held key and backed up nightly.",
   },
   hu: {
     slug: "sunshine-dental-hu",
     guideFile: "user-guide.hu.md",
     title: "Sunshine Dental — Felhasználói útmutató",
     excerpt:
-      "Éjjel-nappal elérhető MI recepciós egy fogorvosi rendelőnek — telefonon és webes csevegésben —, plusz munkatársi felület, a betegadatok pedig a rendelő saját kulcsával titkosítva, éjszakánként mentve.",
+      "Éjjel-nappal elérhető MI csevegő recepciós egy fogorvosi rendelőnek — a weboldalon, három nyelven —, plusz munkatársi felület, a betegadatok pedig a rendelő saját kulcsával titkosítva, éjszakánként mentve.",
   },
   de: {
     slug: "sunshine-dental-de",
     guideFile: "user-guide.de.md",
     title: "Sunshine Dental — Benutzerhandbuch",
     excerpt:
-      "Eine 24/7-KI-Rezeption für eine Zahnarztpraxis — Telefon und Website-Chat — plus Team-Dashboard; Patientendaten verschlüsselt mit einem Praxis-Schlüssel und nächtlich gesichert.",
+      "Eine 24/7-KI-Chat-Rezeption für eine Zahnarztpraxis — auf der Website, in drei Sprachen — plus Team-Dashboard; Patientendaten verschlüsselt mit einem Praxis-Schlüssel und nächtlich gesichert.",
   },
 }
 
@@ -128,11 +128,11 @@ async function main() {
   const publicDir = isAbsolute(PUBLIC_DIR) ? PUBLIC_DIR : resolve(repoRoot, PUBLIC_DIR)
   const destDir = join(publicDir, SLUG)
 
-  // 1. Copy each referenced asset (screenshots + call-recording audio) from this
-  //    language's folder into public/<slug>/. Filenames carry their extension so
-  //    png and mp3 are handled the same way.
+  // 1. Copy each referenced screenshot from this language's folder into
+  //    public/<slug>/. This used to also carry a .mp3 call recording; that went
+  //    with the voice agent, so it's png only again.
   const referenced = new Set<string>()
-  const re = /assets\/screenshots\/([\w-]+\.(?:png|mp3))/g
+  const re = /assets\/screenshots\/([\w-]+\.png)/g
   let m: RegExpExecArray | null
   while ((m = re.exec(content)) !== null) referenced.add(m[1])
 
@@ -152,7 +152,7 @@ async function main() {
     }
     if (missing.length) {
       throw new Error(
-        `Missing assets for: ${missing.join(", ")} (expected docs/assets/screenshots/${LANG}/<name> — run \`pnpm guide:shots\` / \`pnpm guide:audio\`)`,
+        `Missing assets for: ${missing.join(", ")} (expected docs/assets/screenshots/${LANG}/<name> — run \`pnpm guide:shots\`)`,
       )
     }
     console.log(`✅ Copied ${referenced.size} asset(s) → ${destDir}`)
@@ -162,7 +162,7 @@ async function main() {
   const coverSrc = join(repoRoot, "docs", "assets", "screenshots", LANG, COVER_ASSET)
   if (!existsSync(coverSrc)) {
     throw new Error(
-      `Missing cover image ${coverSrc} — add the ${LANG} ${COVER_ASSET} (project-card cover).`,
+      `Missing cover image ${coverSrc} — run \`pnpm guide:cover\` to render it.`,
     )
   }
   mkdirSync(destDir, { recursive: true })

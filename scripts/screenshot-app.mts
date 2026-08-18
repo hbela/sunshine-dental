@@ -37,7 +37,6 @@ const screens: { name: string; path: string }[] = [
   { name: "03-calendar", path: "/calendar" },
   { name: "04-patients", path: "/patients" },
   { name: "05-appointments", path: "/appointments" },
-  { name: "06-call-logs", path: "/call-logs" },
   { name: "07-admin-users", path: "/admin/users" },
   { name: "08-settings", path: "/settings" },
   { name: "09-chat-logs", path: "/chat-logs" },

@@ -3,7 +3,7 @@
  * differs between the clinics we host.
  *
  * The product is deployed **one isolated stack per clinic** (own domain, own
- * Postgres, own Retell agent — see `docs/onboarding-new-clinic.md`), all built
+ * Postgres, own chat agent — see `docs/onboarding-new-clinic.md`), all built
  * from the same `main` branch. The only thing that varies at build/boot time is
  * the clinic id:
  *
@@ -30,9 +30,11 @@ export function isClinicLanguage(value: unknown): value is ClinicLanguage {
 // ── FAQ ─────────────────────────────────────────────────────────────────────
 
 /**
- * The topics the voice agent's `get_faq_answer` tool may ask for. Kept in sync
- * with the tool definition on the Retell agent — adding one here means adding
- * it to the tool's enum too, or the agent will never request it.
+ * The clinic-fact topics `faqAnswer` can resolve, served by `GET /api/faq`.
+ *
+ * Originally the enum of the retired voice agent's `get_faq_answer` tool; the
+ * chat receptionist gets these facts inlined into its prompt instead, so adding
+ * a topic here now only affects that endpoint.
  */
 export const FAQ_TOPICS = [
   'office_hours',

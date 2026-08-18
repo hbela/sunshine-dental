@@ -2,7 +2,7 @@ When you install a voice-booking dental system in a real clinic, there are typic
 
 1. **The dental clinic (data controller / business owner)**
 2. **You (software vendor / processor / service provider)**
-3. **Third-party providers** (Retell, telephony provider, hosting provider, email/SMS provider)
+3. **Third-party providers** (Anthropic, hosting provider, email provider)
 
 The exact legal requirements depend on the country, but since you're in Hungary and mentioned dental clinics, the most relevant frameworks are:
 
@@ -140,8 +140,7 @@ The DPA explains:
 Example subprocessors:
 
 * [Hetzner](https://www.hetzner.com?utm_source=chatgpt.com)
-* [Retell AI](https://retellai.com?utm_source=chatgpt.com)
-* [Twilio](https://www.twilio.com?utm_source=chatgpt.com) (if used)
+* [Anthropic](https://www.anthropic.com)
 * [OpenAI](https://openai.com?utm_source=chatgpt.com) (if used)
 * [Google Cloud](https://cloud.google.com?utm_source=chatgpt.com) (if used)
 
@@ -159,81 +158,51 @@ GDPR can require notification within strict timelines.
 
 ---
 
-# 3. TCPA Compliance (US Calls)
+# 3. AI Disclosure (chat)
 
-TCPA became a hot topic because AI calling exploded recently.
+> **Superseded:** this section used to cover **TCPA** (the US law on automated and
+> AI-generated *calls*) and in-call AI voice disclosure. The voice agent was retired on
+> **2026-08-18**, and the product no longer places or answers phone calls at all, so TCPA
+> and the FCC's artificial-voice rules are simply out of scope. What survives is the
+> transparency duty, which applies to a text assistant just as much as a spoken one.
 
-TCPA is mainly a US law.
+Patients must be able to tell they are talking to a machine, not a member of staff.
 
-It regulates:
+**EU:** the AI Act's transparency rule (Art. 50) requires that a person interacting with an
+AI system is informed of that fact, unless it is obvious from the context. A chat assistant
+that writes like a receptionist is exactly the case the rule is aimed at — do not rely on
+"obvious from the context".
 
-* Automated calls
-* AI-generated calls
-* SMS campaigns
-* Telemarketing
+**Implementation in this product:**
 
----
+* The assistant identifies the clinic, its purpose, and its AI nature in the opening message.
+* The clinic's privacy notice states that website enquiries may be handled by an AI assistant
+  and that conversations are stored.
+* The disclosure is contractually required to stay enabled (see the Order Form's Compliance
+  Acknowledgment) — a clinic may not strip it out to make the assistant look human.
 
-## Important Distinction
-
-### Appointment Reminder
-
-Generally lower risk:
-
-> "You have a dental appointment tomorrow at 10 AM."
-
-Often permissible under healthcare exemptions and consent frameworks.
-
----
-
-### Marketing Call
-
-Higher risk:
-
-> "Would you like a teeth whitening promotion?"
-
-Different rules apply.
-
-Usually explicit consent is required.
+**Marketing vs. service.** The assistant is inbound and service-only: it answers questions and
+books appointments a patient asked for. It never initiates outbound contact and never promotes
+treatments, which keeps it clear of the consent regimes that govern marketing outreach. If you
+ever add outbound messaging (reminders, recalls, promotions), that is a **new** legal analysis
+— for e-mail/SMS this means ePrivacy consent in the EU, and revisiting TCPA if you sell in the US.
 
 ---
 
-# AI Voice Disclosure
+# Subprocessor Considerations
 
-The US FCC has recently clarified that AI-generated voices may be treated similarly to artificial/prerecorded voices for regulatory purposes.
+The AI assistant sends conversation content to **Anthropic** (Claude), which therefore acts as a
+subprocessor for any patient data that appears in a chat. Verify and record, before onboarding
+clinics:
 
-A common best practice is:
+* Data retention and deletion
+* Region of processing, and transfer safeguards (SCCs) if data leaves the EU
+* DPA availability and terms
+* Whether inputs may be used for model training (they must not be)
 
-> "Hello, I'm the Sunshine Dental virtual assistant calling regarding your appointment."
-
-Identify:
-
-* Business
-* Purpose
-* AI nature of the call
-
-This significantly reduces risk.
-
----
-
-# Retell-Specific Considerations
-
-If Retell handles:
-
-* Voice recordings
-* Transcripts
-* Call summaries
-
-Then Retell becomes a subprocessor.
-
-You should verify:
-
-* Data retention
-* Data deletion
-* Region hosting
-* DPA availability
-
-Before onboarding clinics.
+The same questions apply to the hosting provider and the e-mail provider. Note that patient PII
+is encrypted at rest in this product with a key only the clinic holds — that limits exposure at
+the database and backup layer, but **not** what is sent to the model in a live conversation.
 
 ---
 
@@ -245,9 +214,9 @@ For a commercial dental SaaS, I would make the following features mandatory:
 
 ✅ Patient consent tracking
 
-✅ Call recording consent flag
+✅ Chat transcript retention + consent flag
 
-✅ AI disclosure script
+✅ AI disclosure in the assistant's opening message
 
 ✅ Audit logs
 

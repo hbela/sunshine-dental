@@ -11,7 +11,6 @@ import enDashboard from '@/locales/en/dashboard.json'
 import enCalendar from '@/locales/en/calendar.json'
 import enAppointments from '@/locales/en/appointments.json'
 import enPatients from '@/locales/en/patients.json'
-import enCallLogs from '@/locales/en/callLogs.json'
 import enSettings from '@/locales/en/settings.json'
 import enAdmin from '@/locales/en/admin.json'
 import enDelegations from '@/locales/en/delegations.json'
@@ -26,7 +25,6 @@ import huDashboard from '@/locales/hu/dashboard.json'
 import huCalendar from '@/locales/hu/calendar.json'
 import huAppointments from '@/locales/hu/appointments.json'
 import huPatients from '@/locales/hu/patients.json'
-import huCallLogs from '@/locales/hu/callLogs.json'
 import huSettings from '@/locales/hu/settings.json'
 import huAdmin from '@/locales/hu/admin.json'
 import huDelegations from '@/locales/hu/delegations.json'
@@ -41,7 +39,6 @@ import deDashboard from '@/locales/de/dashboard.json'
 import deCalendar from '@/locales/de/calendar.json'
 import deAppointments from '@/locales/de/appointments.json'
 import dePatients from '@/locales/de/patients.json'
-import deCallLogs from '@/locales/de/callLogs.json'
 import deSettings from '@/locales/de/settings.json'
 import deAdmin from '@/locales/de/admin.json'
 import deDelegations from '@/locales/de/delegations.json'
@@ -62,7 +59,6 @@ export const namespaces = [
   'calendar',
   'appointments',
   'patients',
-  'callLogs',
   'settings',
   'admin',
   'delegations',
@@ -81,7 +77,6 @@ export const resources = {
     calendar: enCalendar,
     appointments: enAppointments,
     patients: enPatients,
-    callLogs: enCallLogs,
     settings: enSettings,
     admin: enAdmin,
     delegations: enDelegations,
@@ -97,7 +92,6 @@ export const resources = {
     calendar: huCalendar,
     appointments: huAppointments,
     patients: huPatients,
-    callLogs: huCallLogs,
     settings: huSettings,
     admin: huAdmin,
     delegations: huDelegations,
@@ -113,7 +107,6 @@ export const resources = {
     calendar: deCalendar,
     appointments: deAppointments,
     patients: dePatients,
-    callLogs: deCallLogs,
     settings: deSettings,
     admin: deAdmin,
     delegations: deDelegations,

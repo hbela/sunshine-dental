@@ -2,15 +2,14 @@ import type { ClinicConfig } from '@repo/shared';
 import { serviceLabel } from '@repo/shared';
 
 /**
- * Pieces shared by the chat receptionist and the Retell voice agent.
+ * Clinic-derived building blocks for the receptionist prompt: language lists,
+ * the service menu, and the Hungarian service glossary.
  *
- * Both prompts used to be written out by hand — the chat one in
- * `chat-receptionist.ts`, the voice one pasted into the Retell dashboard and
- * mirrored in `docs/retell-agent-prompt.md`. They drifted: the voice prompt
- * still told Hungarian callers to dial 911, and the two disagreed on Hungarian
- * wording the glossary had settled. Anything that must not diverge again lives
- * here or in the domain pack; only genuinely channel-specific text (phone
- * read-back, TTS pacing, chat brevity) stays in the two callers.
+ * These were split out of the prompt text back when a voice agent and the chat
+ * agent each had their own hand-written copy and the two drifted — the voice
+ * one still told Hungarian callers to dial 911. The voice channel is gone, but
+ * generating these from the clinic config is what keeps a newly onboarded
+ * clinic's prompt from carrying another clinic's facts, so they stay here.
  */
 
 /** Domain vocabulary and duty-of-care wording. One pack per kind of practice. */

@@ -119,7 +119,6 @@ async function main() {
   const targets: Array<[EncryptedModel, any]> = [
     ['patient', prisma.patient],
     ['appointment', prisma.appointment],
-    ['callLog', prisma.callLog],
     ['chatMessage', prisma.chatMessage],
     ['chatConversation', prisma.chatConversation],
     ['provider', prisma.provider],

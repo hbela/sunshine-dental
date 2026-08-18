@@ -9,19 +9,16 @@ import {
 } from './scheduling-core.js';
 
 /**
- * System prompt for the patient-facing CHAT receptionist.
+ * System prompt for the patient-facing CHAT receptionist — the clinic's only
+ * virtual receptionist channel since the voice agent was retired.
  *
- * Same personality, multilingual behaviour and scheduling rules as the voice
- * agent (`voice-agent.ts`), but with the voice-only mechanics removed (phone
- * read-back, TTS pacing, "end the call") and the FAQ facts folded inline so no
- * `get_faq_answer` tool is needed — Claude answers hours/location/etc. directly.
- *
- * The 6 documented functions become 5 chat tools (FAQ is inlined here).
+ * FAQ facts are folded in inline, so there is no `get_faq_answer` tool — Claude
+ * answers hours/location/etc. directly and the agent exposes 5 tools.
  *
  * Clinic-specific facts (name, city, hours, services, address, emergency
- * number) come from the clinic config — see `packages/shared/src/clinic.ts`.
- * Domain vocabulary comes from the pack, and both are shared with the voice
- * prompt so the two cannot drift apart again.
+ * number) come from the clinic config — see `packages/shared/src/clinic.ts`;
+ * domain vocabulary comes from the pack. Both are generated rather than
+ * hand-written, so onboarding a clinic cannot leave stale facts behind.
  */
 export function buildChatSystemPrompt(
   today: string,

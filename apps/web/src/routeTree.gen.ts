@@ -16,7 +16,6 @@ import { Route as AuthIndexRouteImport } from './routes/_auth/index'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
 import { Route as AuthPatientsRouteImport } from './routes/_auth/patients'
 import { Route as AuthChatLogsRouteImport } from './routes/_auth/chat-logs'
-import { Route as AuthCallLogsRouteImport } from './routes/_auth/call-logs'
 import { Route as AuthCalendarRouteImport } from './routes/_auth/calendar'
 import { Route as AuthAppointmentsRouteImport } from './routes/_auth/appointments'
 import { Route as AuthAdminUsersRouteImport } from './routes/_auth/admin/users'
@@ -55,11 +54,6 @@ const AuthChatLogsRoute = AuthChatLogsRouteImport.update({
   path: '/chat-logs',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthCallLogsRoute = AuthCallLogsRouteImport.update({
-  id: '/call-logs',
-  path: '/call-logs',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthCalendarRoute = AuthCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -82,7 +76,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/appointments': typeof AuthAppointmentsRoute
   '/calendar': typeof AuthCalendarRoute
-  '/call-logs': typeof AuthCallLogsRoute
   '/chat-logs': typeof AuthChatLogsRoute
   '/patients': typeof AuthPatientsRoute
   '/settings': typeof AuthSettingsRoute
@@ -93,7 +86,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/appointments': typeof AuthAppointmentsRoute
   '/calendar': typeof AuthCalendarRoute
-  '/call-logs': typeof AuthCallLogsRoute
   '/chat-logs': typeof AuthChatLogsRoute
   '/patients': typeof AuthPatientsRoute
   '/settings': typeof AuthSettingsRoute
@@ -107,7 +99,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_auth/appointments': typeof AuthAppointmentsRoute
   '/_auth/calendar': typeof AuthCalendarRoute
-  '/_auth/call-logs': typeof AuthCallLogsRoute
   '/_auth/chat-logs': typeof AuthChatLogsRoute
   '/_auth/patients': typeof AuthPatientsRoute
   '/_auth/settings': typeof AuthSettingsRoute
@@ -122,7 +113,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/appointments'
     | '/calendar'
-    | '/call-logs'
     | '/chat-logs'
     | '/patients'
     | '/settings'
@@ -133,7 +123,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/appointments'
     | '/calendar'
-    | '/call-logs'
     | '/chat-logs'
     | '/patients'
     | '/settings'
@@ -146,7 +135,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/_auth/appointments'
     | '/_auth/calendar'
-    | '/_auth/call-logs'
     | '/_auth/chat-logs'
     | '/_auth/patients'
     | '/_auth/settings'
@@ -211,13 +199,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthChatLogsRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/call-logs': {
-      id: '/_auth/call-logs'
-      path: '/call-logs'
-      fullPath: '/call-logs'
-      preLoaderRoute: typeof AuthCallLogsRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/calendar': {
       id: '/_auth/calendar'
       path: '/calendar'
@@ -245,7 +226,6 @@ declare module '@tanstack/react-router' {
 interface AuthRouteChildren {
   AuthAppointmentsRoute: typeof AuthAppointmentsRoute
   AuthCalendarRoute: typeof AuthCalendarRoute
-  AuthCallLogsRoute: typeof AuthCallLogsRoute
   AuthChatLogsRoute: typeof AuthChatLogsRoute
   AuthPatientsRoute: typeof AuthPatientsRoute
   AuthSettingsRoute: typeof AuthSettingsRoute
@@ -256,7 +236,6 @@ interface AuthRouteChildren {
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAppointmentsRoute: AuthAppointmentsRoute,
   AuthCalendarRoute: AuthCalendarRoute,
-  AuthCallLogsRoute: AuthCallLogsRoute,
   AuthChatLogsRoute: AuthChatLogsRoute,
   AuthPatientsRoute: AuthPatientsRoute,
   AuthSettingsRoute: AuthSettingsRoute,

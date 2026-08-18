@@ -207,7 +207,7 @@ manager-summary recipient to Corona's manager. Activate.
   edits never reach live calls.
 - Phone number: buy a Retell US number, set Inbound Agent = Corona, validate the
   full chain, then add the +36 Twilio Elastic SIP trunk
-  ([retell-golive.md §3B](retell-golive.md)).
+  ([retell-golive.md §3B](archive/retell-golive.md)).
 - Keep the dev/prod switch pattern: one Corona agent, `backend_base_url` flipped
   between hosts, never a duplicate dev agent.
 
@@ -215,8 +215,27 @@ manager-summary recipient to Corona's manager. Activate.
 
 ## Phase 5 — Monitoring
 
+> **Fleet monitoring now lives in Appointer Console** (`c:\devs\prods\appointer-console`,
+> served at `console.appointer.hu`). It polls every clinic's public `/api/health` on an
+> interval, classifies the `encryption: locked` state explicitly, and opens one incident
+> (with a single alert e-mail) per outage — so the per-clinic health view and locked-state
+> alerting below are **handled centrally** rather than reconstructed from UptimeRobot e-mails.
+> Onboarding a clinic therefore means **adding it in the console** (a checklist item there),
+> not building a bespoke monitor. UptimeRobot stays as the *external* prober that catches the
+> console itself being down; the two are complementary. See
+> [appointer-console-plan.md](appointer-console-plan.md).
+>
+> ⚠️ **Status: built but not yet deployed.** The console (M1–M4) is code-complete, but the
+> `console.appointer.hu` Coolify resource is not created and its restore drill hasn't run.
+> Until it goes live, UptimeRobot remains the primary alarm and clinics are added to the
+> console retroactively once it ships.
+
+- **Appointer Console:** add the clinic (slug = `CLINIC_ID`, health URL
+  `https://<id>.appointer.hu/api/health`, `monitoringEnabled`) so fleet health, incidents and
+  the locked-state alert are covered from one dashboard.
 - UptimeRobot: add `https://corona.appointer.hu/api/health` (5-min) and the
-  bare domain; alert when `encryption` stays `locked` >15 min.
+  bare domain; alert when `encryption` stays `locked` >15 min. Keep this as the independent
+  outside-in check (it also covers the console).
 - Sentry: new `corona-api` + `corona-web` projects (or one project with an
   environment tag — decide when creating; separate projects keep alert routing
   simple), DSNs into the stack's `SENTRY_DSN` / `VITE_SENTRY_DSN` **build** arg.

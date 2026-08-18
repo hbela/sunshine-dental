@@ -3,18 +3,17 @@ import { faqAnswer } from '@repo/shared';
 import { clinic } from '../lib/clinic.js';
 
 /**
- * Clinic facts for the voice agent's `get_faq_answer` tool.
+ * Clinic facts (hours, location, insurance, parking...) for one topic + language.
  *
- * These answers used to be a hardcoded dictionary inside the n8n router's "FAQ
- * Handler" node, which meant every new clinic needed its own edited copy of the
- * workflow. Serving them from the API instead makes the workflow clinic-
- * agnostic: a duplicated workflow only needs its base URL and API key changed.
+ * Built for the retired voice agent's `get_faq_answer` tool; the chat
+ * receptionist answers these inline from its prompt instead, so nothing in this
+ * repo calls this route any more. It is kept because it is public, non-secret,
+ * patient-facing copy generated from the clinic config — the natural endpoint
+ * for a clinic website or an embedded widget to read. Remove it if no such
+ * consumer appears.
  *
- * Non-secret, patient-facing copy — same information the chat receptionist
- * answers inline and the website publishes — so this route is public, like
- * /api/health. Unknown topics/languages degrade to the English answer and then
- * to a "let me have someone call you back" line rather than erroring, so a
- * mis-typed tool argument never dead-ends a live call.
+ * Unknown topics/languages degrade to the English answer and then to a "let me
+ * have someone call you back" line rather than erroring.
  */
 export async function faqRoutes(fastify: FastifyInstance) {
   fastify.route({
@@ -34,7 +33,6 @@ export async function faqRoutes(fastify: FastifyInstance) {
         clinic: clinic.id,
         topic: topic ?? null,
         language: lang,
-        // `result` matches the key the n8n FAQ node already returns to Retell.
         result: faqAnswer(clinic, topic ?? '', lang),
       };
     },

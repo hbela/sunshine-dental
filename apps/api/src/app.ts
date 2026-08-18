@@ -8,7 +8,6 @@ import { healthRoutes } from './routes/health.routes.js'
 import { providersRoutes } from './routes/providers.routes.js'
 import { appointmentsRoutes } from './routes/appointments.routes.js'
 import { patientsRoutes } from './routes/patients.routes.js'
-import { callLogsRoutes } from './routes/call-logs.routes.js'
 import { adminRoutes } from './routes/admin.routes.js'
 import { delegationsRoutes } from './routes/delegations.routes.js'
 import { usersRoutes } from './routes/users.routes.js'
@@ -60,7 +59,6 @@ export async function app(fastify: FastifyInstance) {
   await fastify.register(providersRoutes, { prefix: '/api/providers' })
   await fastify.register(appointmentsRoutes, { prefix: '/api/appointments' })
   await fastify.register(patientsRoutes, { prefix: '/api/patients' })
-  await fastify.register(callLogsRoutes, { prefix: '/api/call-logs' })
   await fastify.register(adminRoutes, { prefix: '/api/admin' })
   await fastify.register(delegationsRoutes, { prefix: '/api/delegations' })
   await fastify.register(usersRoutes, { prefix: '/api/users' })
