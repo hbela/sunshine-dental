@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(grep:*)",
+      "Shell(git:*)",
+      "powershell"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}
