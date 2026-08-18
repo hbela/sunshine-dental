@@ -9,6 +9,7 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "guide:shots": "tsx scripts/screenshot-app.mts",
+    "guide:cover": "tsx scripts/make-guide-cover.mts",
     "guide:publish": "tsx scripts/publish-user-guide.mts",
     "guide:publish:en": "tsx scripts/publish-user-guide.mts --lang en",
     "guide:publish:hu": "tsx scripts/publish-user-guide.mts --lang hu",
