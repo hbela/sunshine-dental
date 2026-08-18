@@ -9,6 +9,10 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: {
     enabled: true,
+    // No public self-registration: staff accounts are created by an ADMIN via
+    // POST /api/admin/users (auth.api.createUser), which works with sign-up
+    // disabled. Leaving this open would hand every visitor the ASSISTANT role.
+    disableSignUp: true,
     requireEmailVerification: false,
   },
   user: {

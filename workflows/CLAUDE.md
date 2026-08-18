@@ -33,9 +33,17 @@ the patient a confirmation on its own. This workflow closes that gap: the API PO
 to its webhook (`N8N_BOOKING_WEBHOOK_URL`) and it sends the confirmation. Its HU copy uses the
 chat glossary (`személyi igazolvány` / `TAJ kártya`, `Fogkőeltávolítás`, `Mélytisztítás`).
 
-**Setup after import:** select the `Gmail account 2` credential on the Gmail node → **activate**
-→ copy the Production webhook URL into the API's `N8N_BOOKING_WEBHOOK_URL` env (Coolify) →
-redeploy. Webhook path: `/webhook/chat-booking-confirmation`.
+**Setup after import:**
+1. Create a **Header Auth** credential (header name `x-webhook-secret`, value from
+   `openssl rand -hex 16`) and select it on the **Chat Booking Webhook** node — the webhook
+   rejects unauthenticated requests.
+2. Set `N8N_WEBHOOK_SECRET` to the SAME value in the n8n instance's own environment (the Code
+   node checks it too and fails closed if unset; requires `$env` access, the n8n default).
+3. Select the `Gmail account 2` credential on the Gmail node → **activate**.
+4. Copy the Production webhook URL into the API's `N8N_BOOKING_WEBHOOK_URL` env and set
+   `N8N_WEBHOOK_SECRET` (same secret) in Coolify → redeploy.
+
+Webhook path: `/webhook/chat-booking-confirmation`.
 
 ## Multiple clinics on one n8n instance
 
@@ -51,13 +59,16 @@ and are served by the API, so a clinic's chat prompt and its email copy stay in 
 1. Open the target n8n instance (prod `https://n8nprod.appointer.hu` or test `https://n8ndev.appointer.hu`)
 2. Go to **Workflows → Import from file**
 3. Select the JSON file and confirm
-4. Re-select the Gmail credential (see below), then activate
+4. Re-select the Header Auth + Gmail credentials (see below), then activate
 
 ## Credentials Required
 
-- **Gmail OAuth2** — the **only** n8n credential needed. It must be **recreated per instance**;
+- **Gmail OAuth2** — must be **recreated per instance**;
   credentials don't travel with an exported workflow. NB `Gmail account 2` is a Testing-mode
   OAuth app whose token expires ~weekly.
+- **Header Auth** (`x-webhook-secret`) — authenticates the booking webhook. Recreate per
+  instance; use the same value as the `N8N_WEBHOOK_SECRET` env var on both the n8n instance
+  and the API. Generate with `openssl rand -hex 16`.
 - **No PostgreSQL credential** — there are no direct Postgres nodes.
 
 Never hardcode credentials — reference them by name in the n8n UI.

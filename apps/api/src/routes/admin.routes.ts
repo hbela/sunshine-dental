@@ -114,22 +114,27 @@ export async function adminRoutes(fastify: FastifyInstance) {
       // Canonical Western-order string kept on the better-auth `name` field.
       const name = canonicalName({ title, givenName, familyName });
 
-      // Create user via better-auth signUp (this hashes the password)
-      const signUpResult = await auth.api.signUpEmail({
-        body: { name, email, password },
-      });
-
-      if (!signUpResult?.user) {
+      // Create the user atomically via the admin plugin (hashes the password,
+      // sets role + structured name fields in one call). Works with public
+      // sign-up disabled; called server-side without headers it skips the
+      // plugin's own session check — authorization is the preHandler above.
+      let userId: string;
+      try {
+        const result = await auth.api.createUser({
+          body: {
+            name,
+            email,
+            password,
+            // The plugin's types only know its built-in "user"/"admin" roles;
+            // at runtime parseRoles passes any string through to the user row.
+            role: role as unknown as 'admin',
+            data: { title: title || null, givenName, familyName },
+          },
+        });
+        userId = result.user.id;
+      } catch {
         return reply.status(400).send({ error: 'Failed to create user' });
       }
-
-      const userId = signUpResult.user.id;
-
-      // Persist role + structured name fields.
-      await prisma.user.update({
-        where: { id: userId },
-        data: { role: role as any, title: title || null, givenName, familyName },
-      });
 
       // If PROVIDER, create provider profile
       let providerId: string | null = null;

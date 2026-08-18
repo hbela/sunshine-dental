@@ -88,6 +88,10 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       # Optional: n8n webhook that emails a chat booking confirmation. Empty = off.
       N8N_BOOKING_WEBHOOK_URL: ${N8N_BOOKING_WEBHOOK_URL:-}
+      # Shared secret the API sends as x-webhook-secret on that webhook call.
+      # Required when the URL above is set (boot refuses otherwise); must match
+      # the n8n instance's N8N_WEBHOOK_SECRET. (openssl rand -hex 16)
+      N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET:-}
       # Optional: Sentry DSN for API error tracking. Empty = Sentry disabled.
       SENTRY_DSN: ${SENTRY_DSN:-}
     expose:

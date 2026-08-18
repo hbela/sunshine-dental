@@ -51,12 +51,20 @@ async function sendBookingConfirmationEmail(payload: {
 }): Promise<void> {
   const url = process.env.N8N_BOOKING_WEBHOOK_URL;
   if (!url || !payload.email) return;
+  // The webhook requires this shared secret (header auth in n8n plus a
+  // fail-closed check inside the workflow). Missing = skip loudly rather than
+  // POST an unauthenticated request the workflow must reject anyway.
+  const secret = process.env.N8N_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error('N8N_WEBHOOK_SECRET is not set — skipping booking confirmation email');
+    return;
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);
   try {
     await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-webhook-secret': secret },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
