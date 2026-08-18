@@ -3,6 +3,10 @@ import './instrument.js'
 import Fastify from 'fastify'
 import { app } from './app.js'
 import { tryUnlockFromEnv } from './lib/crypto.js'
+import { validateEnv } from './lib/env.js'
+
+// Refuse to boot with missing/weak secrets (fail closed, not open).
+validateEnv()
 
 // Dev convenience only: arm the keyring from ENCRYPTION_KEY (refused in
 // production unless ALLOW_ENV_KEY=true). In prod the server boots locked and
