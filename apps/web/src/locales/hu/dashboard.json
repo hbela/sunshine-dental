@@ -10,7 +10,7 @@
   "stats": {
     "appointmentsToday": "Mai időpontok",
     "pendingCallbacks": "Függő visszahívások",
-    "callsThisWeek": "Hívások ezen a héten",
+    "chatsThisWeek": "Beszélgetések ezen a héten",
     "sentimentScore": "Hangulati pontszám",
     "confirmedToday": "Mai megerősített",
     "completedToday": "Mai befejezett"
@@ -20,9 +20,10 @@
     "empty": "Mára nincs ütemezett időpont.",
     "viewAll": "Összes"
   },
-  "recentCalls": {
-    "title": "Legutóbbi hívások",
-    "empty": "Nincsenek legutóbbi hívások.",
-    "viewAll": "Összes"
+  "recentChats": {
+    "title": "Legutóbbi beszélgetések",
+    "empty": "Nincsenek legutóbbi beszélgetések.",
+    "viewAll": "Összes",
+    "messages": "{{n}} üzenet"
   }
 }

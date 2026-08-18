@@ -1,22 +1,25 @@
 # Monitoring & Troubleshooting Runbook
 
 How to tell whether the Sunshine Dental stack is healthy, and what to do when the
-voice agent (Retell or ElevenLabs) reports that **"the backend is unreachable."**
+chat receptionist stops booking or stops answering.
 
 ## Architecture
 
 ```
-Voice agent (Retell / ElevenLabs)
-        │  server tool → HTTPS POST
+Patient browser  (sunshine.appointer.hu/chat)
+        │  HTTPS
         ▼
-n8n  (n8nprod.appointer.hu/webhook/<path>)   ── health: GET /healthz → {"status":"ok"}
-        │  HTTP node, Authorization: Bearer <FASTIFY_API_KEY>
+Fastify API  (sunshine.appointer.hu/api/chat/…)   ── health: GET /api/health (public)
+        │  ├── Anthropic API (Claude Haiku 4.5)  — the receptionist itself
+        │  ├── Prisma → Postgres (in-stack)      — calendar, patients, transcripts
+        │  └── n8n webhook (fire-and-forget)     — confirmation e-mail only
         ▼
-Fastify API  (sunshine.appointer.hu/api/…)   ── health: GET /api/health (public)
-        │  Prisma
-        ▼
-Postgres (Prisma.io, pooled)
+Postgres (in-stack, `db:5432`)
 ```
+
+The booking path is **entirely in-process**: the chat tools call the same services the
+dashboard does. n8n is downstream of a completed booking and only sends mail, so an n8n
+outage costs confirmation e-mails, not bookings.
 
 Deployment: Hetzner VPS via **Coolify** (Docker Compose). `sunshine.appointer.hu` →
 Traefik → nginx (web SPA) → `/api` reverse-proxied to the `api` container on `:3000`.
@@ -44,37 +47,56 @@ curl -s -o /dev/null -w "slots  %{http_code}\n" \
 Expected when healthy: `web 200`, `api 200`, `n8n 200`, `slots 200` (with the real key).
 `slots 401` with a real key ⇒ the key is wrong/rotated. `slots 400` ⇒ key is fine, just missing query params.
 
-## Decision tree — "voice agent says backend unreachable"
+## Decision tree — "the chat isn't working"
 
-1. **Voice-platform conversation log first (fastest).** Retell or ElevenLabs dashboard →
-   the failed conversation → tool-call detail. Read the exact **request URL, method,
-   headers, body** and the **HTTP status + response body + latency** the tool received.
-   - Confirm the URL is the **production** webhook `https://n8nprod.appointer.hu/webhook/<path>`
-     — **not** `…/webhook-test/…` (n8n test URLs only respond while the editor is "listening"),
-     and not `n8ndev.appointer.hu`.
-   - Confirm the tool **timeout** is generous enough (the `slots` lookup does a DB roundtrip).
-     A short timeout surfaces as "unreachable" on a slow response.
-2. **n8n layer.** Workflow **Active**? Open **Executions** for the incoming call.
-   - No execution for the call ⇒ voice agent is hitting the wrong URL / an inactive or
-     test webhook. Fix the tool URL, or activate the workflow.
-   - Execution errored on the HTTP node ⇒ read the node's response:
-     `401` here = `FASTIFY_API_KEY` mismatch; timeout / `5xx` = API or DB problem.
-3. **API layer.** `GET /api/health`:
-   - `200` ⇒ API + DB fine, so the problem is above this layer (n8n or the voice tool).
-   - `503 {"db":"down"}` ⇒ database issue (Prisma.io down / connection limit / bad `DATABASE_URL`).
-   - No response / timeout ⇒ API container down → **Coolify → api service → Logs** (Fastify stdout).
-4. **Coolify / infra.** api container running & healthy? A recent deploy failed?
-   Is env `FASTIFY_API_KEY` present and equal to the Bearer token stored in the n8n HTTP nodes?
+Start by naming the symptom precisely; the three failure modes have different causes.
+
+**A. Chat won't reply at all** (patient sends a message, nothing comes back)
+
+1. `GET /api/health` → `200` ⇒ API + DB fine, suspect Anthropic. `503 {"db":"down"}` ⇒
+   database. No response ⇒ api container down → **Coolify → api → Logs**.
+2. **Anthropic**: check the api logs for `401` (bad/rotated `ANTHROPIC_API_KEY`), `429`
+   (rate limit / spend cap), or `5xx` from the provider. Check
+   [status.anthropic.com](https://status.anthropic.com). A missing `ANTHROPIC_API_KEY`
+   disables the receptionist entirely — the endpoint is up but has no model behind it.
+3. **Sentry** (`sunshine-dental-api`) for an exception on the chat route.
+
+**B. Chat replies but won't book** (says it can't find slots, or offers a callback instead)
+
+1. Is the keyring **locked**? `GET /api/health` returns **200 even when locked** — check the
+   body for `"encryption":"locked"`. Booking writes patient PII, so it fails while locked.
+   Unlock via `POST /api/admin/unlock`.
+2. Are there actually free slots? `GET /api/calendar/slots?date=…&appointment_type=…` with
+   the API key. Empty availability (no provider availability seeded, everything booked, or a
+   date outside the search window) reads to a patient as "the system is broken".
+3. A *business* `404` — patient names a provider who doesn't exist — is correct behaviour,
+   not an outage. The assistant should offer another doctor.
+
+**C. Bookings succeed but no confirmation e-mail**
+
+This is the n8n path and never blocks a booking. Check, in order:
+1. `N8N_BOOKING_WEBHOOK_URL` is set on the api service and points at the **Production**
+   webhook URL — not `…/webhook-test/…`, which only responds while the n8n editor is listening.
+2. The workflow is **Active** on `n8nprod.appointer.hu`, and its **Executions** show the booking.
+3. The Gmail credential — `Gmail account 2` is a Testing-mode OAuth app whose token expires
+   roughly **weekly**. This is the single most common cause. Re-auth it in n8n.
 
 ## Common root causes (this stack)
 
-- **A caller names a doctor/patient/appointment that doesn't exist** → the API returns a *business* `404` (e.g. `{"error":"Provider not found"}`), which the router's HTTP-node error output must classify — NOT treat as an outage. See the confirmed incident below.
-- Voice tool points at `…/webhook-test/…`, a stale/`n8ndev` URL, or the n8n workflow is not **Active** → no execution.
-- `FASTIFY_API_KEY` in Coolify ≠ Bearer token in the n8n HTTP nodes → `401`, which the agent reports as "unreachable."
-- Voice tool timeout shorter than the n8n → Fastify → DB roundtrip → tool aborts.
-- n8n response JSON shape ≠ what the voice tool expects → tool treats a `200` as a failure.
+- **`Gmail account 2` token expired** (~weekly) → bookings fine, no confirmation e-mails.
+- **Keyring left locked after a restart/deploy** → chat can answer questions but not book.
+- **`ANTHROPIC_API_KEY` missing, rotated, or over its spend cap** → no receptionist at all.
+- **`N8N_BOOKING_WEBHOOK_URL` unset or pointing at a test webhook** → silent e-mail loss.
+- **No provider availability seeded for the clinic** → the assistant truthfully reports no
+  slots, which the clinic reports as "the chat is broken".
 
-## Confirmed incident — 2026-07-02, "backend unreachable" (was NOT an outage)
+## Historical incident — 2026-07-02, "backend unreachable" (was NOT an outage)
+
+> **Kept as a lesson, not a live procedure.** The voice agent and the n8n router workflow
+> described below were retired on 2026-08-18 and no longer exist. The transferable point is
+> the last line: a *business* 4xx mis-classified as a system error looks exactly like an
+> outage to the person on the other end.
+
 
 A production test call reported the backend unreachable. Root cause traced via Retell call log
 → n8nprod execution #9 (`kJ4QDaoEWRjdjkhj`): the caller asked for **"Dr. Kiss"** (not a real
@@ -129,8 +151,9 @@ with no provider → real slots. **Takeaway:** a voice agent saying "backend unr
 Workflow **`Error Handler — Email Alert`** (`0tdA3t7At1mY7MTh`, n8nprod): Error Trigger → Gmail
 (`Send Alert Email`, cred `SSHDHAefkBUth5jw`) → emails **hajzerbela@gmail.com** with the failed
 workflow name, execution id/URL, last node, and error message. It is wired as the **Error Workflow**
-in the settings of the prod workflows: router `kJ4QDaoEWRjdjkhj`, post-call `FBfZ65vr9r6MmTQc`,
-dynamic-vars `jUh6a3wia5turKAw`, daily-date `BxgJLziofW7fEME1`.
+in the settings of the prod workflows. Since the voice workflows were retired, the only
+workflow it still guards is the **chat booking confirmation** — re-check that the Error
+Workflow is still set on it after any re-import.
 
 - **Gotchas:**
   - The error-handler workflow **must stay ACTIVE** on this instance — if inactive it does NOT fire
@@ -139,7 +162,8 @@ dynamic-vars `jUh6a3wia5turKAw`, daily-date `BxgJLziofW7fEME1`.
     (e.g. provider-not-found) do **not** fail the workflow, so they won't alert — by design.
   - Shares the Gmail OAuth credential with the confirmation-email node; that OAuth app is in
     "Testing" and the token can expire ~weekly. If alerts (or confirmation emails) stop, re-auth the
-    Gmail credential in n8n.
+    Gmail credential in n8n. Note the failure mode: when the token dies, the thing that would
+    tell you it died is broken too — so treat "suspiciously quiet" as a prompt to check.
 - Verified 2026-07-02 with a throwaway failing workflow → handler executed (mode `error`, success),
   email sent; test workflow deleted.
 

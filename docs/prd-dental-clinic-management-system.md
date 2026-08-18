@@ -3,8 +3,26 @@
 
 > Version: 1.1
 > Date: 2026-03-02
-> Status: Draft
-> Context: Backend API for the Retell AI + n8n Dental Voice Agent system
+> Status: **Historical — superseded in the areas listed below.**
+> Context: Backend API for the dental receptionist system
+
+> ### ⚠️ Read this before trusting anything below
+>
+> This is the **original March 2026 specification**, kept as a record of what was designed.
+> The shipped system has moved on. Known divergences, newest first:
+>
+> | Area | Spec says | Reality |
+> |---|---|---|
+> | **Patient channel** | Retell AI voice agent over the phone | **Chat only.** The voice agent was retired 2026-08-18 — see [`voice-agent-retirement.md`](voice-agent-retirement.md). No phone number was ever provisioned. |
+> | **Call logs** | `CallLog` model, `/api/call-logs`, a Call Logs page | **Removed.** Replaced by `ChatConversation`/`ChatMessage`, `/api/chat/*`, and a Chat Logs page. |
+> | **Booking path** | n8n workflows call the API | **In-process.** The chat agent runs its tools inside the API; n8n only sends confirmation e-mail. |
+> | **Appointment types** | Prisma `AppointmentType` enum | Per-clinic config (`ClinicConfig.services`), TEXT column. |
+> | **Tenancy** | Single clinic (Sunshine) | Multi-clinic via `CLINIC_ID`, one isolated stack per clinic. |
+> | **Patient PII** | Plaintext | AES-256-GCM at rest + HMAC blind index, clinic-held key. |
+>
+> For how the system works **today**, read [`onboarding-new-clinic.md`](onboarding-new-clinic.md),
+> [`deploy.md`](deploy.md), and the source. Sections 5, 7.10 and 11 below are the most
+> out-of-date.
 
 ---
 
@@ -20,7 +38,7 @@
 8. [Frontend — React + shadcn](#8-frontend--react--shadcn)
 9. [Calendar Module — react-big-calendar](#9-calendar-module--react-big-calendar)
 10. [Role-Based Feature Matrix](#10-role-based-feature-matrix)
-11. [n8n / Retell AI Integration](#11-n8n--retell-ai-integration)
+11. [n8n / AI Agent Integration](#11-n8n--ai-agent-integration)
 12. [Non-Functional Requirements](#12-non-functional-requirements)
 13. [Environment Variables](#13-environment-variables)
 14. [Development Phases](#14-development-phases)
@@ -31,8 +49,8 @@
 
 The **Dental Clinic Management System** is a full-stack monorepo application that serves as the data and scheduling backbone for **Sunshine Dental Clinic**. It exposes a secured REST API consumed by two clients:
 
-1. **The React calendar web app** — used by Providers and Assistants to manage schedules, patients, and call history
-2. **The n8n voice agent workflows** — used internally by the Retell AI phone system during and after live calls
+1. **The React calendar web app** — used by Providers and Assistants to manage schedules, patients, and conversation history
+2. **The AI receptionist** — originally the Retell voice agent via n8n workflows; since 2026-08-18 the in-process chat agent
 
 This system replaces Google Sheets, Google Calendar, and all hardcoded availability logic from the existing n8n workflows.
 
@@ -1063,9 +1081,15 @@ Fastify calendar.service.ts:
 
 ---
 
-## 11. n8n / Retell AI Integration
+## 11. n8n / AI Agent Integration
 
-The n8n workflows (`retell-custom-function-router-v2` and `post-call-processing-v2`) communicate with this API exclusively via **API Key authentication**.
+> **Superseded.** The workflows named here were retired with the voice agent on 2026-08-18.
+> The chat agent calls the same underlying services **in-process** rather than over HTTP, and
+> the only remaining workflow (`chat-booking-confirmation`) is downstream of a completed
+> booking and sends e-mail. The tool contracts below still describe the shape of the agent's
+> tools accurately; the transport does not.
+
+The n8n workflows communicated with this API exclusively via **API Key authentication**.
 
 ### 11.1 Endpoints Called by n8n
 

@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
-import { Clock, Phone, ArrowRight, CalendarDays } from 'lucide-react'
+import { Clock, MessageSquare, ArrowRight, CalendarDays } from 'lucide-react'
 import { authClient } from '@/auth-client'
 import { useRole } from '@/hooks/useRole'
 import { useProviders } from '@/hooks/useProviders'
 import { useAppointments, type Appointment } from '@/hooks/useAppointments'
 import { usePatients } from '@/hooks/usePatients'
-import { useCallLogStats, useCallLogs, type CallLog } from '@/hooks/useCallLogs'
+import { useChatStats, useChatLogs, type ChatConversation } from '@/hooks/useChatLogs'
 import { useEnum } from '@/i18n/useEnum'
 import { useServiceLabel } from '@/i18n/useServiceLabel'
 import { useFormat } from '@/i18n/useFormat'
@@ -19,12 +19,6 @@ const today = () => format(new Date(), 'yyyy-MM-dd')
 function greetingKey() {
   const h = new Date().getHours()
   return h < 12 ? 'greeting.morning' : h < 18 ? 'greeting.afternoon' : 'greeting.evening'
-}
-
-function formatDuration(seconds: number) {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
@@ -192,24 +186,26 @@ function ScheduleList({ appointments }: { appointments: Appointment[] }) {
   )
 }
 
-function RecentCallsList({ calls }: { calls: CallLog[] }) {
+function RecentChatsList({ chats }: { chats: ChatConversation[] }) {
   const { t } = useTranslation('dashboard')
-  const { t: tcl } = useTranslation('callLogs')
+  const { t: tcl } = useTranslation('chatLogs')
   const { formatDateTime } = useFormat()
-  if (calls.length === 0) {
-    return <p className="py-6 text-center text-sm text-muted-foreground">{t('recentCalls.empty')}</p>
+  if (chats.length === 0) {
+    return <p className="py-6 text-center text-sm text-muted-foreground">{t('recentChats.empty')}</p>
   }
   return (
     <ul className="space-y-2">
-      {calls.map((c) => (
+      {chats.map((c) => (
         <li key={c.id} className="flex items-center gap-3 rounded-xl bg-muted/40 px-4 py-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary">
-            <Phone className="size-4" strokeWidth={1.75} />
+            <MessageSquare className="size-4" strokeWidth={1.75} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">{c.fromNumber ?? '—'}</p>
+            <p className="truncate text-sm font-medium text-foreground">
+              {c.summary ?? (c.status === 'ACTIVE' ? tcl('active') : tcl('noSummary'))}
+            </p>
             <p className="truncate text-xs text-muted-foreground">
-              {formatDateTime(new Date(c.createdAt))} · {formatDuration(c.durationSeconds)}
+              {formatDateTime(new Date(c.createdAt))} · {t('recentChats.messages', { n: c.messageCount })}
             </p>
           </div>
           {c.sentiment && (
@@ -223,7 +219,7 @@ function RecentCallsList({ calls }: { calls: CallLog[] }) {
   )
 }
 
-/** PROVIDER view — own schedule at a glance (no call-log access). */
+/** PROVIDER view — own schedule at a glance (no chat-log access). */
 function ProviderDashboard() {
   const { t } = useTranslation('dashboard')
   const { userId } = useRole()
@@ -250,13 +246,13 @@ function ProviderDashboard() {
   )
 }
 
-/** ASSISTANT/ADMIN view — clinic-wide stats incl. call analytics. */
+/** ASSISTANT/ADMIN view — clinic-wide stats incl. chat analytics. */
 function StaffDashboard() {
   const { t } = useTranslation('dashboard')
   const { data: appts } = useAppointments({ date: today() })
   const { data: patients } = usePatients({ limit: 100 })
-  const { data: stats } = useCallLogStats()
-  const { data: recentCalls } = useCallLogs({ limit: 5 })
+  const { data: stats } = useChatStats()
+  const { data: recentChats } = useChatLogs({ limit: 5 })
 
   const appointmentsToday = appts?.length
   const pendingCallbacks = patients?.filter((p) => p.callbackRequested).length
@@ -274,7 +270,7 @@ function StaffDashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label={t('stats.appointmentsToday')} value={appointmentsToday} />
         <StatCard label={t('stats.pendingCallbacks')} value={pendingCallbacks} />
-        <StatCard label={t('stats.callsThisWeek')} value={stats?.callsThisWeek} />
+        <StatCard label={t('stats.chatsThisWeek')} value={stats?.chatsThisWeek} />
         <StatCard label={t('stats.sentimentScore')} value={`${sentiment ?? 0}%`} ring={sentiment} />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -288,8 +284,8 @@ function StaffDashboard() {
             <ScheduleList appointments={appts ?? []} />
           </PanelCard>
         </div>
-        <PanelCard title={t('recentCalls.title')} to="/call-logs" viewAll={t('recentCalls.viewAll')} icon={Phone}>
-          <RecentCallsList calls={recentCalls ?? []} />
+        <PanelCard title={t('recentChats.title')} to="/chat-logs" viewAll={t('recentChats.viewAll')} icon={MessageSquare}>
+          <RecentChatsList chats={recentChats ?? []} />
         </PanelCard>
       </div>
     </div>

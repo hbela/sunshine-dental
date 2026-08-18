@@ -51,7 +51,7 @@ const SHARED = {
   brandIcon: "S",
   docTheme: true,
   published: true,
-  technologies: "React, Vite, TanStack, Fastify, Prisma, PostgreSQL, Claude AI, Retell AI, n8n",
+  technologies: "React, Vite, TanStack, Fastify, Prisma, PostgreSQL, Claude AI, n8n",
 }
 
 const byLang: Record<Lang, { slug: string; guideFile: string; title: string; excerpt: string }> = {

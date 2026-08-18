@@ -10,7 +10,7 @@
   "stats": {
     "appointmentsToday": "Appointments Today",
     "pendingCallbacks": "Pending Callbacks",
-    "callsThisWeek": "Calls This Week",
+    "chatsThisWeek": "Chats This Week",
     "sentimentScore": "Sentiment Score",
     "confirmedToday": "Confirmed Today",
     "completedToday": "Completed Today"
@@ -20,9 +20,10 @@
     "empty": "No appointments scheduled for today.",
     "viewAll": "View all"
   },
-  "recentCalls": {
-    "title": "Recent Calls",
-    "empty": "No recent calls.",
-    "viewAll": "View all"
+  "recentChats": {
+    "title": "Recent Chats",
+    "empty": "No recent chats.",
+    "viewAll": "View all",
+    "messages": "{{n}} messages"
   }
 }

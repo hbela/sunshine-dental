@@ -65,7 +65,7 @@ Core tool-use loop:
 3. On `tool_use`, dispatch to a handler, append `tool_result`, loop until end turn.
 4. Persist user/assistant/tool messages as they complete.
 
-**Tools mirror the 6 Retell functions** (`docs/retell-custom-functions.md`) but execute
+**Tools mirror the 6 Retell functions** (`docs/archive/retell-custom-functions.md`) but execute
 in-process against existing code — reuse, do not reimplement:
 - `check_availability` → `CalendarService.getAvailableSlots(date, TYPE, undefined, provider_name)`
 - `list_available_providers` → `CalendarService.getAvailableProviders(date, TYPE)`
@@ -83,7 +83,7 @@ uses lower_case — replicate the n8n router's `appointment_type.toUpperCase()` 
 `AppointmentDurations`). Validate/normalize before calling services.
 
 ### 4. System prompt — `apps/api/src/prompts/chat-receptionist.ts` (new)
-Adapt `docs/retell-agent-prompt.md`: keep personality, **Language Handling (en/hu/de,
+Adapt `docs/archive/retell-agent-prompt.md`: keep personality, **Language Handling (en/hu/de,
 detect & reply in the patient's language)**, scheduling rules, office hours, appointment
 types, booking/cancel/reschedule flows. **Strip voice-only bits** (phone read-back, TTS
 pacing, "end the call", 911 → use **112** per the EU/i18n note). Inject `today` (Europe/
@@ -137,7 +137,7 @@ full transcript and any linked patient/appointment. Add a `useChatLogs` hook
 | Availability engine | `apps/api/src/services/calendar.service.ts` |
 | Booking + slot re-validation + patient upsert | `apps/api/src/services/appointment.service.ts` (`book`, `cancelBySearch`) |
 | Type/duration contract & casing | `packages/shared/src/schemas/appointment.schema.ts` |
-| Agent behavior/flows/prompt source | `docs/retell-agent-prompt.md`, `docs/retell-custom-functions.md` |
+| Agent behavior/flows/prompt source | `docs/archive/retell-agent-prompt.md`, `docs/archive/retell-custom-functions.md` |
 | Tool→service request/response shapes, FAQ text | `workflows/retell-custom-function-router-v2.json` |
 | Staff-log route/UI/stats pattern | `call-logs.routes.ts`, `_auth/call-logs.tsx`, `useCallLogs` |
 | Public unauth route pattern | `health.routes.ts` (API), `routes/login.tsx` (web) |

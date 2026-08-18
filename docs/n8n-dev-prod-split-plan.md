@@ -69,13 +69,13 @@ New file **`workflows/scripts/retell-set-webhooks.mjs`** (mirrors `retell-set-vo
 
 ### D. Docs + memory
 - `workflows/CLAUDE.md`: add a "dev/prod n8n split" note (prod = n8nprod → sunshine.appointer.hu; dev = n8ndev → ngrok/local) and reframe the existing "Re-pointing the router at the current ngrok tunnel" / Testing sections as **testing-only**.
-- `docs/retell-golive.md`: Step 1 + the state table currently say all endpoints are `n8ndev.appointer.hu` and voice `openai-Chloe`; update host → `n8nprod.appointer.hu` and note the split (voice already corrected elsewhere).
+- `docs/archive/retell-golive.md`: Step 1 + the state table currently say all endpoints are `n8ndev.appointer.hu` and voice `openai-Chloe`; update host → `n8nprod.appointer.hu` and note the split (voice already corrected elsewhere).
 - Update the Coolify VPS deployment memory with the prod host = `n8nprod.appointer.hu`.
 
 ## Files to change
 - **New:** `workflows/scripts/retell-set-webhooks.mjs`
 - **Edit:** `package.json` (add `retell:set-webhooks`)
-- **Edit:** `workflows/CLAUDE.md`, `docs/retell-golive.md`
+- **Edit:** `workflows/CLAUDE.md`, `docs/archive/retell-golive.md`
 - **No app/API code changes** — the app doesn't touch n8n.
 
 ## Verification (end-to-end)
@@ -86,7 +86,7 @@ New file **`workflows/scripts/retell-set-webhooks.mjs`** (mirrors `retell-set-vo
 
 ## Optional hardening (recommended while touching this)
 - **Rotate the exposed secrets:** new `FASTIFY_API_KEY` in Coolify API env **and** in the n8nprod Router + Post-Call bearer headers (keep them matched); new Retell API key in the cron node. Do prod first, then dev.
-- Add a shared-secret header (e.g. `X-Retell-Secret`) on the Retell custom tools and verify it in the n8nprod webhook nodes (the Retell→n8n hop is currently unauthenticated — see `docs/retell-golive.md` §Optional hardening).
+- Add a shared-secret header (e.g. `X-Retell-Secret`) on the Retell custom tools and verify it in the n8nprod webhook nodes (the Retell→n8n hop is currently unauthenticated — see `docs/archive/retell-golive.md` §Optional hardening).
 
 ## Open considerations
 - A dedicated **test Retell agent** (clone of Dental Clinic, webhooks → n8ndev) is the clean way to keep exercising the dev loop once the prod agent is pinned to n8nprod; otherwise use the dashboard simulation.

@@ -11,7 +11,6 @@ import { blindIndex, decryptString, encryptString } from './crypto.js';
 export const ENCRYPTED_FIELDS = {
   patient: ['name', 'phone', 'email', 'reason', 'notes'],
   appointment: ['patientName', 'patientPhone', 'patientEmail', 'notes'],
-  callLog: ['fromNumber', 'toNumber', 'transcript', 'summary'],
   chatMessage: ['content'],
   chatConversation: ['summary'],
   provider: ['phone', 'bio'],

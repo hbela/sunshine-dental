@@ -33,8 +33,8 @@ const UpdateRoleBody = z.object({
 
 export async function adminRoutes(fastify: FastifyInstance) {
   // POST /api/admin/unlock — arm the encryption keyring after a server start.
-  // ADMIN session only, deliberately NOT requireAuthOrApiKey: the n8n/Retell
-  // shared API key must never be able to arm the key. The key is verified
+  // ADMIN session only, deliberately NOT requireAuthOrApiKey: the shared n8n
+  // API key must never be able to arm the key. The key is verified
   // against the stored canary before use, so a wrong key can't poison data.
   fastify.route({
     method: 'POST',

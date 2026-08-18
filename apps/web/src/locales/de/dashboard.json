@@ -10,7 +10,7 @@
   "stats": {
     "appointmentsToday": "Termine heute",
     "pendingCallbacks": "Ausstehende Rückrufe",
-    "callsThisWeek": "Anrufe diese Woche",
+    "chatsThisWeek": "Chats diese Woche",
     "sentimentScore": "Stimmungswert",
     "confirmedToday": "Heute bestätigt",
     "completedToday": "Heute abgeschlossen"
@@ -20,9 +20,10 @@
     "empty": "Heute sind keine Termine geplant.",
     "viewAll": "Alle ansehen"
   },
-  "recentCalls": {
-    "title": "Letzte Anrufe",
-    "empty": "Keine aktuellen Anrufe.",
-    "viewAll": "Alle ansehen"
+  "recentChats": {
+    "title": "Letzte Chats",
+    "empty": "Keine aktuellen Chats.",
+    "viewAll": "Alle ansehen",
+    "messages": "{{n}} Nachrichten"
   }
 }

@@ -100,7 +100,7 @@ model Provider {
   delegationsOwned CalendarDelegation[] @relation("DelegationOwner")
 }
 
-// Patient registry (populated by voice agent capture_patient_info).
+// Patient registry (populated by the chat receptionist's capture_patient_info).
 // PII fields (name/phone/email/reason/notes) are AES-256-GCM ciphertext at rest
 // (see src/lib/crypto-fields.ts); phoneIndex is an HMAC blind index over the
 // normalized phone so exact-match dedupe lookups work without plaintext.
@@ -119,7 +119,6 @@ model Patient {
   updatedAt         DateTime  @updatedAt
 
   appointments      Appointment[]
-  callLogs          CallLog[]
   chatConversations ChatConversation[]
 
   @@index([phoneIndex])
@@ -156,7 +155,6 @@ model Appointment {
   status          AppointmentStatus @default(CONFIRMED)
   isNewPatient    Boolean           @default(false)
   notes           String?
-  callId          String?           // Retell call_id that triggered booking
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
@@ -166,28 +164,6 @@ enum AppointmentStatus {
   CANCELLED
   COMPLETED
   NO_SHOW
-}
-
-// Call logs (populated by post-call webhook)
-model CallLog {
-  id                  String   @id @default(cuid())
-  callId              String   @unique  // Retell call_id
-  agentId             String?
-  patientId           String?
-  patient             Patient? @relation(fields: [patientId], references: [id])
-  fromNumber          String?
-  toNumber            String?
-  direction           String   @default("inbound")
-  durationSeconds     Int      @default(0)
-  status              String?
-  disconnectionReason String?
-  transcript          String?  @db.Text
-  summary             String?  @db.Text
-  sentiment           String?  // 'Positive' | 'Neutral' | 'Negative'
-  successful          Boolean?
-  startTime           DateTime?
-  endTime             DateTime?
-  createdAt           DateTime @default(now())
 }
 
 // Chat conversations — patient-facing text chat with the virtual receptionist.

@@ -43,5 +43,5 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-# Exported Retell call transcripts (contain patient PII — keep local only)
+# Exported call transcripts from the retired voice agent (patient PII — keep local only)
 docs/transcripts/

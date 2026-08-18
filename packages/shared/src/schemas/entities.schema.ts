@@ -25,26 +25,6 @@ export const PatientSchema = z.object({
   updatedAt: z.string(),
 });
 
-export const CallLogSchema = z.object({
-  id: z.string(),
-  callId: z.string(),
-  agentId: z.string().nullable(),
-  patientId: z.string().nullable(),
-  fromNumber: z.string().nullable(),
-  toNumber: z.string().nullable(),
-  direction: z.string(),
-  durationSeconds: z.number(),
-  status: z.string().nullable(),
-  disconnectionReason: z.string().nullable(),
-  transcript: z.string().nullable(),
-  summary: z.string().nullable(),
-  sentiment: z.string().nullable(),
-  successful: z.boolean().nullable(),
-  startTime: z.string().nullable(),
-  endTime: z.string().nullable(),
-  createdAt: z.string(),
-});
-
 export const ChatMessageSchema = z.object({
   id: z.string(),
   role: z.enum(['USER', 'ASSISTANT', 'TOOL']),

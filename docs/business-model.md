@@ -11,12 +11,17 @@
 
 Much of the hard work exists. From the codebase and PRD:
 
-- ✅ Fastify API (auth, calendar, appointments, patients, call logs)
-- ✅ React staff dashboard (calendar, appointments, patients, call logs, admin)
-- ✅ Retell AI voice agent + n8n workflows (booking, cancel, patient capture, post-call)
-- ✅ PostgreSQL + Prisma schema
-- ✅ Multilingual work in progress
+- ✅ Fastify API (auth, calendar, appointments, patients, chat)
+- ✅ React staff dashboard (calendar, appointments, patients, chat logs, admin)
+- ✅ Claude-powered chat receptionist (booking, cancel, reschedule, patient capture, FAQ)
+- ✅ PostgreSQL + Prisma schema, patient PII encrypted at rest
+- ✅ Trilingual EN/HU/DE across app, prompt and confirmation e-mails
 - ✅ Deployment path documented (Coolify + Docker on a Hetzner VPS)
+
+> **A voice agent (Retell AI) was also built and then retired on 2026-08-18.** It worked in
+> English but never reached acceptable quality in Hungarian, while the chat receptionist did —
+> so the channel was dropped rather than carried. The estimates below no longer include any
+> voice work; see [`voice-agent-retirement.md`](voice-agent-retirement.md).
 
 This represents roughly **2–4 months of full-time development** already invested. The product works as a **single-clinic** system today.
 
@@ -25,13 +30,12 @@ This represents roughly **2–4 months of full-time development** already invest
 The big question is *how* you sell. Two paths:
 
 **Path A — "Managed single-tenant" (fastest to first revenue)**
-You deploy one isolated instance per clinic (own database, own Retell agent). Manual but simple.
+You deploy one isolated instance per clinic (own database, own domain). Manual but simple.
 
 | Task | Estimate |
 |------|----------|
 | Repeatable deployment script / template per clinic | 1–2 weeks |
-| Per-clinic Retell agent + phone number provisioning playbook | 1 week |
-| Onboarding checklist (clinic hours, providers, FAQs, voice) | 1 week |
+| Onboarding checklist (clinic hours, providers, FAQs, tone) | 1 week |
 | Basic billing (manual invoice or Stripe Payment Link) | 2–3 days |
 | Production hardening + monitoring + backups | 1–2 weeks |
 | **Total to first paying pilot** | **~4–6 weeks** |
@@ -45,10 +49,9 @@ One platform, many clinics, self-serve. Needed once you're past ~10–15 custome
 |------|----------|
 | Multi-tenancy (data isolation, tenant scoping everywhere) | 3–4 weeks |
 | Self-serve onboarding & clinic setup wizard | 2–3 weeks |
-| Automated Retell agent + number provisioning per tenant | 2 weeks |
 | Stripe subscription billing (plans, metering, dunning) | 2 weeks |
 | Admin/operator console (manage all clinics) | 1–2 weeks |
-| Usage metering (minutes, calls) for billing & limits | 1 week |
+| Usage metering (conversations) for billing & limits | 1 week |
 | Security & GDPR compliance features (see checklist below) | 3–5 weeks |
 | **Total** | **~14–18 weeks (3.5–4.5 months)** |
 
@@ -59,8 +62,8 @@ One platform, many clinics, self-serve. Needed once you're past ~10–15 custome
 > | Role-based permissions (RBAC) | ✅ |
 > | HTTPS / password hashing | ✅ |
 > | Audit logs (appointment & patient changes, user activity) | ⛔ to build |
-> | Patient consent + call-recording consent flag | ⛔ to build |
-> | AI disclosure script (in-call) | 🟡 verify in Retell agent |
+> | Patient consent + chat-transcript retention flag | ⛔ to build |
+> | AI disclosure (assistant's opening message) | ✅ in the chat prompt |
 > | Data export (patient access requests) | ⛔ to build |
 > | Patient deletion workflow | ⛔ to build |
 > | Data retention policy/automation | ⛔ to build |
@@ -75,7 +78,7 @@ One platform, many clinics, self-serve. Needed once you're past ~10–15 custome
 | Platform upkeep (deps, security patches, monitoring, bug fixes) | ~15–25% of build effort per year, or ~4–8 hrs/week solo |
 | Per-customer onboarding | 2–6 hrs per new clinic (Path A) → <1 hr automated (Path B) |
 | Customer support | Budget 1–3 hrs/week per ~10 active clinics early on |
-| Retell/n8n prompt tuning as you learn | Ongoing, a few hrs/month |
+| Chat prompt tuning as you learn | Ongoing, a few hrs/month |
 
 **Rule of thumb:** plan for maintenance + support to consume **20–40% of one person's time** once you have a handful of live clinics. It is never zero.
 
@@ -87,14 +90,18 @@ Knowing your costs sets the pricing floor. Per clinic, per month:
 
 | Cost | Estimate (monthly) |
 |------|--------------------|
-| Voice AI (Retell) — ~600 min/clinic @ ~$0.07–0.10/min* | $45–70 |
-| Telephony / phone number | $2–5 |
-| LLM usage (if billed separately from Retell) | $10–30 |
+| Chat LLM (Anthropic) — ~400 conversations/clinic* | $8–25 |
 | Infrastructure share (VPS, Postgres, n8n) | $5–15 |
-| Email/SMS notifications | $2–10 |
-| **Approx. COGS per clinic** | **~$70–130/mo** |
+| Email notifications | $2–10 |
+| **Approx. COGS per clinic** | **~$15–50/mo** |
 
-\* A typical small clinic handles ~150–300 calls/month at ~3 min each. Heavy-volume clinics cost more — meter minutes and charge overage so a busy clinic doesn't erode your margin.
+\* A typical small clinic handles ~150–400 chat conversations/month. Heavy-volume clinics cost
+more — meter conversations and charge overage so a busy clinic doesn't erode your margin.
+
+> **Retiring voice cut COGS by roughly 4–5×** (it was ~$70–130/mo, dominated by per-minute voice
+> and telephony). Margin per clinic is now dramatically better at the same price point, which is
+> worth deciding about deliberately: hold the price and bank the margin, or cut the price and
+> compete harder. See the pricing note in `order-form.md`.
 
 **Plus shared fixed costs:** your time, domain, monitoring tools, accounting, etc.
 
@@ -112,20 +119,25 @@ Price on **value delivered**, not cost-plus. The anchor: a single new patient is
 |---|---|---|---|
 | **Monthly price** | €249–299 | €499–599 | €899+ (or custom) |
 | **Best for** | Solo practice, after-hours/overflow | Busy single-location clinic | Groups & DSOs |
-| **Call answering** | After-hours + overflow | 24/7 | 24/7 |
-| **Included minutes** | ~400/mo | ~1,000/mo | Pooled / custom |
+| **Chat answering** | 24/7 | 24/7 | 24/7 |
+| **Included conversations** | ~200/mo | ~600/mo | Pooled / custom |
 | **Locations / providers** | 1 location, up to 3 providers | 1 location, unlimited providers | Multiple locations |
 | **Booking, cancel, reschedule** | ✅ | ✅ | ✅ |
-| **Staff dashboard & call logs** | ✅ | ✅ | ✅ |
+| **Staff dashboard & chat logs** | ✅ | ✅ | ✅ |
 | **Multilingual** | 1 language | Multiple | Multiple |
 | **Patient records & callbacks** | ✅ | ✅ | ✅ |
 | **Support** | Email | Priority email | Priority + onboarding manager |
-| **Overage** | €0.20–0.30/min | €0.15–0.25/min | Negotiated |
+| **Overage** | €0.30–0.40/conv. | €0.20–0.30/conv. | Negotiated |
 
 **Add-ons / levers:**
-- **One-time setup fee: €300–€1,000** (covers onboarding, number porting, agent tuning). Often waived on annual contracts as an incentive.
+- **One-time setup fee: €300–€1,000** (covers onboarding, prompt tuning, website embed). Often waived on annual contracts as an incentive.
 - **Annual billing: ~2 months free** (e.g., pay for 10, get 12) — improves cash flow and retention.
-- **Per-minute overage** beyond the included bundle — protects your margin on high-volume clinics.
+- **Per-conversation overage** beyond the included bundle — protects your margin on high-volume clinics.
+
+> **Re-check these tiers now that voice is gone.** The three-tier ladder above was built around
+> included *minutes*, where COGS scaled steeply with volume. Chat COGS are far lower and much
+> flatter, so the case for metering at all is weaker — a simple flat fee per location may now
+> sell better and still hold margin. Treat the numbers here as inherited, not validated.
 
 ### Why this structure works
 - **Starter** removes the "too expensive to try" objection and lands price-sensitive solo dentists.
@@ -134,9 +146,9 @@ Price on **value delivered**, not cost-plus. The anchor: a single new patient is
 - **Setup fee** filters tire-kickers and funds your onboarding time.
 
 ### Alternative models (consider, but harder to sell)
-- **Per-minute only** — transparent but unpredictable for the buyer; clinics prefer flat fees.
+- **Per-conversation only** — transparent but unpredictable for the buyer; clinics prefer flat fees.
 - **Per-booked-appointment** (e.g., €5–15/appointment) — strong ROI story, but harder to forecast and meter; risky if a clinic's volume is low.
-- **Per-seat** — wrong fit here; value is in calls answered, not staff logins.
+- **Per-seat** — wrong fit here; value is in enquiries answered, not staff logins.
 
 ---
 
@@ -158,12 +170,12 @@ Frame every quote as a payback calculation:
 ### What moves willingness-to-pay UP
 - Proven results ("booked 14 extra appointments last month") — get a reference clinic ASAP.
 - A free trial or 30-day money-back guarantee (removes risk).
-- Showing them their **own** missed-call data during the demo.
+- Showing them their **own** unanswered-enquiry data during the demo (missed calls, contact-form backlog).
 - Strong onboarding so they see value in week one.
 
 ### What moves it DOWN
 - No proof / you're their first customer (offer a discounted **pilot** — see below).
-- Clunky setup, robotic voice, or any double-booking in the demo.
+- Clunky setup, stilted or obviously-machine replies, or any double-booking in the demo.
 - Long contracts before trust is established.
 
 ### Pilot pricing for your first customers
@@ -193,4 +205,4 @@ Illustrative, Professional tier @ €549/mo, ~€100 COGS:
 1. **Now → 6 weeks:** Finish Path A. Land 3–5 **pilot clinics** at a discounted founding rate.
 2. **Months 2–4:** Collect results and testimonials. Raise price to full rate for new customers.
 3. **Once ~10–15 clinics:** Build Path B (multi-tenant) to scale without per-customer effort exploding.
-4. **Throughout:** Track your real COGS per clinic and missed-call→booking conversion — those two numbers drive both pricing and your sales pitch.
+4. **Throughout:** Track your real COGS per clinic and enquiry→booking conversion — those two numbers drive both pricing and your sales pitch.

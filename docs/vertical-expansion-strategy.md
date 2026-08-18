@@ -3,11 +3,19 @@
 > **Status:** Decision record + planned refactors. Forward-looking — no prospect exists in any
 > non-dental vertical yet.
 > **Date:** 2026-07-26
+>
+> **Update 2026-08-18 — the voice channel was retired.** Hungarian voice never reached
+> acceptable quality; Hungarian *chat* did, and the customer is happy with it. This does not
+> change the decision below — if anything it sharpens it. The argument was always that the
+> domain-tuned Hungarian prompt is the moat and the booking engine is the commodity; losing
+> the channel that couldn't carry that prompt, while keeping the one that could, is that
+> argument playing out. References to the voice prompt below are left as written where they
+> record *why* a refactor happened, and updated where they describe how things work now.
 
 ## Context
 
-Two clinics are live (Sunshine, Corona) on the `CLINIC_ID` per-stack model. The backend and n8n
-workflows are effectively identical between them; the genuinely clinic-specific asset is the Retell
+Two clinics are live (Sunshine, Corona) on the `CLINIC_ID` per-stack model. The backend is
+effectively identical between them; the genuinely clinic-specific asset is the receptionist
 prompt. The open question: do we extend this app to cover hospitals, town halls, and MOT/vehicle
 inspection centres, or build a separate app per vertical?
 
@@ -31,14 +39,14 @@ code sits in exactly six places, none of them subsystems:
 | Vertical-specific | Where |
 |---|---|
 | Service list + durations | `schema.prisma:160`, `appointment.schema.ts:3-21`, `chat.service.ts:70-78`, `locales/*/enums.json` (4 copies) |
-| Dental prose + HU glossary | `apps/api/src/prompts/chat-receptionist.ts:35,40,58-72,94-101,144` and its twin `docs/retell-agent-prompt.md` |
+| Dental prose + HU glossary | `apps/api/src/prompts/dental-pack.ts` + `chat-receptionist.ts` |
 | `FAQ_TOPICS` fixed 8-topic union | `packages/shared/src/clinic.ts:37-46` |
 | `Patient` naming | ~1496 identifier occurrences (cosmetic) |
 | HU-only phone validation | `packages/shared/src/phone.ts` |
 | Branding / repo name | cosmetic |
 
 Everything else is already domain-neutral: `calendar.service.ts` (337 lines of slot computation with
-zero dental knowledge), `CalendarEvent`/`CalendarDelegation`/recurrence, the 6 agent tool contracts,
+zero dental knowledge), `CalendarEvent`/`CalendarDelegation`/recurrence, the agent tool contracts,
 the `ClinicConfig` registry + `getClinic()`, i18n interpolation, auth/RBAC, AES-256-GCM field
 encryption + key custody, backup/DR, and the whole onboarding runbook. A fork duplicates precisely
 the parts that took months and carry the real risk (crypto, key ceremony, DR), and multiplies every
@@ -52,7 +60,7 @@ Stripe subscriptions, owner roles, and EN/HU/DE — built, then set aside (last 
 engine — there are already two of those. It's the domain-tuned Hungarian AI receptionist and the
 reference customers.
 
-That inverts the intuitive framing. The Retell prompt isn't the small leftover bit; it's the moat.
+That inverts the intuitive framing. The receptionist prompt isn't the small leftover bit; it's the moat.
 Generalizing the backend generalizes the commodity. Going wide dilutes the one asset that
 differentiates.
 
@@ -107,11 +115,15 @@ clinic's stack. Already recorded as a known limit in `docs/onboarding-new-clinic
 
 ### R2 — Split the prompt into a scheduling core + a domain pack
 
-**Dental-only justification:** the chat prompt (`chat-receptionist.ts`) and the voice prompt
-(`docs/retell-agent-prompt.md`) are hand-maintained twins that already drift — there are three loose
-prompt `.txt`/`.md` prompt files in `docs/` as evidence. The same hard-won HU register rules are
-written twice. Per-clinic prompt production today is ordered string substitution with an explicit
-*"the remaining 10% is yours"* caveat (`workflows/scripts/retell-clone-agent.mts:102-125`).
+**Dental-only justification (as written 2026-07-26):** the chat prompt and the voice prompt were
+hand-maintained twins that already drifted — the voice one was still telling Hungarian callers to
+dial 911. The same hard-won HU register rules were written twice, and per-clinic prompt production
+was ordered string substitution with an explicit *"the remaining 10% is yours"* caveat.
+
+**Done.** `scheduling-core.ts` + `dental-pack.ts` exist and the prompt is composed from them, with a
+committed snapshot test per clinic. The voice half of the twin problem has since been removed
+outright, but the composition is what makes a new clinic's prompt correct by construction, so it
+earns its keep on its own.
 
 **Approach:** in `apps/api/src/prompts/`, extract two composable pieces:
 - `scheduling-core.ts` — tool contracts, date/timezone discipline, language detection + formal
@@ -137,7 +149,7 @@ granularity has no way to ask for it.
 ## What to explicitly NOT do
 
 - **`Patient` → `Person`/`Customer` rename.** ~1496 occurrences touching encrypted fields, the HMAC
-  blind index, API contracts, i18n keys, and live Retell/n8n tool parameters. Real regression risk,
+  blind index, API contracts, i18n keys, and the chat tool parameters. Real regression risk,
   zero customer value. If a non-medical customer ever needs it, change the **i18n layer only** — the
   UI label already flows through `apps/web/src/locales/*` and `interpolation.defaultVariables`.
 - **Departments / resource groups.** Cheap once R1 lands (`Service.departmentId` + `Provider.departmentId`

@@ -122,12 +122,11 @@ implantology, oral surgery (extractions, bone grafting, sinus lift), orthodontic
 | Languages | Hungarian (primary), English |
 | Greeting (HU) | "Corona Dental, jó napot kívánok! Miben segíthetek?" |
 | Greeting (EN) | "Corona Dental, hello! How can I help you?" |
-| Voice | Warm, professional female — `cartesia-Chloe` (fallback `openai-Chloe`) |
-| AI disclosure required? | Yes — state it's a virtual/AI assistant at the start of a call. |
+| AI disclosure required? | Yes — state it's a virtual/AI assistant in the opening message. |
 | Tone | Calm, concise, reassuring; patients may be anxious. |
 
 **New chapter for the prompt (added):** a **"New-patient package"** section. When a
-caller says they are new, the agent mentions the **Start package** (31,000 HUF:
+patient says they are new, the agent mentions the **Start package** (31,000 HUF:
 panoramic X-ray + cleaning + specialist consult) **once**, as a helpful option,
 then continues the normal booking flow. It is config-driven (`promo` in
 `corona.ts`) and only appears for clinics that set it — Sunshine has none, so its
@@ -135,13 +134,14 @@ prompt is unchanged. See §"New chapter" below.
 
 ## 9. Telephony
 
+> **No longer in scope.** The voice agent was retired on 2026-08-18 and the product does not
+> touch the clinic's phone line. The clinic's number below is kept only as a contact detail —
+> patients who call it reach the clinic's own staff, exactly as before.
+
 | Field | Answer |
 |---|---|
-| Existing number | Yes (fictional +36 26 555 0142). |
-| Port / forward / new | Start with a Retell test number; forward the real line after validation. |
-| Forwarding rule | Outside opening hours + when unanswered after ~5 rings. |
-| Carrier contract | Held by the clinic. |
-| Transfer to human? | Not in the demo; log a callback instead. |
+| Existing number | Yes (fictional +36 26 555 0142) — clinic-operated, not integrated. |
+| Transfer to human? | N/A; the chat logs a callback request instead. |
 
 ## 10. Legal & data protection
 
@@ -149,10 +149,10 @@ prompt is unchanged. See §"New chapter" below.
 |---|---|
 | DPA signatory | Practice director *(fictional)* |
 | Data-protection contact | admin@coronadental.example |
-| Call recording / transcript retention | 90 days |
+| Chat transcript retention | 90 days |
 | Patient record retention | Per HU dental record rules; confirm with the customer. |
 | Privacy-policy URL | https://corona.appointer.hu/privacy *(placeholder)* |
-| Recording consent wording | Stated at call start together with the AI disclosure. |
+| AI disclosure wording | Stated in the assistant's opening message. |
 
 ## 11. E-mail sending
 
@@ -180,20 +180,15 @@ shared prompt:
   or take payment. If they're interested, note it and continue the booking flow.
 ```
 
-- **Chat agent:** live now — rendered by
-  [`buildChatSystemPrompt`](../../apps/api/src/prompts/chat-receptionist.ts) when
-  `clinic.promo` is set.
-- **Voice (Retell) agent:** paste the same chapter into the cloned agent's prompt
-  after `retell:clone`, or fold it into the clone script's substitution. The
-  `promo` text and translations live in `corona.ts` so both channels stay in sync.
+Rendered by [`buildChatSystemPrompt`](../../apps/api/src/prompts/chat-receptionist.ts)
+whenever `clinic.promo` is set. The `promo` text and its translations live in `corona.ts`,
+so changing the offer is a config edit, not a prompt edit.
 
 ## Issued identifiers (fill during onboarding)
 
 | Item | Value |
 |---|---|
 | Coolify resource | _(tbd)_ |
-| Retell `agent_id` | _(tbd — from `pnpm retell:clone`)_ |
-| Retell `llm_id` | _(tbd)_ |
 | Key fingerprint | _(tbd — after unlock)_ |
 | Sentry projects | corona-api, corona-web |
 | Backup healthcheck | _(tbd)_ |
