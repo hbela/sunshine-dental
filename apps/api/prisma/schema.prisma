@@ -133,6 +133,12 @@ model AppSetting {
 }
 
 // Appointments
+//
+// Double-booking guard lives OUTSIDE this schema: a partial unique index
+// `appointment_no_double_booking` on (providerId, date, startTime) WHERE status
+// IN ('CONFIRMED','COMPLETED') — partial indexes can't be expressed here.
+// Applied via prisma/migrations/manual/2026-08-18-no-double-booking.sql;
+// `db push` leaves manually created indexes alone.
 model Appointment {
   id              String            @id @default(cuid())
   patientId       String?

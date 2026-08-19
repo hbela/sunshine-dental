@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import type { View, SlotInfo, Messages } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
+import type { Locale } from 'date-fns'
 import { enUS, hu, de } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
@@ -130,7 +131,13 @@ export function DentalCalendar() {
     setSelectedProviderId(role === 'PROVIDER' && own ? own.id : providers[0]!.id)
   }, [providers, selectedProviderId, role, userId])
 
-  const { from, to } = useMemo(() => rangeForView(date, view), [date, view])
+  // Fetch the same week window the calendar RENDERS: hu/de weeks start Monday,
+  // date-fns defaults to Sunday — a Sunday-start fetch window silently dropped
+  // the trailing Sunday's events in week/month view.
+  const dfLocale = ({ en: enUS, hu, de } as Record<string, Locale>)[culture] ?? enUS
+  const weekStartsOn = dfLocale.options?.weekStartsOn ?? 0
+
+  const { from, to } = useMemo(() => rangeForView(date, view, weekStartsOn), [date, view, weekStartsOn])
 
   const providerIds = allProviders && providers ? providers.map((p) => p.id) : []
   const single = useCalendarEvents(allProviders ? undefined : selectedProviderId, from, to)

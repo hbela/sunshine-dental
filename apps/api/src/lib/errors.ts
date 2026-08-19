@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/node';
+
 /** Error carrying an HTTP status code, thrown by services and mapped by routes. */
 export class HttpError extends Error {
   statusCode: number;
@@ -17,7 +19,13 @@ export class HttpError extends Error {
  */
 export function sendError(reply: any, err: any) {
   const statusCode = typeof err?.statusCode === 'number' ? err.statusCode : 500;
-  const message = statusCode === 500 ? 'Internal server error' : err.message;
+  // Routes using sendError bypass the global error handler, so 5xx must be
+  // logged + reported here — otherwise server errors are invisible.
+  if (statusCode >= 500) {
+    reply.log.error(err);
+    Sentry.captureException(err);
+  }
+  const message = statusCode >= 500 ? 'Internal server error' : err.message;
   const code = typeof err?.code === 'string' ? err.code : undefined;
   return reply.status(statusCode).send(code ? { error: message, code } : { error: message });
 }

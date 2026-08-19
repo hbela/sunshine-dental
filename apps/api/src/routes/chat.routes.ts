@@ -150,6 +150,40 @@ export async function chatRoutes(fastify: FastifyInstance) {
     },
   });
 
+  // POST /api/chat/conversations/:id/transcript — patient-facing resume after a
+  // page reload. Token-authenticated like /messages and /end; the browser
+  // persists only id+token (sessionStorage), never the transcript itself.
+  fastify.route({
+    method: 'POST',
+    url: '/conversations/:id/transcript',
+    schema: {
+      tags: ['Chat'],
+      summary: 'Fetch the transcript for a conversation (patient resume)',
+      params: z.object({ id: z.string() }),
+      body: z.object({ token: z.string() }),
+      response: {
+        200: z.object({
+          messages: z.array(
+            z.object({
+              id: z.string(),
+              role: z.enum(['user', 'assistant']),
+              content: z.string(),
+            }),
+          ),
+        }),
+      },
+    },
+    handler: async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const { token } = request.body as { token: string };
+      try {
+        return await ChatService.transcript(id, token);
+      } catch (err) {
+        return sendError(reply, err);
+      }
+    },
+  });
+
   // ---------- Staff (dashboard) ----------
 
   // GET /api/chat/stats — aggregated chat statistics (registered before /:id).

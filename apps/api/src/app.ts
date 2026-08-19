@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
 import * as Sentry from '@sentry/node'
 import { authRoutes } from './routes/auth.routes.js'
 import openapiPlugin from './plugins/openapi.plugin.js'
@@ -24,22 +25,39 @@ export async function app(fastify: FastifyInstance) {
         details: error.validation,
       })
     }
-    // HttpErrors carrying a machine-readable code (e.g. ENCRYPTION_LOCKED)
-    // keep it in the payload so the web app and n8n can branch on it.
-    if (typeof error?.statusCode === 'number' && typeof error?.code === 'string') {
-      return reply.status(error.statusCode).send({ error: error.message, code: error.code })
+    // Any 4xx-class error with a status code — HttpError from services (with
+    // or without a machine-readable code), Fastify's own 404s — echoes its
+    // status and message. These messages are written for clients.
+    if (typeof error?.statusCode === 'number' && error.statusCode < 500) {
+      const body: Record<string, string> = { error: error.message }
+      if (typeof error?.code === 'string') body.code = error.code
+      return reply.status(error.statusCode).send(body)
     }
-    // Genuine 5xx / unhandled exceptions reach here — report them to Sentry
-    // (no-op without SENTRY_DSN). Validation 400s and coded HttpErrors above
-    // return early and are deliberately NOT reported.
+    // Genuine 5xx / unhandled exceptions reach here — log + report them to
+    // Sentry (no-op without SENTRY_DSN), but send a GENERIC body: internal
+    // messages (Prisma, Anthropic SDK, crypto internals) must not leak.
+    request.log.error(error)
     Sentry.captureException(error)
-    reply.send(error)
+    reply.status(500).send({ error: 'Internal server error' })
   })
 
   // CORS — allow the web app origin(s) to send the session cookie.
   await fastify.register(cors, {
     origin: process.env.WEB_ORIGIN?.split(',') ?? ['http://localhost:5173'],
     credentials: true,
+  })
+
+  // Security headers. The CSP must allow inline script/style or the Swagger
+  // UI at /documentation breaks; everything else stays self-only.
+  await fastify.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:'],
+      },
+    },
   })
 
   fastify.get('/ping', async (request, reply) => {

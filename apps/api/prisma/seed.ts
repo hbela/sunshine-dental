@@ -22,7 +22,24 @@ const DEFAULT_PASSWORDS: Record<string, string> = {
   PROVIDER: 'Provider1234!',
   ASSISTANT: 'Assistant1234!',
 };
-const passwordFor = (role: string) => process.env.SEED_PASSWORD || DEFAULT_PASSWORDS[role] || 'Change1234!';
+
+/** Set by assertSafeToSeed when a forced non-local (real clinic) seed proceeds. */
+let prodSeed = false;
+
+const passwordFor = (role: string): string => {
+  if (process.env.SEED_PASSWORD) return process.env.SEED_PASSWORD;
+  // A real clinic must never get the well-known dev defaults — they are
+  // committed to the repo. Require an explicit clinic-specific password.
+  if (prodSeed) {
+    console.error(
+      '❌ Refusing to seed a non-local database with the well-known default passwords.\n' +
+      '   Set SEED_PASSWORD to a strong, clinic-specific password (openssl rand -base64 18)\n' +
+      '   and record it in the clinic’s password manager entry.',
+    );
+    process.exit(1);
+  }
+  return DEFAULT_PASSWORDS[role] || 'Change1234!';
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -49,6 +66,7 @@ function assertSafeToSeed() {
   if (isLocal) return;
   if (forced) {
     console.warn(`⚠️  Seeding a NON-LOCAL database (host "${host || 'unparseable DATABASE_URL'}") — proceeding because an override is set.`);
+    prodSeed = true;
     return;
   }
   console.error(
@@ -78,20 +96,26 @@ async function seedMinimal() {
 
   for (const member of clinic.seed.staff) {
     const password = passwordFor(member.role);
-    const signUp = await auth.api.signUpEmail({
-      body: { name: canonicalName(member), email: member.email, password },
-    });
-    const user = await prisma.user.update({
-      where: { id: signUp.user.id },
-      data: {
-        role: member.role as any,
-        emailVerified: true,
-        title: member.title ?? null,
-        givenName: member.givenName,
-        familyName: member.familyName,
+    // createUser (admin plugin), not signUpEmail: public sign-up is disabled.
+    // It sets role + structured name fields atomically; called server-side
+    // without headers it skips the plugin's session check.
+    const result = await auth.api.createUser({
+      body: {
+        name: canonicalName(member),
+        email: member.email,
+        password,
+        // Plugin types only know its built-in "user"/"admin"; runtime passes
+        // any string through to the user row.
+        role: member.role as unknown as 'admin',
+        data: {
+          emailVerified: true,
+          title: member.title ?? null,
+          givenName: member.givenName,
+          familyName: member.familyName,
+        },
       },
     });
-    created.push({ email: member.email, role: member.role, password, user });
+    created.push({ email: member.email, role: member.role, password, user: result.user });
   }
   console.log(`  ✓ Created ${created.length} users`);
 
@@ -209,24 +233,24 @@ async function main() {
   const createdUsers: Record<string, any> = {};
 
   for (const u of usersData) {
-    // Create the user + credential account through better-auth so the password
-    // is hashed with better-auth's own algorithm (manual bcrypt is incompatible).
-    const signUp = await auth.api.signUpEmail({
-      body: { name: canonicalName(u), email: u.email, password: u.password },
-    });
-
-    const user = await prisma.user.update({
-      where: { id: signUp.user.id },
-      data: {
-        role: u.role as any,
-        emailVerified: true,
-        title: u.title ?? null,
-        givenName: u.givenName,
-        familyName: u.familyName,
+    // createUser (admin plugin), not signUpEmail: public sign-up is disabled.
+    // The password is hashed with better-auth's own algorithm.
+    const result = await auth.api.createUser({
+      body: {
+        name: canonicalName(u),
+        email: u.email,
+        password: u.password,
+        role: u.role as unknown as 'admin', // see seedMinimal above
+        data: {
+          emailVerified: true,
+          title: u.title ?? null,
+          givenName: u.givenName,
+          familyName: u.familyName,
+        },
       },
     });
 
-    createdUsers[u.email] = user;
+    createdUsers[u.email] = result.user;
   }
 
   console.log('  ✓ Created 4 users (admin, 2 providers, 1 assistant)');

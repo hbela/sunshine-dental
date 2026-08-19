@@ -105,7 +105,10 @@ ENCRYPTION_KEY=<clinic master key> SEED_ALLOW_PROD=1 \
    appointments** — never do that on a clinic's database. It is a
    first-install tool: re-running it wipes data and re-keys the canary.
 
-   Initial passwords are printed at the end (override with `SEED_PASSWORD=…`).
+   Initial passwords are printed at the end. `SEED_PASSWORD=…` is **required**
+   for non-local databases — the seed refuses to run with the repo's well-known
+   dev passwords on a real clinic. Record the password in the clinic's password
+   manager entry.
 
 6. **Unlock + verify.**
 
