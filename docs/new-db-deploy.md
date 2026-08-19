@@ -9,8 +9,8 @@ Deployment order matters — set env vars before I push, otherwise the db contai
 On both Coolify resources (prod + dev): add POSTGRES_PASSWORD (fresh openssl rand -hex 32 each, different per stack) and remove the old DATABASE_URL variable (it's no longer referenced).
 New key ceremony (fresh start, per the runbook — on your machine, don't paste these here): a new master key per environment (openssl rand -hex 32), a new age recovery keypair (age-keygen), escrow the prod master key with it, and put the new age1… public key in the prod stack's BACKUP_AGE_PUBKEY.
 Tell me "push" and I'll commit + push to main → both stacks redeploy. Expected health right after: db: ok, encryption: locked, keyFingerprint: null (empty DB, no canary yet).
-Seed each stack (this also creates the first admin login and establishes the canary bound to your new key): Coolify → api container terminal → ENCRYPTION_KEY=<that stack's new master key> pnpm exec tsx prisma/seed.ts.
-Log in as admin@sunshine.dental / Admin1234!, unlock via the banner with the new master key → health shows unlocked + the new keyFingerprint. (Change that seeded admin password on prod.)
+Seed each stack (this also creates the first admin login and establishes the canary bound to your new key): Coolify → api container terminal → SEED_PASSWORD=<fresh per stack, openssl rand -base64 18> ENCRYPTION_KEY=<that stack's new master key> pnpm exec tsx prisma/seed.ts. The seed refuses a non-local database without SEED_PASSWORD, so no stack can end up with the repo's well-known dev passwords.
+Log in as admin@sunshine.dental / <that stack's SEED_PASSWORD>, unlock via the banner with the new master key → health shows unlocked + the new keyFingerprint.
 One dev-convenience note: the compose file sets NODE_ENV=production, so crypto.ts refuses env-var unlock by design — on the dev stack you can add ALLOW_ENV_KEY=true + ENCRYPTION_KEY if you'd rather sunshinedev unlock itself on boot; never set those on prod.
 
 The compose + doc changes are ready to commit. Set the env vars and say push.

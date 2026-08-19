@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { prisma } from '../lib/prisma.js';
 import { HttpError } from '../lib/errors.js';
 import { agentServiceCodes, defaultServiceCode, findService, isValidPhoneNumber } from '@repo/shared';
@@ -363,10 +363,36 @@ export class ChatService {
   /** Verify the browser's token matches the conversation, or throw 404. */
   static async requireConversation(id: string, token: string) {
     const convo = await prisma.chatConversation.findUnique({ where: { id } });
-    if (!convo || !token || convo.token !== token) {
+    const presented = Buffer.from(token ?? '');
+    const expected = convo ? Buffer.from(convo.token) : Buffer.alloc(0);
+    if (!convo || presented.length !== expected.length || !timingSafeEqual(presented, expected)) {
       throw new HttpError(404, 'Conversation not found');
     }
     return convo;
+  }
+
+  /**
+   * Patient-facing transcript for resuming a conversation after a page reload.
+   * Token-authenticated like posting; the browser no longer persists messages
+   * locally (GDPR), so this is how the widget restores them. Tool rows are
+   * staff-only and excluded.
+   */
+  static async transcript(id: string, token: string) {
+    const convo = await this.requireConversation(id, token);
+    const rows = decryptRows(
+      'chatMessage',
+      await prisma.chatMessage.findMany({
+        where: { conversationId: convo.id, role: { in: ['USER', 'ASSISTANT'] } },
+        orderBy: { createdAt: 'asc' },
+      }),
+    );
+    return {
+      messages: rows.map((m) => ({
+        id: m.id as string,
+        role: (m.role === 'USER' ? 'user' : 'assistant') as 'user' | 'assistant',
+        content: m.content as string,
+      })),
+    };
   }
 
   /**

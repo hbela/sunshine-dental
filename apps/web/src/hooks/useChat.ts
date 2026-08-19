@@ -11,29 +11,49 @@ export interface ChatMessage {
 interface StoredSession {
   id: string
   token: string
-  messages: ChatMessage[]
 }
 
-const LS_KEY = 'sd.chat'
+// Only the resume credentials live in the browser (sessionStorage — gone when
+// the tab closes), never the transcript: patient chats contain PII/medical
+// detail and must not outlive the session or sit readable on shared devices.
+// Messages are re-fetched from the API on reload via the token.
+const SS_KEY = 'sd.chat.session'
+const LEGACY_LS_KEY = 'sd.chat'
 const LANGS = ['en', 'hu', 'de']
 
 function loadStored(): StoredSession | null {
   try {
-    const raw = localStorage.getItem(LS_KEY)
+    const raw = sessionStorage.getItem(SS_KEY)
     return raw ? (JSON.parse(raw) as StoredSession) : null
   } catch {
     return null
   }
 }
 
+function persistSession(s: StoredSession) {
+  try {
+    sessionStorage.setItem(SS_KEY, JSON.stringify(s))
+  } catch {
+    /* ignore quota errors */
+  }
+}
+
+function clearStored() {
+  try {
+    sessionStorage.removeItem(SS_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
- * Patient chat client: manages the conversation session (persisted in
- * localStorage so a reload resumes the same server-side conversation) and
+ * Patient chat client: manages the conversation session (id+token persisted in
+ * sessionStorage so a reload resumes the same server-side conversation) and
  * streams the assistant reply over SSE via `fetch`.
  */
 export function useChat() {
   const { i18n } = useTranslation()
-  const [messages, setMessages] = useState<ChatMessage[]>(() => loadStored()?.messages ?? [])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [toolActivity, setToolActivity] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -41,18 +61,34 @@ export function useChat() {
   const endedRef = useRef(false)
 
   useEffect(() => {
-    const stored = loadStored()
-    if (stored) sessionRef.current = { id: stored.id, token: stored.token }
-  }, [])
-
-  const persist = useCallback((msgs: ChatMessage[]) => {
-    const s = sessionRef.current
-    if (!s) return
+    // One-time privacy cleanup: older builds stored the whole transcript
+    // (patient PII) in localStorage. Remove it wherever it still exists.
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ ...s, messages: msgs }))
+      localStorage.removeItem(LEGACY_LS_KEY)
     } catch {
-      /* ignore quota errors */
+      /* ignore */
     }
+
+    const stored = loadStored()
+    if (!stored) return
+    sessionRef.current = stored
+    // Resume: pull the transcript from the server with the stored token. If
+    // the session is no longer valid, drop it and start fresh.
+    void (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/chat/conversations/${stored.id}/transcript`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: stored.token }),
+        })
+        if (!res.ok) throw new Error('resume_failed')
+        const data = (await res.json()) as { messages: ChatMessage[] }
+        setMessages(data.messages)
+      } catch {
+        sessionRef.current = null
+        clearStored()
+      }
+    })()
   }, [])
 
   const ensureSession = useCallback(async () => {
@@ -71,6 +107,7 @@ export function useChat() {
     }
     const data = (await res.json()) as { id: string; token: string }
     sessionRef.current = { id: data.id, token: data.token }
+    persistSession(sessionRef.current)
     return sessionRef.current
   }, [i18n.language])
 
@@ -82,21 +119,14 @@ export function useChat() {
 
       const userMsg: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: trimmed }
       const assistantId = crypto.randomUUID()
-      let working: ChatMessage[] = []
-      setMessages((m) => {
-        working = [...m, userMsg, { id: assistantId, role: 'assistant', content: '' }]
-        return working
-      })
+      setMessages((m) => [...m, userMsg, { id: assistantId, role: 'assistant', content: '' }])
       setIsStreaming(true)
       setToolActivity(null)
 
       const appendToAssistant = (delta: string) =>
-        setMessages((m) => {
-          working = m.map((msg) =>
-            msg.id === assistantId ? { ...msg, content: msg.content + delta } : msg,
-          )
-          return working
-        })
+        setMessages((m) =>
+          m.map((msg) => (msg.id === assistantId ? { ...msg, content: msg.content + delta } : msg)),
+        )
 
       try {
         const session = await ensureSession()
@@ -149,10 +179,9 @@ export function useChat() {
       } finally {
         setIsStreaming(false)
         setToolActivity(null)
-        persist(working)
       }
     },
-    [ensureSession, isStreaming, persist],
+    [ensureSession, isStreaming],
   )
 
   /**
@@ -201,11 +230,7 @@ export function useChat() {
     end()
     sessionRef.current = null
     endedRef.current = false
-    try {
-      localStorage.removeItem(LS_KEY)
-    } catch {
-      /* ignore */
-    }
+    clearStored()
     setMessages([])
     setError(null)
     setToolActivity(null)

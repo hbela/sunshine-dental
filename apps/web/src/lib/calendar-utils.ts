@@ -61,7 +61,15 @@ export function inputValueToWall(value: string): Date {
 }
 
 /** Compute the visible [from, to] ISO range for a given calendar date + view. */
-export function rangeForView(date: Date, view: View): { from: string; to: string } {
+export function rangeForView(
+  date: Date,
+  view: View,
+  // MUST match the week-start the calendar renders for the active locale
+  // (Monday for hu/de, Sunday for en) — otherwise the fetch window is
+  // misaligned with the displayed week and events at its edges (e.g. Sunday
+  // for hu/de) silently go missing. date-fns defaults to Sunday (0).
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6 = 0,
+): { from: string; to: string } {
   let start: Date
   let end: Date
   switch (view) {
@@ -70,8 +78,8 @@ export function rangeForView(date: Date, view: View): { from: string; to: string
       end = endOfDay(date)
       break
     case 'month':
-      start = startOfWeek(startOfMonth(date))
-      end = endOfWeek(endOfMonth(date))
+      start = startOfWeek(startOfMonth(date), { weekStartsOn })
+      end = endOfWeek(endOfMonth(date), { weekStartsOn })
       break
     case 'agenda':
       start = startOfDay(date)
@@ -80,8 +88,8 @@ export function rangeForView(date: Date, view: View): { from: string; to: string
     case 'week':
     case 'work_week':
     default:
-      start = startOfWeek(date)
-      end = endOfWeek(date)
+      start = startOfWeek(date, { weekStartsOn })
+      end = endOfWeek(date, { weekStartsOn })
       break
   }
   return { from: wallToIso(start), to: wallToIso(end) }

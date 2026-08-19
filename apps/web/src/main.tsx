@@ -21,6 +21,18 @@ if (sentryDsn) {
     // Explicit, not just the SDK default: never attach IPs or request details.
     // Patient PII (GDPR) must not leak into error reports.
     sendDefaultPii: false,
+    // API query strings carry patient names/phones (?search=, ?patient_name=) —
+    // strip them from fetch/XHR breadcrumbs before they reach Sentry.
+    beforeBreadcrumb(breadcrumb) {
+      const url = breadcrumb.data?.url as string | undefined
+      if (
+        (breadcrumb.category === 'fetch' || breadcrumb.category === 'xhr') &&
+        url?.includes('?')
+      ) {
+        breadcrumb.data = { ...breadcrumb.data, url: url.split('?')[0] }
+      }
+      return breadcrumb
+    },
   })
 }
 

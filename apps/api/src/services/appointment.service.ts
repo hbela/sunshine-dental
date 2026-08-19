@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { Prisma } from '../generated/prisma-client/index.js';
 import { HttpError } from '../lib/errors.js';
 import { dateToStr, timeToStr, strToDate, strToTime, addMinutes } from '../lib/datetime.js';
 import { findService, isValidPhoneNumber, serviceCodes } from '@repo/shared';
@@ -176,46 +177,59 @@ export class AppointmentService {
       throw new HttpError(409, `Slot ${input.time} is not available for the selected provider`);
     }
 
-    // 3. Find or create the patient record (dedupe by phone blind index —
-    //    phone itself is ciphertext, so equality runs on the HMAC column)
-    let patient = null;
-    const phoneIndex = phoneIndexOf(input.phone);
-    if (phoneIndex) {
-      patient = await prisma.patient.findFirst({ where: { phoneIndex } });
-    }
-    if (!patient) {
-      patient = await prisma.patient.create({
-        data: encryptRow('patient', {
-          name: input.patient_name,
-          phone: input.phone ?? null,
-          phoneIndex,
-          email: input.email ?? null,
-          isNewPatient: input.is_new_patient ?? false,
-        }),
-      });
-    }
-
-    // 4. Create the appointment
+    // 3+4. Find-or-create the patient and create the appointment atomically.
+    //    The partial unique index appointment_no_double_booking (one ACTIVE
+    //    appointment per provider/date/startTime — see prisma/migrations/manual/)
+    //    is the hard guarantee against a double-booking race; a violation is
+    //    mapped back to the same 409 the slot check above produces.
     const endTime = addMinutes(input.time, duration);
-    const appointment = await prisma.appointment.create({
-      data: encryptRow('appointment', {
-        patientId: patient.id,
-        patientName: input.patient_name,
-        patientPhone: input.phone ?? null,
-        patientEmail: input.email ?? null,
-        providerId: provider.id,
-        providerName: provider.user.name,
-        appointmentType: type,
-        date: strToDate(input.date),
-        startTime: strToTime(input.time),
-        endTime: strToTime(endTime),
-        durationMinutes: duration,
-        status: 'CONFIRMED',
-        isNewPatient: input.is_new_patient ?? false,
-        notes: input.notes ?? null,
-        callId: input.call_id ?? null,
-      }),
-    });
+    const phoneIndex = phoneIndexOf(input.phone);
+    let appointment;
+    try {
+      appointment = await prisma.$transaction(async (tx) => {
+        // Dedupe by phone blind index — phone itself is ciphertext, so
+        // equality runs on the HMAC column.
+        let patient = phoneIndex
+          ? await tx.patient.findFirst({ where: { phoneIndex } })
+          : null;
+        if (!patient) {
+          patient = await tx.patient.create({
+            data: encryptRow('patient', {
+              name: input.patient_name,
+              phone: input.phone ?? null,
+              phoneIndex,
+              email: input.email ?? null,
+              isNewPatient: input.is_new_patient ?? false,
+            }),
+          });
+        }
+
+        return tx.appointment.create({
+          data: encryptRow('appointment', {
+            patientId: patient.id,
+            patientName: input.patient_name,
+            patientPhone: input.phone ?? null,
+            patientEmail: input.email ?? null,
+            providerId: provider.id,
+            providerName: provider.user.name,
+            appointmentType: type,
+            date: strToDate(input.date),
+            startTime: strToTime(input.time),
+            endTime: strToTime(endTime),
+            durationMinutes: duration,
+            status: 'CONFIRMED',
+            isNewPatient: input.is_new_patient ?? false,
+            notes: input.notes ?? null,
+            callId: input.call_id ?? null,
+          }),
+        });
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new HttpError(409, `Slot ${input.time} is not available for the selected provider`);
+      }
+      throw err;
+    }
 
     return serialize(decryptRow('appointment', appointment));
   }

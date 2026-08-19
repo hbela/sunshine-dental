@@ -13,7 +13,21 @@ validateEnv()
 // an ADMIN unlocks via POST /api/admin/unlock.
 tryUnlockFromEnv()
 
-const server = Fastify({ logger: true })
+const server = Fastify({
+  logger: {
+    serializers: {
+      // Patient names/phones flow through query strings (?search=, ?patient_name=)
+      // and must never land in access logs — log the path only, never the query.
+      req: (req) => ({
+        method: req.method,
+        url: req.url?.split('?')[0],
+        hostname: req.hostname,
+        remoteAddress: req.ip,
+        remotePort: req.socket?.remotePort,
+      }),
+    },
+  },
+})
 
 server.register(app)
 

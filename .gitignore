@@ -15,6 +15,9 @@ node_modules
 # MCP config — contains API keys; keep local only (see .mcp.json.example)
 .mcp.json
 
+# Local agent settings — can contain credentials in permission rules
+.claude/settings.local.json
+
 # Testing
 coverage
 

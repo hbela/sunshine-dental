@@ -235,6 +235,9 @@ importers:
       vite-plugin-pwa:
         specifier: ^1.3.0
         version: 1.3.0(vite@7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.48.0)(tsx@4.23.1)(yaml@2.8.2))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@24.11.0)(vite@7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.48.0)(tsx@4.23.1)(yaml@2.8.2))
 
   packages/eslint-config:
     devDependencies:
@@ -8296,7 +8299,7 @@ snapshots:
       react-refresh: 0.18.0
       remotion: 4.0.492(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       style-loader: 4.0.0(webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.8))
-      webpack: 5.105.0(esbuild@0.28.1)(postcss@8.5.8)
+      webpack: 5.105.0(postcss@8.5.8)
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/core'
@@ -9229,7 +9232,6 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 7.3.1(@types/node@24.11.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.48.0)(tsx@4.23.1)(yaml@2.8.2)
-    optional: true
 
   '@vitest/pretty-format@4.1.10':
     dependencies:
@@ -9767,7 +9769,7 @@ snapshots:
       semver: 7.7.4
     optionalDependencies:
       '@rspack/core': 1.7.11
-      webpack: 5.105.0(esbuild@0.28.1)(postcss@8.5.8)
+      webpack: 5.105.0(postcss@8.5.8)
 
   cssesc@3.0.0: {}
 
@@ -11774,7 +11776,7 @@ snapshots:
 
   style-loader@4.0.0(webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.8)):
     dependencies:
-      webpack: 5.105.0(esbuild@0.28.1)(postcss@8.5.8)
+      webpack: 5.105.0(postcss@8.5.8)
 
   supports-color@7.2.0:
     dependencies:
@@ -11801,17 +11803,6 @@ snapshots:
       type-fest: 0.16.0
       unique-string: 2.0.0
 
-  terser-webpack-plugin@5.6.1(esbuild@0.28.1)(postcss@8.5.8)(webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.8)):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      jest-worker: 27.5.1
-      schema-utils: 4.3.3
-      terser: 5.48.0
-      webpack: 5.105.0(esbuild@0.28.1)(postcss@8.5.8)
-    optionalDependencies:
-      esbuild: 0.28.1
-      postcss: 8.5.8
-
   terser-webpack-plugin@5.6.1(lightningcss@1.31.1)(postcss@8.5.8)(webpack@5.105.0(lightningcss@1.31.1)(postcss@8.5.8)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -11823,6 +11814,16 @@ snapshots:
       lightningcss: 1.31.1
       postcss: 8.5.8
     optional: true
+
+  terser-webpack-plugin@5.6.1(postcss@8.5.8)(webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.8)):
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      jest-worker: 27.5.1
+      schema-utils: 4.3.3
+      terser: 5.48.0
+      webpack: 5.105.0(postcss@8.5.8)
+    optionalDependencies:
+      postcss: 8.5.8
 
   terser@5.48.0:
     dependencies:
@@ -12164,7 +12165,6 @@ snapshots:
       '@types/node': 24.11.0
     transitivePeerDependencies:
       - msw
-    optional: true
 
   void-elements@3.1.0: {}
 
@@ -12187,47 +12187,6 @@ snapshots:
   webpack-sources@3.5.1: {}
 
   webpack-virtual-modules@0.6.2: {}
-
-  webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.8):
-    dependencies:
-      '@types/eslint-scope': 3.7.7
-      '@types/estree': 1.0.8
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.16.0
-      acorn-import-phases: 1.0.4(acorn@8.16.0)
-      browserslist: 4.28.1
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.20.0
-      es-module-lexer: 2.3.0
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      glob-to-regexp: 0.4.1
-      graceful-fs: 4.2.11
-      json-parse-even-better-errors: 2.3.1
-      loader-runner: 4.3.2
-      mime-types: 2.1.35
-      neo-async: 2.6.2
-      schema-utils: 4.3.3
-      tapable: 2.3.0
-      terser-webpack-plugin: 5.6.1(esbuild@0.28.1)(postcss@8.5.8)(webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.8))
-      watchpack: 2.5.2
-      webpack-sources: 3.5.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - uglify-js
 
   webpack@5.105.0(lightningcss@1.31.1)(postcss@8.5.8):
     dependencies:
@@ -12270,6 +12229,47 @@ snapshots:
       - postcss
       - uglify-js
     optional: true
+
+  webpack@5.105.0(postcss@8.5.8):
+    dependencies:
+      '@types/eslint-scope': 3.7.7
+      '@types/estree': 1.0.8
+      '@types/json-schema': 7.0.15
+      '@webassemblyjs/ast': 1.14.1
+      '@webassemblyjs/wasm-edit': 1.14.1
+      '@webassemblyjs/wasm-parser': 1.14.1
+      acorn: 8.16.0
+      acorn-import-phases: 1.0.4(acorn@8.16.0)
+      browserslist: 4.28.1
+      chrome-trace-event: 1.0.4
+      enhanced-resolve: 5.20.0
+      es-module-lexer: 2.3.0
+      eslint-scope: 5.1.1
+      events: 3.3.0
+      glob-to-regexp: 0.4.1
+      graceful-fs: 4.2.11
+      json-parse-even-better-errors: 2.3.1
+      loader-runner: 4.3.2
+      mime-types: 2.1.35
+      neo-async: 2.6.2
+      schema-utils: 4.3.3
+      tapable: 2.3.0
+      terser-webpack-plugin: 5.6.1(postcss@8.5.8)(webpack@5.105.0(esbuild@0.28.1)(postcss@8.5.8))
+      watchpack: 2.5.2
+      webpack-sources: 3.5.1
+    transitivePeerDependencies:
+      - '@minify-html/node'
+      - '@swc/core'
+      - '@swc/css'
+      - '@swc/html'
+      - clean-css
+      - cssnano
+      - csso
+      - esbuild
+      - html-minifier-terser
+      - lightningcss
+      - postcss
+      - uglify-js
 
   whatwg-url@14.2.0:
     dependencies:
