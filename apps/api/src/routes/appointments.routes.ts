@@ -95,7 +95,6 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
         provider_name: z.string().optional(),
         is_new_patient: z.boolean().default(false),
         notes: z.string().optional(),
-        call_id: z.string().optional(),
       }),
       response: { 200: AppointmentSchema },
     },

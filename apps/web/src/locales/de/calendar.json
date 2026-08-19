@@ -2,6 +2,7 @@
   "title": "Kalender",
   "allProviders": "Alle Behandler",
   "addEvent": "Ereignis hinzufügen",
+  "manageAvailability": "Verfügbarkeit verwalten",
   "bookAppointment": "Termin buchen",
   "legend": {
     "confirmed": "Bestätigt",
@@ -57,5 +58,41 @@
       "FR": "Fr",
       "SA": "Sa"
     }
+  },
+  "availability": {
+    "title": "Verfügbarkeitsmuster",
+    "description": "Legen Sie wöchentliche buchbare Zeiten und Abweichungen für einzelne Tage fest.",
+    "patternNumber": "Muster {{number}}",
+    "newPattern": "Neues Muster",
+    "loading": "Verfügbarkeit wird geladen…",
+    "effectiveFrom": "Gültig ab",
+    "effectiveUntil": "Gültig bis (optional)",
+    "weekdays": {
+      "1": "Montag",
+      "2": "Dienstag",
+      "3": "Mittwoch",
+      "4": "Donnerstag",
+      "5": "Freitag",
+      "6": "Samstag",
+      "7": "Sonntag"
+    },
+    "addRange": "Zeit hinzufügen",
+    "removeRange": "Zeit entfernen",
+    "unavailable": "Nicht verfügbar",
+    "start": "Beginn",
+    "end": "Ende",
+    "copy": "Auf ausgewählte Tage kopieren",
+    "savePattern": "Muster speichern",
+    "saving": "Speichern…",
+    "deletePattern": "Muster löschen",
+    "confirmDelete": "Dieses Verfügbarkeitsmuster löschen? Bestehende Termine bleiben erhalten.",
+    "exceptions": "Datumsabweichungen",
+    "exceptionsDescription": "Ersetzen Sie die wöchentlichen Zeiten an einem Datum. Manuelle Kalendereinträge bleiben unabhängig.",
+    "exceptionDate": "Datum der Abweichung",
+    "saveException": "Abweichung speichern",
+    "deleteException": "Abweichung löschen",
+    "emptyMeansClosed": "Keine Zeiten hinzufügen, um das Muster an diesem Datum zu schließen.",
+    "closed": "Geschlossen",
+    "done": "Fertig"
   }
 }

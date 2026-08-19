@@ -43,7 +43,6 @@ function serialize(a: any) {
     status: a.status,
     isNewPatient: a.isNewPatient,
     notes: a.notes,
-    callId: a.callId,
   };
 }
 
@@ -58,7 +57,6 @@ export interface BookInput {
   provider_name?: string;
   is_new_patient?: boolean;
   notes?: string;
-  call_id?: string;
 }
 
 export interface CancelSearch {
@@ -220,7 +218,6 @@ export class AppointmentService {
             status: 'CONFIRMED',
             isNewPatient: input.is_new_patient ?? false,
             notes: input.notes ?? null,
-            callId: input.call_id ?? null,
           }),
         });
       });

@@ -50,7 +50,6 @@ function serializeAppointment(a: any) {
     status: a.status,
     isNewPatient: a.isNewPatient,
     notes: a.notes,
-    callId: a.callId,
   };
 }
 
@@ -62,7 +61,6 @@ export interface CreatePatientInput {
   is_new_patient?: boolean;
   callback_requested?: boolean;
   preferred_time?: string;
-  call_id?: string;
 }
 
 export interface UpdatePatientInput {

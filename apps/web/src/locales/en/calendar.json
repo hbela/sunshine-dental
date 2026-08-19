@@ -2,6 +2,7 @@
   "title": "Calendar",
   "allProviders": "All providers",
   "addEvent": "Add event",
+  "manageAvailability": "Manage availability",
   "bookAppointment": "Book appointment",
   "legend": {
     "confirmed": "Confirmed",
@@ -57,5 +58,41 @@
       "FR": "Fri",
       "SA": "Sat"
     }
+  },
+  "availability": {
+    "title": "Availability patterns",
+    "description": "Set weekly bookable hours and replace them on specific dates.",
+    "patternNumber": "Pattern {{number}}",
+    "newPattern": "New pattern",
+    "loading": "Loading availability…",
+    "effectiveFrom": "Effective from",
+    "effectiveUntil": "Effective until (optional)",
+    "weekdays": {
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+    },
+    "addRange": "Add hours",
+    "removeRange": "Remove hours",
+    "unavailable": "Unavailable",
+    "start": "Start time",
+    "end": "End time",
+    "copy": "Copy to selected days",
+    "savePattern": "Save pattern",
+    "saving": "Saving…",
+    "deletePattern": "Delete pattern",
+    "confirmDelete": "Delete this availability pattern? Existing appointments will remain.",
+    "exceptions": "Date exceptions",
+    "exceptionsDescription": "Replace the weekly hours on one date. Manual calendar events remain independent.",
+    "exceptionDate": "Exception date",
+    "saveException": "Save exception",
+    "deleteException": "Delete exception",
+    "emptyMeansClosed": "Leave the hours empty to close the pattern for this date.",
+    "closed": "Closed",
+    "done": "Done"
   }
 }

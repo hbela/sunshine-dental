@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import type { View, SlotInfo, Messages } from 'react-big-calendar'
@@ -7,16 +7,21 @@ import type { Locale } from 'date-fns'
 import { enUS, hu, de } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import { Plus } from 'lucide-react'
+import { CalendarRange, Plus } from 'lucide-react'
 import { authClient } from '@/auth-client'
 import { useProviders } from '@/hooks/useProviders'
-import { useCalendarEvents, useCalendarEventsMulti, type CalendarItem } from '@/hooks/useCalendar'
+import {
+  useCalendarEvents,
+  useCalendarEventsMulti,
+  type CalendarItem,
+} from '@/hooks/useCalendar'
 import { isoToWall, rangeForView } from '@/lib/calendar-utils'
 import { useDisplayName } from '@/lib/name'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { AppointmentModal } from './AppointmentModal'
 import { EventEditorModal } from './EventEditorModal'
+import { AvailabilityPatternsModal } from './AvailabilityPatternsModal'
 
 // All three locales registered; the active `culture` (below) selects which one
 // react-big-calendar uses — including each locale's week-start (Mon for hu/de).
@@ -40,8 +45,14 @@ interface CalEvent {
 type ModalState =
   | { type: 'view-appt'; item: CalendarItem; providerId: string }
   | { type: 'create-appt'; providerId: string; slotStart?: Date }
-  | { type: 'create-event'; providerId: string; slotStart?: Date; slotEnd?: Date }
+  | {
+      type: 'create-event'
+      providerId: string
+      slotStart?: Date
+      slotEnd?: Date
+    }
   | { type: 'edit-event'; item: CalendarItem; providerId: string }
+  | { type: 'manage-availability'; providerId: string }
   | null
 
 /** Soft tonal event colors — calm pastels from the sage/blush palette, not saturated. */
@@ -120,27 +131,37 @@ export function DentalCalendar() {
 
   const [date, setDate] = useState(new Date())
   const [view, setView] = useState<View>('week')
-  const [selectedProviderId, setSelectedProviderId] = useState<string | undefined>()
+  const [selectedProviderId, setSelectedProviderId] = useState<
+    string | undefined
+  >()
   const [allProviders, setAllProviders] = useState(false)
   const [modal, setModal] = useState<ModalState>(null)
 
   // Default provider: own profile for a PROVIDER, else the first provider.
-  useEffect(() => {
-    if (!providers || providers.length === 0 || selectedProviderId) return
-    const own = providers.find((p) => p.userId === userId)
-    setSelectedProviderId(role === 'PROVIDER' && own ? own.id : providers[0]!.id)
-  }, [providers, selectedProviderId, role, userId])
+  const ownProvider = providers?.find((provider) => provider.userId === userId)
+  const resolvedProviderId =
+    selectedProviderId ??
+    (role === 'PROVIDER' && ownProvider ? ownProvider.id : providers?.[0]?.id)
 
   // Fetch the same week window the calendar RENDERS: hu/de weeks start Monday,
   // date-fns defaults to Sunday — a Sunday-start fetch window silently dropped
   // the trailing Sunday's events in week/month view.
-  const dfLocale = ({ en: enUS, hu, de } as Record<string, Locale>)[culture] ?? enUS
+  const dfLocale =
+    ({ en: enUS, hu, de } as Record<string, Locale>)[culture] ?? enUS
   const weekStartsOn = dfLocale.options?.weekStartsOn ?? 0
 
-  const { from, to } = useMemo(() => rangeForView(date, view, weekStartsOn), [date, view, weekStartsOn])
+  const { from, to } = useMemo(
+    () => rangeForView(date, view, weekStartsOn),
+    [date, view, weekStartsOn],
+  )
 
-  const providerIds = allProviders && providers ? providers.map((p) => p.id) : []
-  const single = useCalendarEvents(allProviders ? undefined : selectedProviderId, from, to)
+  const providerIds =
+    allProviders && providers ? providers.map((p) => p.id) : []
+  const single = useCalendarEvents(
+    allProviders ? undefined : resolvedProviderId,
+    from,
+    to,
+  )
   const multi = useCalendarEventsMulti(providerIds, from, to)
 
   const events: CalEvent[] = []
@@ -154,29 +175,36 @@ export function DentalCalendar() {
   }
 
   const resources =
-    allProviders && providers ? providers.map((p) => ({ id: p.id, title: displayName(p) })) : undefined
+    allProviders && providers
+      ? providers.map((p) => ({ id: p.id, title: displayName(p) }))
+      : undefined
 
   const onSelectEvent = (event: CalEvent) => {
     const it = event.resource
-    const pid = event.resourceId ?? selectedProviderId
+    const pid = event.resourceId ?? resolvedProviderId
     if (!pid) return
     if (it.kind === 'appointment') {
       setModal({ type: 'view-appt', item: it, providerId: pid })
+    } else if (it.managedByPattern) {
+      setModal({ type: 'manage-availability', providerId: pid })
     } else {
       setModal({ type: 'edit-event', item: it, providerId: pid })
     }
   }
 
   const onSelectSlot = (slot: SlotInfo) => {
-    const pid = (slot as { resourceId?: string }).resourceId ?? selectedProviderId
+    const pid =
+      (slot as { resourceId?: string }).resourceId ?? resolvedProviderId
     if (!pid) return
     setModal({ type: 'create-appt', providerId: pid, slotStart: slot.start })
   }
 
   const closeModal = () => setModal(null)
-  const activeProviderId = selectedProviderId
+  const activeProviderId = resolvedProviderId
 
-  const availableViews: View[] = allProviders ? ['day', 'week'] : ['month', 'week', 'day', 'agenda']
+  const availableViews: View[] = allProviders
+    ? ['day', 'week']
+    : ['month', 'week', 'day', 'agenda']
 
   // Constrain the time-grid (week/day) to clinic hours: 8:00 AM – 8:00 PM.
   const minTime = useMemo(() => new Date(1970, 0, 1, 8, 0, 0), [])
@@ -193,7 +221,8 @@ export function DentalCalendar() {
               checked={allProviders}
               onChange={(e) => {
                 setAllProviders(e.target.checked)
-                if (e.target.checked && view !== 'day' && view !== 'week') setView('day')
+                if (e.target.checked && view !== 'day' && view !== 'week')
+                  setView('day')
               }}
             />
             {t('allProviders')}
@@ -203,7 +232,7 @@ export function DentalCalendar() {
         {!allProviders && (
           <Select
             className="w-64"
-            value={selectedProviderId ?? ''}
+            value={resolvedProviderId ?? ''}
             onChange={(e) => setSelectedProviderId(e.target.value)}
             disabled={!canSeeAll && role === 'PROVIDER'}
           >
@@ -217,6 +246,21 @@ export function DentalCalendar() {
         )}
 
         <div className="ml-auto flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!activeProviderId}
+            onClick={() =>
+              activeProviderId &&
+              setModal({
+                type: 'manage-availability',
+                providerId: activeProviderId,
+              })
+            }
+          >
+            <CalendarRange className="size-4" />
+            {t('manageAvailability')}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -308,6 +352,13 @@ export function DentalCalendar() {
           onOpenChange={closeModal}
         />
       )}
+      {modal?.type === 'manage-availability' && (
+        <AvailabilityPatternsModal
+          open
+          providerId={modal.providerId}
+          onOpenChange={closeModal}
+        />
+      )}
     </div>
   )
 }
@@ -326,7 +377,10 @@ function Legend() {
     <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
       {items.map((i) => (
         <span key={i.key} className="flex items-center gap-1.5">
-          <span className="inline-block size-3 rounded-md" style={{ backgroundColor: i.color }} />
+          <span
+            className="inline-block size-3 rounded-md"
+            style={{ backgroundColor: i.color }}
+          />
           {t(`legend.${i.key}`)}
         </span>
       ))}

@@ -70,7 +70,55 @@ export const CalendarEventSchema = z.object({
   type: CalendarEventTypeSchema,
   recurrence: z.string().nullable(),
   notes: z.string().nullable(),
+  availabilityPatternId: z.string().nullable().optional(),
+  availabilityExceptionId: z.string().nullable().optional(),
   createdBy: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
+
+export const AvailabilityRangeSchema = z.object({
+  start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  end: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+});
+
+export const AvailabilityDaySchema = z.object({
+  weekday: z.number().int().min(1).max(7),
+  ranges: z.array(AvailabilityRangeSchema),
+});
+
+export const AvailabilityPatternInputSchema = z.object({
+  effectiveFrom: z.string().date(),
+  effectiveUntil: z.string().date().nullable().optional(),
+  windows: z.array(AvailabilityDaySchema),
+});
+
+export const AvailabilityExceptionInputSchema = z.object({
+  date: z.string().date(),
+  windows: z.array(AvailabilityRangeSchema),
+});
+
+export const AvailabilityExceptionSchema =
+  AvailabilityExceptionInputSchema.extend({
+    id: z.string(),
+    patternId: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  });
+
+export const AvailabilityPatternSchema = AvailabilityPatternInputSchema.extend({
+  id: z.string(),
+  providerId: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  exceptions: z.array(AvailabilityExceptionSchema),
+});
+
+export type AvailabilityRange = z.infer<typeof AvailabilityRangeSchema>;
+export type AvailabilityDay = z.infer<typeof AvailabilityDaySchema>;
+export type AvailabilityPatternInput = z.infer<
+  typeof AvailabilityPatternInputSchema
+>;
+export type AvailabilityExceptionInput = z.infer<
+  typeof AvailabilityExceptionInputSchema
+>;

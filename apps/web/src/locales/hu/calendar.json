@@ -2,6 +2,7 @@
   "title": "Naptár",
   "allProviders": "Összes szolgáltató",
   "addEvent": "Esemény hozzáadása",
+  "manageAvailability": "Elérhetőség kezelése",
   "bookAppointment": "Időpont foglalása",
   "legend": {
     "confirmed": "Megerősítve",
@@ -57,5 +58,41 @@
       "FR": "P",
       "SA": "Szo"
     }
+  },
+  "availability": {
+    "title": "Elérhetőségi minták",
+    "description": "Állítsa be a heti foglalható időket és az egyedi napok eltéréseit.",
+    "patternNumber": "{{number}}. minta",
+    "newPattern": "Új minta",
+    "loading": "Elérhetőség betöltése…",
+    "effectiveFrom": "Érvényesség kezdete",
+    "effectiveUntil": "Érvényesség vége (opcionális)",
+    "weekdays": {
+      "1": "Hétfő",
+      "2": "Kedd",
+      "3": "Szerda",
+      "4": "Csütörtök",
+      "5": "Péntek",
+      "6": "Szombat",
+      "7": "Vasárnap"
+    },
+    "addRange": "Idősáv hozzáadása",
+    "removeRange": "Idősáv eltávolítása",
+    "unavailable": "Nem elérhető",
+    "start": "Kezdés",
+    "end": "Befejezés",
+    "copy": "Másolás a kijelölt napokra",
+    "savePattern": "Minta mentése",
+    "saving": "Mentés…",
+    "deletePattern": "Minta törlése",
+    "confirmDelete": "Törli ezt az elérhetőségi mintát? A meglévő időpontok megmaradnak.",
+    "exceptions": "Egyedi napok",
+    "exceptionsDescription": "Cserélje le a heti időket egy adott napon. A kézi naptáresemények függetlenek maradnak.",
+    "exceptionDate": "Kivétel dátuma",
+    "saveException": "Kivétel mentése",
+    "deleteException": "Kivétel törlése",
+    "emptyMeansClosed": "Hagyja üresen az idősávokat, ha ezen a napon zárva van.",
+    "closed": "Zárva",
+    "done": "Kész"
   }
 }

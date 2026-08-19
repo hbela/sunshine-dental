@@ -67,7 +67,6 @@ export async function patientsRoutes(fastify: FastifyInstance) {
         is_new_patient: z.boolean().default(true),
         callback_requested: z.boolean().default(false),
         preferred_time: z.string().optional(),
-        call_id: z.string().optional(),
       }),
       response: { 200: PatientSchema },
     },

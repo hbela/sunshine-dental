@@ -6,7 +6,9 @@ import { dateToStr, timeToStr } from '../lib/datetime.js';
 import { expandRecurrence } from '../lib/recurrence.js';
 import { providerNameWhere } from '../lib/name.js';
 
-type CalendarEventRow = Awaited<ReturnType<typeof prisma.calendarEvent.findMany>>[number];
+type CalendarEventRow = Awaited<
+  ReturnType<typeof prisma.calendarEvent.findMany>
+>[number];
 
 /** A half-open [start, end) span of a day, in minutes since midnight. */
 export interface MinuteRange {
@@ -35,10 +37,14 @@ export function generateSlots(
       const end = start + duration;
       if (end > window.end) continue;
 
-      const collides = unavailable.some((range) => start < range.end && end > range.start);
+      const collides = unavailable.some(
+        (range) => start < range.end && end > range.start,
+      );
       if (collides) continue;
 
-      const hh = Math.floor(start / 60).toString().padStart(2, '0');
+      const hh = Math.floor(start / 60)
+        .toString()
+        .padStart(2, '0');
       const mm = (start % 60).toString().padStart(2, '0');
       slots.push(`${hh}:${mm}`);
     }
@@ -69,7 +75,11 @@ async function expandedEventsInRange(
       providerId,
       OR: [
         // non-recurring: must overlap the window
-        { recurrence: null, start: { lte: rangeEnd }, end: { gte: rangeStart } },
+        {
+          recurrence: null,
+          start: { lte: rangeEnd },
+          end: { gte: rangeStart },
+        },
         // recurring: series must have started by the window end; occurrences filtered below
         { recurrence: { not: null }, start: { lte: rangeEnd } },
       ],
@@ -77,10 +87,35 @@ async function expandedEventsInRange(
     orderBy: { start: 'asc' },
   });
 
+  const exclusions = events.length
+    ? await prisma.calendarEventExclusion.findMany({
+        where: {
+          eventId: { in: events.map((event) => event.id) },
+          date: {
+            gte: new Date(`${dateToStr(rangeStart)}T00:00:00.000Z`),
+            lte: new Date(`${dateToStr(rangeEnd)}T00:00:00.000Z`),
+          },
+        },
+      })
+    : [];
+  const excludedByEvent = new Map<string, Set<string>>();
+  for (const exclusion of exclusions) {
+    const dates = excludedByEvent.get(exclusion.eventId) ?? new Set<string>();
+    dates.add(dateToStr(exclusion.date));
+    excludedByEvent.set(exclusion.eventId, dates);
+  }
+
   const out: ExpandedEvent[] = [];
   for (const e of events) {
     if (e.recurrence) {
-      for (const occ of expandRecurrence(e.start, e.end, e.recurrence, rangeStart, rangeEnd)) {
+      for (const occ of expandRecurrence(
+        e.start,
+        e.end,
+        e.recurrence,
+        rangeStart,
+        rangeEnd,
+      )) {
+        if (excludedByEvent.get(e.id)?.has(dateToStr(occ.start))) continue;
         out.push({ event: e, start: occ.start, end: occ.end });
       }
     } else {
@@ -119,11 +154,19 @@ export class CalendarService {
    * Availability is based on CalendarEvent records of type AVAILABLE,
    * minus BLOCKED/VACATION events and existing appointments.
    */
-  static async getAvailableSlots(dateString: string, type: string, providerId?: string, providerName?: string) {
+  static async getAvailableSlots(
+    dateString: string,
+    type: string,
+    providerId?: string,
+    providerName?: string,
+  ) {
     let provider;
 
     if (providerId) {
-      provider = await prisma.provider.findUnique({ where: { id: providerId }, include: { user: true } });
+      provider = await prisma.provider.findUnique({
+        where: { id: providerId },
+        include: { user: true },
+      });
     } else if (providerName) {
       // Token-aware, order-independent match so "Nagy Ibolya" and
       // "Ibolya Nagy" resolve to the same doctor.
@@ -146,9 +189,15 @@ export class CalendarService {
     const dayEnd = new Date(`${dateString}T23:59:59.999Z`);
 
     // Expand recurring events too, then partition by type for this day.
-    const occurrences = await expandedEventsInRange(provider.id, dayStart, dayEnd);
+    const occurrences = await expandedEventsInRange(
+      provider.id,
+      dayStart,
+      dayEnd,
+    );
 
-    const availableEvents = occurrences.filter((o) => o.event.type === 'AVAILABLE');
+    const availableEvents = occurrences.filter(
+      (o) => o.event.type === 'AVAILABLE',
+    );
 
     if (availableEvents.length === 0) {
       return { slots: [], duration, provider_name: provider.user.name };
@@ -170,7 +219,7 @@ export class CalendarService {
       },
     });
 
-    const appointmentRanges = appointments.map(a => {
+    const appointmentRanges = appointments.map((a) => {
       const start = timeToMinutes(prismaTimeToTimeString(a.startTime)!);
       return { start, end: start + a.durationMinutes };
     });
@@ -189,7 +238,11 @@ export class CalendarService {
       slotInterval(clinic),
     );
 
-    return { slots: availableSlots, duration, provider_name: provider.user.name };
+    return {
+      slots: availableSlots,
+      duration,
+      provider_name: provider.user.name,
+    };
   }
 
   /**
@@ -197,21 +250,10 @@ export class CalendarService {
    * Used by the chat agent's list_available_providers tool.
    */
   static async getAvailableProviders(dateString: string, type?: string) {
-    const dayStart = new Date(`${dateString}T00:00:00.000Z`);
-    const dayEnd = new Date(`${dateString}T23:59:59.999Z`);
-
-    // Find active providers with at least one AVAILABLE event on this date
+    // A recurring event's stored base date may be long before the requested
+    // day, so provider discovery must use the recurrence-aware slot calculator.
     const providers = await prisma.provider.findMany({
-      where: {
-        isActive: true,
-        calendarEvents: {
-          some: {
-            type: 'AVAILABLE',
-            start: { lte: dayEnd },
-            end: { gte: dayStart },
-          },
-        },
-      },
+      where: { isActive: true },
       include: { user: true },
     });
 
@@ -223,11 +265,15 @@ export class CalendarService {
           type ?? defaultServiceCode(clinic),
           p.id,
         );
-        return { provider_id: p.id, provider_name: p.user.name, available_slots: slots.length };
-      })
+        return {
+          provider_id: p.id,
+          provider_name: p.user.name,
+          available_slots: slots.length,
+        };
+      }),
     );
 
-    return results.filter(r => r.available_slots > 0);
+    return results.filter((r) => r.available_slots > 0);
   }
 
   /**
@@ -244,7 +290,11 @@ export class CalendarService {
     //    concrete occurrences. Occurrences carry the series definition
     //    (recurrence + seriesStart/seriesEnd) so the editor can edit the whole
     //    series rather than the clicked instance.
-    const occurrences = await expandedEventsInRange(providerId, fromDate, toDate);
+    const occurrences = await expandedEventsInRange(
+      providerId,
+      fromDate,
+      toDate,
+    );
 
     const calendarEvents = occurrences.map(({ event: e, start, end }) => ({
       id: e.id,
@@ -256,6 +306,9 @@ export class CalendarService {
       eventType: e.type,
       notes: e.notes,
       recurrence: e.recurrence,
+      availabilityPatternId: e.availabilityPatternId,
+      availabilityExceptionId: e.availabilityExceptionId,
+      managedByPattern: !!e.availabilityPatternId,
       seriesStart: e.recurrence ? e.start.toISOString() : undefined,
       seriesEnd: e.recurrence ? e.end.toISOString() : undefined,
     }));
@@ -279,13 +332,16 @@ export class CalendarService {
         kind: 'appointment' as const,
         appointmentId: a.id,
         title: `${patientName} · ${a.appointmentType}`,
-        start: new Date(`${ds}T${timeToStr(a.startTime)}:00.000Z`).toISOString(),
+        start: new Date(
+          `${ds}T${timeToStr(a.startTime)}:00.000Z`,
+        ).toISOString(),
         end: new Date(`${ds}T${timeToStr(a.endTime)}:00.000Z`).toISOString(),
         allDay: false,
         status: a.status,
         appointmentType: a.appointmentType,
         patientName,
-        patientPhone: a.patientPhone === null ? null : decryptOrPlaceholder(a.patientPhone),
+        patientPhone:
+          a.patientPhone === null ? null : decryptOrPlaceholder(a.patientPhone),
         notes: a.notes === null ? null : decryptOrPlaceholder(a.notes),
       };
     });

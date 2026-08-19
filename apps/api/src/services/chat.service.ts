@@ -259,7 +259,6 @@ async function runTool(conversationId: string, name: string, input: any): Promis
           provider_name: input.provider_name,
           is_new_patient: input.is_new_patient,
           notes: input.notes,
-          call_id: `chat_${conversationId}`,
         });
         await prisma.chatConversation.update({
           where: { id: conversationId },

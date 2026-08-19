@@ -26,7 +26,6 @@ export const AppointmentSchema = z.object({
   status: AppointmentStatusSchema,
   isNewPatient: z.boolean(),
   notes: z.string().nullable(),
-  callId: z.string().nullable(),
 });
 
 export type AppointmentParams = z.infer<typeof AppointmentSchema>;

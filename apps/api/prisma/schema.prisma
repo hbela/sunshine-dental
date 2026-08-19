@@ -97,6 +97,7 @@ model Provider {
 
   appointments     Appointment[]
   calendarEvents   CalendarEvent[]
+  availabilityPatterns AvailabilityPattern[]
   delegationsOwned CalendarDelegation[] @relation("DelegationOwner")
 }
 
@@ -229,9 +230,67 @@ model CalendarEvent {
   type       CalendarEventType @default(AVAILABLE)
   recurrence String?           // RRULE string for recurring events (future use)
   notes      String?
+  availabilityPatternId String?
+  availabilityPattern AvailabilityPattern? @relation(fields: [availabilityPatternId], references: [id], onDelete: Cascade)
+  availabilityExceptionId String?
+  availabilityException AvailabilityException? @relation(fields: [availabilityExceptionId], references: [id], onDelete: Cascade)
   createdBy  String?           // userId of who created this (provider or assistant)
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
+
+  exclusions CalendarEventExclusion[]
+
+  @@index([availabilityPatternId])
+  @@index([availabilityExceptionId])
+}
+
+// Provider-owned weekly schedule. `windows` is validated at the API boundary
+// and stores [{ weekday: 1..7, ranges: [{ start: "HH:MM", end: "HH:MM" }] }].
+model AvailabilityPattern {
+  id             String    @id @default(cuid())
+  providerId     String
+  provider       Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  effectiveFrom  DateTime  @db.Date
+  effectiveUntil DateTime? @db.Date
+  windows        Json
+  createdBy      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  exceptions     AvailabilityException[]
+  calendarEvents CalendarEvent[]
+
+  @@index([providerId, effectiveFrom])
+}
+
+// A date-specific replacement for the owning pattern. An empty `windows`
+// array closes that pattern for the date; manual availability remains additive.
+model AvailabilityException {
+  id        String   @id @default(cuid())
+  patternId String
+  pattern   AvailabilityPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  windows   Json
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calendarEvents CalendarEvent[]
+
+  @@unique([patternId, date])
+  @@index([date])
+}
+
+// EXDATE-equivalent rows for recurring CalendarEvents. Keeping exclusions
+// relational makes date replacement explicit and easy to reconcile safely.
+model CalendarEventExclusion {
+  id      String   @id @default(cuid())
+  eventId String
+  event   CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  date    DateTime @db.Date
+
+  @@unique([eventId, date])
+  @@index([date])
 }
 
 enum CalendarEventType {
